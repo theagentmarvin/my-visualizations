@@ -1,0 +1,657 @@
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;Wiki-Marvin Report Reader&lt;/title&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/marked@14.1.2/lib/marked.umd.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.umd.min.js&quot;&gt;&lt;/script&gt;
+    &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Georgia:ital,wght@0,400;0,700;1,400&amp;family=Inter:wght@400;500;600&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+    &lt;style&gt;
+        :root {
+            --bg: #fefefe;
+            --text: #1a1a1a;
+            --heading: #333;
+            --header-bg: rgba(255,255,255,0.95);
+            --toc-bg: #fff;
+            --th-bg: #f5f5f5;
+            --td-border: #ddd;
+            --link: #0066cc;
+            --shadow: rgba(0,0,0,0.1);
+            --border-light: #ccc;
+            --font-size: 18px;
+        }
+        .dark {
+            --bg: #121212;
+            --text: #e0e0e0;
+            --heading: #f0f0f0;
+            --header-bg: rgba(18,18,18,0.95);
+            --toc-bg: #1a1a1a;
+            --th-bg: #2a2a2a;
+            --td-border: #444;
+            --link: #4da6ff;
+            --shadow: rgba(0,0,0,0.2);
+            --border-light: #555;
+        }
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.7;
+            max-width: 55rem;
+            margin: 0 auto;
+            padding: 80px 1.5rem 100px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: var(--font-size);
+            hyphens: auto;
+            -webkit-hyphens: auto;
+            scroll-behavior: smooth;
+        }
+        @media (max-width: 768px) {
+            body { 
+                padding: 80px 1rem 100px; 
+                font-size: calc(var(--font-size) * 0.95);
+            }
+        }
+        h1, h2, h3, h4 {
+            font-weight: 400;
+            color: var(--heading);
+            scroll-margin-top: 80px;
+        }
+        h1 { font-size: 2.2rem; margin-bottom: 1rem; }
+        h2 { font-size: 1.8rem; }
+        h3 { font-size: 1.4rem; }
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            box-shadow: 0 2px 10px var(--shadow);
+            overflow-x: auto;
+            display: block;
+            white-space: nowrap;
+        }
+        th, td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--td-border);
+        }
+        th {
+            background: var(--th-bg);
+            font-weight: 600;
+        }
+        @media (max-width: 768px) {
+            table, thead, tbody, th, td, tr { 
+                display: block; 
+            }
+            thead tr { 
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr { 
+                border: 1px solid var(--border-light);
+                margin-bottom: 1rem;
+                padding: 1rem;
+                border-radius: 8px;
+            }
+            td { 
+                border: none;
+                position: relative;
+                padding-left: 50%;
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
+            td:before { 
+                content: attr(data-label) ': ';
+                position: absolute;
+                left: 6px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+                color: var(--heading);
+            }
+        }
+        /* Responsive images */
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        blockquote {
+            border-left: 4px solid var(--border-light);
+            padding-left: 1rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            background: rgba(0,0,0,0.05);
+            padding: 1rem;
+            border-radius: 4px;
+        }
+        .dark blockquote {
+            background: rgba(255,255,255,0.05);
+        }
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--header-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--td-border);
+            z-index: 1300;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+        .header input[type=&quot;search&quot;] {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--td-border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .header input[type=&quot;search&quot;]::placeholder {
+            color: var(--text);
+            opacity: 0.6;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .controls button {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 1.2rem;
+            color: var(--text);
+            transition: background 0.2s;
+        }
+        .controls button:hover {
+            background: rgba(0,0,0,0.1);
+        }
+        .dark .controls button:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .font-control {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        #font-slider {
+            width: 70px;
+            height: 4px;
+            background: var(--td-border);
+            border-radius: 2px;
+            accent-color: var(--link);
+        }
+        #font-value {
+            min-width: 28px;
+            text-align: right;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        /* Menu */
+        .menu-toggle {
+            background: none;
+            border: none;
+            padding: 0.5rem 0.75rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            color: var(--text);
+            @media (min-width: 1024px) {
+                display: none;
+            }
+        }
+        /* TOC */
+        #toc {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: var(--toc-bg);
+            overflow-y: auto;
+            padding: 80px 1.5rem 2rem;
+            box-shadow: 2px 0 10px var(--shadow);
+            transition: left 0.3s ease;
+            z-index: 1200;
+        }
+        #toc.open {
+            left: 0;
+        }
+        @media (min-width: 1024px) {
+            #toc {
+                position: static;
+                width: 25%;
+                float: left;
+                margin-right: 4%;
+                height: auto;
+                padding: 0 1.5rem 2rem 0;
+                box-shadow: none;
+                z-index: auto;
+            }
+            .main-content {
+                margin-left: 29%;
+            }
+            .menu-toggle { display: none !important; }
+        }
+        #toc h2 {
+            margin: 0 0 1rem 0;
+            font-size: 1.4rem;
+            color: var(--heading);
+        }
+        #toc-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #toc-list li {
+            margin: 0.5rem 0;
+        }
+        #toc-list a {
+            color: var(--link);
+            text-decoration: none;
+            font-size: 1rem;
+        }
+        #toc-list a:hover {
+            text-decoration: underline;
+        }
+        #content {
+            clear: both;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 2rem auto;
+            max-width: 800px;
+        }
+        @media (max-width: 768px) {
+            .chart-container { height: 300px; }
+        }
+        #backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.4);
+            z-index: 1199;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        #backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        body.menu-open {
+            overflow: hidden;
+        }
+        @media (min-width: 1024px) {
+            #backdrop { display: none !important; }
+            body.menu-open { overflow: visible; }
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem;
+            background: var(--header-bg);
+            border-top: 1px solid var(--td-border);
+            text-align: center;
+            font-size: 0.875em;
+            color: var(--text);
+            z-index: 1300;
+            box-shadow: 0 -2px 10px var(--shadow);
+        }
+        .footnote-ref a, .footnote-backref {
+            font-size: 0.8em;
+            text-decoration: none;
+            color: var(--link);
+        }
+        /* Print */
+        @media print {
+            .header, #toc:not(.open), #backdrop, .footer, .menu-toggle {
+                display: none !important;
+            }
+            body { padding: 0 !important; font-size: 12pt !important; }
+            .main-content { margin-left: 0 !important; }
+            table { display: table !important; width: 100% !important; overflow: visible !important; }
+            /* restore table on print */
+            thead tr { position: static !important; }
+            tr { display: table-row !important; margin: 0 !important; padding: 0 !important; border-radius: 0; }
+            td { display: table-cell !important; padding-left: 1rem !important; position: static !important; }
+            td:before { display: none !important; }
+            .chart-container { height: 300px !important; }
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;header class=&quot;header&quot;&gt;
+        &lt;button class=&quot;menu-toggle&quot; onclick=&quot;toggleToc()&quot; title=&quot;Table of Contents&quot;&gt;☰&lt;/button&gt;
+        &lt;input type=&quot;search&quot; id=&quot;search&quot; placeholder=&quot;🔍 Search in report...&quot; oninput=&quot;performSearch()&quot;&gt;
+        &lt;div class=&quot;controls&quot;&gt;
+            &lt;button id=&quot;theme-toggle&quot; onclick=&quot;toggleTheme()&quot; title=&quot;Toggle Dark Mode&quot;&gt;🌙&lt;/button&gt;
+            &lt;div class=&quot;font-control&quot;&gt;
+                &lt;span title=&quot;Font Size&quot;&gt;Aa&lt;/span&gt;
+                &lt;input type=&quot;range&quot; id=&quot;font-slider&quot; min=&quot;14&quot; max=&quot;28&quot; value=&quot;18&quot; step=&quot;1&quot; onchange=&quot;setFontSize(this.value)&quot;&gt;
+                &lt;span id=&quot;font-value&quot;&gt;18px&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;button onclick=&quot;window.print()&quot; title=&quot;Print / Save as PDF&quot;&gt;📄&lt;/button&gt;
+        &lt;/div&gt;
+    &lt;/header&gt;
+    
+    &lt;nav id=&quot;toc&quot;&gt;
+        &lt;h2&gt;📑 Contents&lt;/h2&gt;
+        &lt;ul id=&quot;toc-list&quot;&gt;&lt;/ul&gt;
+    &lt;/nav&gt;
+    &lt;div id=&quot;backdrop&quot;&gt;&lt;/div&gt;
+    
+    &lt;main class=&quot;main-content&quot;&gt;
+        &lt;div id=&quot;content&quot;&gt;
+            &lt;p&gt;Loading reader...&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/main&gt;
+    
+    &lt;footer class=&quot;footer&quot;&gt;
+        &lt;p&gt;&lt;strong&gt;Wiki-Marvin Reader&lt;/strong&gt; | &lt;a href=&quot;https://github.com/theagentmarvin/my-visualizations/tree/gh-pages/projects/wiki-reader&quot;&gt;View Source&lt;/a&gt; | Powered by &lt;a href=&quot;#&quot;&gt;OpenClaw&lt;/a&gt;&lt;/p&gt;
+    &lt;/footer&gt;
+    
+    &lt;script&gt;
+        // Utilities
+        function escapeHtml(text) {
+            const map = {
+                '&amp;': '&amp;amp;',
+                '&lt;': '&amp;lt;',
+                '&gt;': '&amp;gt;',
+                '&quot;': '&amp;quot;',
+                &quot;'&quot;: '&amp;#039;'
+            };
+            return text.replace(/[&lt;&gt;&quot;'&amp;]/g, m =&gt; map[m]);
+        }
+        function slugify(text) {
+            return text.toString().toLowerCase()
+                .trim()
+                .replace(/\\s+/g, '-')
+                .replace(/[^\\w\\-]+/g, '')
+                .replace(/\\-+/, '-');
+        }
+
+        // Theme
+        let isDark = false;
+        function initTheme() {
+            if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') &amp;&amp; window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                isDark = true;
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+        }
+        function toggleTheme() {
+            isDark = !isDark;
+            document.documentElement.classList.toggle('dark');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // Font
+        function setFontSize(size) {
+            document.documentElement.style.setProperty('--font-size', size + 'px');
+            document.getElementById('font-value').textContent = size + 'px';
+            localStorage.setItem('fontSize', size);
+        }
+
+        // TOC toggle
+        function toggleToc() {
+            const toc = document.getElementById('toc');
+            const backdrop = document.getElementById('backdrop');
+            toc.classList.toggle('open');
+            backdrop.classList.toggle('show');
+            document.body.classList.toggle('menu-open');
+        }
+
+        // Search
+        function performSearch() {
+            const query = document.getElementById('search').value.toLowerCase().trim();
+            const elements = document.querySelectorAll('#content &gt; section, #content h2, #content h3');
+            elements.forEach(el =&gt; {
+                const text = el.textContent.toLowerCase();
+                el.style.display = (query === '' || text.includes(query)) ? '' : 'none';
+            });
+            generateTOC();
+        }
+
+        // Generate TOC
+        function generateTOC() {
+            const content = document.getElementById('content');
+            const headings = Array.from(content.querySelectorAll('h2, h3, h4')).slice(0, 20);
+            const tocList = document.getElementById('toc-list');
+            tocList.innerHTML = '';
+            headings.forEach(h =&gt; {
+                let id = h.id;
+                if (!id) {
+                    id = slugify(h.textContent);
+                    h.id = id;
+                }
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = '#' + id;
+                a.textContent = h.textContent.trim().substring(0, 60);
+                a.onclick = function(e) {
+                    e.preventDefault();
+                    document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    if (window.innerWidth &lt; 1024) toggleToc();
+                };
+                li.appendChild(a);
+                tocList.appendChild(li);
+            });
+        }
+
+        // Charts
+        function initCharts() {
+            document.querySelectorAll('.chart-container[data-viz]').forEach(container =&gt; {
+                try {
+                    const vizConfig = JSON.parse(container.dataset.viz);
+                    const canvas = container.querySelector('canvas');
+                    if (canvas &amp;&amp; window.Chart) {
+                        new Chart(canvas.getContext('2d'), {
+                            type: vizConfig.type || 'bar',
+                            data: vizConfig.data,
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                ...vizConfig.options
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error('Chart init error:', e);
+                }
+            });
+        }
+
+        // JSON Renderer
+        function renderJSON(report) {
+            const citationMap = new Map();
+            let nextNum = 1;
+            function getCitationNum(key) {
+                if (!citationMap.has(key)) {
+                    citationMap.set(key, nextNum++);
+                }
+                return citationMap.get(key);
+            }
+
+            let html = `&lt;h1&gt;${escapeHtml(report.meta.title)}&lt;/h1&gt;`;
+
+            // Summary
+            html += `&lt;section id=&quot;summary&quot;&gt;&lt;h2&gt;Executive Summary&lt;/h2&gt;&lt;p&gt;${escapeHtml(report.summary.brief)}&lt;/p&gt;`;
+            if (report.summary.keyTakeaways) {
+                html += '&lt;ul&gt;' + report.summary.keyTakeaways.map(t =&gt; `&lt;li&gt;${escapeHtml(t)}&lt;/li&gt;`).join('') + '&lt;/ul&gt;';
+            }
+            html += `&lt;p&gt;&lt;em&gt;${escapeHtml(report.meta.date)} | ${escapeHtml(report.meta.researcher)}&lt;/em&gt;&lt;/p&gt;&lt;/section&gt;`;
+
+            // Sections
+            report.sections.forEach(section =&gt; {
+                html += `&lt;section id=&quot;${slugify(section.title)}&quot;&gt;&lt;h2&gt;${escapeHtml(section.title)}&lt;/h2&gt;`;
+                section.content.forEach(item =&gt; {
+                    if (item.type === 'paragraph') {
+                        let text = escapeHtml(item.text);
+                        if (item.citations &amp;&amp; item.citations.length) {
+                            text += item.citations.map(c =&gt; 
+                                `&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-${getCitationNum(c)}&quot;&gt;&lt;a href=&quot;#fn${getCitationNum(c)}&quot;&gt;[${getCitationNum(c)}]&lt;/a&gt;&lt;/sup&gt;`
+                            ).join('');
+                        }
+                        html += `&lt;p&gt;${text}&lt;/p&gt;`;
+                    } else if (item.type === 'data_table') {
+                        html += `&lt;h3&gt;${escapeHtml(item.title)}&lt;/h3&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;`;
+                        item.headers.forEach(h =&gt; html += `&lt;th&gt;${escapeHtml(h)}&lt;/th&gt;`);
+                        html += '&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;';
+                        item.rows.forEach(row =&gt; {
+                            html += '&lt;tr&gt;';
+                            row.forEach(cell =&gt; html += `&lt;td data-label=&quot;${escapeHtml(cell.split(':')[0])}&quot;&gt;${escapeHtml(cell)}&lt;/td&gt;`);
+                            html += '&lt;/tr&gt;';
+                        });
+                        html += '&lt;/tbody&gt;&lt;/table&gt;';
+                        if (item.citations) {
+                            html += item.citations.map(c =&gt; 
+                                `&lt;sup class=&quot;footnote-ref&quot;&gt;&lt;a href=&quot;#fn${getCitationNum(c)}&quot;&gt;[${getCitationNum(c)}]&lt;/a&gt;&lt;/sup&gt;`
+                            ).join('');
+                        }
+                    } else if (item.type === 'key_points') {
+                        html += '&lt;ul&gt;';
+                        item.points.forEach(p =&gt; {
+                            let text = escapeHtml(p.text);
+                            if (p.citations) {
+                                text += p.citations.map(c =&gt; 
+                                    `&lt;sup class=&quot;footnote-ref&quot;&gt;&lt;a href=&quot;#fn${getCitationNum(c)}&quot;&gt;[${getCitationNum(c)}]&lt;/a&gt;&lt;/sup&gt;`
+                                ).join('');
+                            }
+                            html += `&lt;li&gt;${text}&lt;/li&gt;`;
+                        });
+                        html += '&lt;/ul&gt;';
+                    }
+                });
+                html += '&lt;/section&gt;';
+            });
+
+            // Visualizations
+            if (report.visualizations &amp;&amp; report.visualizations.length) {
+                html += '&lt;section id=&quot;visualizations&quot;&gt;&lt;h2&gt;Visualizations&lt;/h2&gt;';
+                report.visualizations.forEach(viz =&gt; {
+                    const vizData = {
+                        type: viz.type,
+                        data: viz.data,
+                        options: viz.options
+                    };
+                    html += `&lt;h3&gt;${escapeHtml(viz.title)}&lt;/h3&gt;&lt;div class=&quot;chart-container&quot; data-viz='${JSON.stringify(vizData).replace(/'/g, &quot;\\&quot;&quot;)}'&gt;&lt;canvas&gt;&lt;/canvas&gt;&lt;/div&gt;`;
+                });
+                html += '&lt;/section&gt;';
+            }
+
+            // Sources
+            const ordered = Array.from(citationMap.entries()).sort(([,a], [,b]) =&gt; a - b);
+            html += '&lt;section id=&quot;sources&quot;&gt;&lt;h2&gt;Sources&lt;/h2&gt;&lt;ol class=&quot;footnotes&quot;&gt;';
+            ordered.forEach(([key, num]) =&gt; {
+                const src = report.sources[key];
+                html += `&lt;li id=&quot;fn${num}&quot;&gt;&lt;a href=&quot;#fnref-${num}&quot; class=&quot;footnote-backref&quot;&gt;↩&lt;/a&gt; &lt;a href=&quot;${src.url || '#' }&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;${escapeHtml(src.title)}&lt;/a&gt;`;
+                if (src.accessDate) html += ` &lt;span class=&quot;access-date&quot;&gt;(${escapeHtml(src.accessDate)})&lt;/span&gt;`;
+                html += '&lt;/li&gt;';
+            });
+            html += '&lt;/ol&gt;';
+            if (report.metadata) {
+                if (report.metadata.knowledgeGaps &amp;&amp; report.metadata.knowledgeGaps.length) {
+                    html += '&lt;h3&gt;Knowledge Gaps&lt;/h3&gt;&lt;ul&gt;' + report.metadata.knowledgeGaps.map(g =&gt; `&lt;li&gt;${escapeHtml(g)}&lt;/li&gt;`).join('') + '&lt;/ul&gt;';
+                }
+                html += `&lt;p&gt;&lt;strong&gt;Research Duration:&lt;/strong&gt; ${escapeHtml(report.metadata.researchDuration || 'N/A')} | &lt;strong&gt;Sources:&lt;/strong&gt; ${ordered.length} | &lt;em&gt;Generated: ${escapeHtml(report.meta.date)}&lt;/em&gt;&lt;/p&gt;`;
+            }
+            html += '&lt;/section&gt;';
+            return html;
+        }
+
+        // Load report
+        async function loadReport() {
+            const params = new URLSearchParams(window.location.search);
+            const src = params.get('src') || params.get('report') || params.get('file');
+            const content = document.getElementById('content');
+            if (!src) {
+                content.innerHTML = `
+                    &lt;h1&gt;📖 Wiki-Marvin Report Reader&lt;/h1&gt;
+                    &lt;p&gt;&lt;strong&gt;General-purpose e-reader&lt;/strong&gt; for Markdown or JSON research reports generated by Wiki-Marvin.&lt;/p&gt;
+                    &lt;h2&gt;Quick Start&lt;/h2&gt;
+                    &lt;p&gt;Append to URL: &lt;code&gt;?src=&lt;em&gt;https://your-report.md&lt;/em&gt; or .json&lt;/code&gt;&lt;/p&gt;
+                    &lt;h2&gt;Demos&lt;/h2&gt;
+                    &lt;ul&gt;
+                        &lt;li&gt;&lt;a href=&quot;?src=reports/la-palma.md&quot;&gt;La Palma, El Salvador (MD)&lt;/a&gt;&lt;/li&gt;
+                        &lt;li&gt;&lt;a href=&quot;?src=reports/coffee-chile.md&quot;&gt;Coffee Production in Chile (MD)&lt;/a&gt;&lt;/li&gt;
+                        &lt;li&gt;&lt;a href=&quot;?src=reports/mining-history.json&quot;&gt;El Salvador Mining History (JSON + Charts)&lt;/a&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;p&gt;&lt;strong&gt;Features:&lt;/strong&gt; Auto-TOC, dark/mobile, responsive tables, search, font adjust, print/PDF, JSON charts (Chart.js), bidirectional footnotes.&lt;/p&gt;
+                    &lt;p&gt;&lt;em&gt;Deployed: ${new Date().toISOString().slice(0,10)} | &lt;a href=&quot;https://github.com/theagentmarvin/my-visualizations/tree/gh-pages/projects/wiki-reader&quot;&gt;Edit&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+                `;
+                generateTOC();
+                return;
+            }
+            try {
+                const resp = await fetch(src);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+                const data = await resp.text();
+                const isJSON = src.match(/\\.json$/i);
+                let html;
+                if (isJSON) {
+                    const report = JSON.parse(data);
+                    html = renderJSON(report);
+                } else {
+                    html = DOMPurify.sanitize(marked.parse(data, { gfm: true, breaks: true }));
+                    // Basic MD footnotes
+                    html = html.replace(/\\[s*(\\d+)s*\\]/g, (m, num) =&gt; 
+                        `&lt;sup class=&quot;footnote-ref&quot; id=&quot;fnref-${num}&quot;&gt;&lt;a href=&quot;#fn${num}&quot;&gt;[${num}]&lt;/a&gt;&lt;/sup&gt;`
+                    );
+                }
+                content.innerHTML = html;
+                generateTOC();
+                initCharts();
+                const titleEl = content.querySelector('h1');
+                if (titleEl) {
+                    const title = titleEl.textContent.trim();
+                    document.title = title + ' - Wiki Reader';
+                }
+            } catch (error) {
+                content.innerHTML = `&lt;h1&gt;⚠️ Load Error&lt;/h1&gt;
+                    &lt;p&gt;Could not load &lt;code&gt;${escapeHtml(src)}&lt;/code&gt;&lt;/p&gt;
+                    &lt;p&gt;&lt;strong&gt;${error.message}&lt;/strong&gt;&lt;/p&gt;
+                    &lt;p&gt;Tips: Use full HTTPS URL, ensure CORS allowed (GitHub raw OK).&lt;/p&gt;`;
+            }
+        }
+
+        // Init
+        window.addEventListener('load', () =&gt; {
+            const savedFont = localStorage.getItem('fontSize') || '18';
+            document.getElementById('font-slider').value = savedFont;
+            setFontSize(savedFont);
+            initTheme();
+            loadReport();
+            // Backdrop click
+            document.getElementById('backdrop').onclick = toggleToc;
+            // ESC
+            document.addEventListener('keydown', (e) =&gt; {
+                if (e.key === 'Escape') toggleToc();
+            });
+        });
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
