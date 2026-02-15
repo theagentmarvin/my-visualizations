@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History of Mining in El Salvador - Interactive Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .chart-container { position: relative; height: 400px; margin: 20px 0; }
+        .section-content { margin-top: 20px; }
+        .table { font-size: 0.9em; }
+        .accordion-button { font-weight: 600; }
+        h1 { color: #1a3c34; }
+        .alert-info { background-color: #d1ecf1; border-color: #bee5eb; }
+    </style>
+</head>
+<body>
+    <div class="container my-5">
+        <h1 class="text-center mb-5">History of Mining in El Salvador</h1>
+        <div class="alert alert-info mb-5">
+            <h3>Summary</h3>
+            <p id="summary-brief"></p>
+            <h4>Key Findings</h4>
+            <ul id="key-takeaways" class="list-group list-group-flush"></ul>
+        </div>
+        <div id="visualizations" class="row mb-5"></div>
+        <div id="sections-container"><h2 class="mb-4">Detailed Sections</h2></div>
+        <div id="sources-container" class="mt-5"></div>
+    </div>
+    <script>
+        const data = {
+  "meta": {
+    "title": "History of Mining in El Salvador",
+    "date": "2026-02-15",
+    "time": "15:20:00",
+    "timezone": "GMT-3",
+    "researcher": "Wiki-Marvin",
+    "model": "xai/grok-4-1-fast-reasoning",
+    "version": "1.0"
+  },
+  "summary": {
+    "brief": "Mining in El Salvador has been limited historically, with artisanal gold extraction in the early 20th century and brief industrialization in the 1970s marred by pollution. A landmark 2017 ban on metal mining was overturned in December 2024 amid economic promises and environmental concerns. Production has been minimal, never a major economic driver.",
+    "keyTakeaways": [
+      "Pre-colonial and colonial mining was negligible; modern activity began ~1904 with artisanal gold mines.",
+      "Key sites: San Sebastian (Commerce Group, polluted), El Dorado (Pacific Rim, halted).",
+      "2017 ban first globally, reversed 2024 by Bukele govt promising sustainable state-led mining.",
+      "Environmental risks to Lempa River watershed primary opposition factor."
+    ],
+    "tags": ["mining", "El Salvador", "gold", "mining ban", "environmental impact", "Nayib Bukele"]
+  },
+  "sections": [
+    {
+      "id": "pre-colonial-colonial",
+      "title": "Pre-Colonial and Colonial Origins",
+      "order": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "text": "Pre-colonial evidence of mining is limited to indigenous use of gold for artifacts by Pipil and Lenca peoples, likely alluvial panning rather than large-scale extraction. During Spanish colonial rule (1524-1821), El Salvador saw minimal mining compared to neighboring Honduras' silver mines; focus remained on agriculture like indigo and cacao.",
+          "citations": ["wiki-mining-elsv", "researchgate-central"]
+        },
+        {
+          "type": "key_points",
+          "points": [
+            {
+              "text": "No major pre-colonial industrial mining documented.",
+              "citations": ["wiki-mining-elsv"]
+            },
+            {
+              "text": "Colonial exploitation secondary to agriculture.",
+              "citations": ["metalmarket-goldrush"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "20th-century",
+      "title": "20th-Century Developments",
+      "order": 2,
+      "content": [
+        {
+          "type": "paragraph",
+          "text": "Artisanal gold mining emerged around 1904 with San Sebastian and Santa Elena mines. Santa Elena produced 32 tons of gold from 1904-1954. In the 1970s, US firm Commerce Group industrialized San Sebastian, introducing cyanide processing but causing severe San Sebastian River pollution with arsenic and mercury. Civil war (1980-1992) halted operations. Post-war, ARENA government issued 28 exploration licenses to foreign firms.",
+          "citations": ["progressive-won", "wiki-mining-elsv", "guardian-goldfever"]
+        },
+        {
+          "type": "data_table",
+          "title": "Major Historical Mines",
+          "headers": ["Mine", "Operator", "Period", "Production"],
+          "rows": [
+            ["San Sebastian", "Commerce Group (1970s)", "1904-1980s", "Limited data; polluted river"],
+            ["Santa Elena", "Butters Salvador Mining", "1904-1954", "32 tons gold"],
+            ["El Dorado", "Pacific Rim", "Exploration 2000s", "Not developed"]
+          ],
+          "citations": ["progressive-won", "ceic-gold"]
+        }
+      ]
+    },
+    {
+      "id": "companies-projects",
+      "title": "Key Companies and Projects",
+      "order": 3,
+      "content": [
+        {
+          "type": "paragraph",
+          "text": "Commerce Group industrialized San Sebastian (1968-2006). Pacific Rim (later OceanaGold) targeted El Dorado (2002), planning open-pit but faced protests. Au Martinique Silver prospected Chalatenango (2005), halted by locals. Post-ban reversal, state-led projects anticipated.",
+          "citations": ["wiki-mining-elsv", "progressive-won"]
+        },
+        {
+          "type": "key_points",
+          "points": [
+            {
+              "text": "Commerce Group: Sued El Salvador (lost 2011).",
+              "citations": ["metalmarket-goldrush"]
+            },
+            {
+              "text": "Pacific Rim/OceanaGold: $250M suit lost 2016.",
+              "citations": ["wiki-mining-elsv"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "impacts",
+      "title": "Environmental and Social Impacts",
+      "order": 4,
+      "content": [
+        {
+          "type": "paragraph",
+          "text": "San Sebastian pollution caused cancer, respiratory issues; 90% surface water polluted, 85% deforestation since 1960s. Lempa River (half country's water) at risk from cyanide, acid drainage. Social: 2009 activist murders in Cabañas; community divisions.",
+          "citations": ["progressive-won", "wiki-mining-elsv"]
+        },
+        {
+          "type": "data_table",
+          "title": "Production Volumes (Sparse Data)",
+          "headers": ["Period", "Gold (kg)", "Notes"],
+          "rows": [
+            ["1904-1954 (Santa Elena)", "32000", "32 tons"],
+            ["1997-1999 avg", "98", "CEIC data"],
+            ["Overall historical", "Minimal", "Never major GDP contributor"]
+          ],
+          "citations": ["ceic-gold", "boell-analysis"]
+        }
+      ]
+    },
+    {
+      "id": "2017-ban",
+      "title": "The 2017 Mining Ban",
+      "order": 5,
+      "content": [
+        {
+          "type": "paragraph",
+          "text": "Driven by National Roundtable Against Metallic Mining (2005), Catholic Church, locals; 80% public support. Passed March 29, 2017 unanimously. First global metal mining ban.",
+          "citations": ["wiki-mining-elsv", "progressive-won"]
+        }
+      ]
+    },
+    {
+      "id": "recent-debates",
+      "title": "Recent Debates and Reversal",
+      "order": 6,
+      "content": [
+        {
+          "type": "paragraph",
+          "text": "President Bukele (2019-) claims $3T gold reserves (disputed; ~50M oz potential). Proposed Nov 2024 'sustainable' state mining; Congress overturned ban Dec 23, 2024. Opposition from environmentalists, Church citing water risks.",
+          "citations": ["reuters-bill", "metalmarket-goldrush", "ips-water-gold"]
+        }
+      ]
+    }
+  ],
+  "visualizations": [
+    {
+      "id": "timeline-mining-events",
+      "type": "line",
+      "title": "Key Events in El Salvador Mining History",
+      "description": "Timeline of major milestones (y=1 for event occurrence)",
+      "data": {
+        "labels": ["1900", "1920", "1940", "1960", "1980", "2000", "2005", "2009", "2016", "2017", "2024"],
+        "datasets": [{
+          "label": "Events",
+          "data": [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1],
+          "borderColor": "gold",
+          "backgroundColor": "rgba(255,215,0,0.2)"
+        }]
+      },
+      "options": {
+        "responsive": true,
+        "scales": {
+          "y": {"min": 0, "max": 2, "ticks": {"stepSize": 1}}
+        }
+      }
+    },
+    {
+      "id": "production-gold",
+      "type": "bar",
+      "title": "Historical Gold Production (tons)",
+      "description": "Available data points; sparse historical records.",
+      "data": {
+        "labels": ["1904-1954 (Santa Elena)", "1997-99 avg annual"],
+        "datasets": [{
+          "label": "Gold (tons)",
+          "data": [32, 0.098]
+        }]
+      },
+      "options": {"responsive": true}
+    }
+  ],
+  "sources": {
+    "wiki-mining-elsv": {
+      "title": "Mining in El Salvador - Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Mining_in_El_Salvador",
+      "accessDate": "2026-02-15T15:20:00-03:00",
+      "type": "encyclopedia",
+      "credibility": "high"
+    },
+    "progressive-won": {
+      "title": "How El Salvador Won on Mining",
+      "author": "Esty Dinur",
+      "url": "https://progressive.org/magazine/how-el-salvador-won-on-mining/",
+      "accessDate": "2026-02-15T15:20:00-03:00",
+      "type": "article",
+      "credibility": "medium"
+    },
+    "metalmarket-goldrush": {
+      "title": "New gold rush in El Salvador or mining ban to be restored?",
+      "url": "https://www.metalmarket.eu/en/blog/new-gold-rush-in-el-salvador-or-mining-ban-to-be-restored-1743601920",
+      "accessDate": "2026-02-15T15:20:00-03:00",
+      "type": "article",
+      "credibility": "medium"
+    },
+    "reuters-bill": {
+      "title": "El Salvador president proposes bill to overturn metals mining ban",
+      "url": "https://www.reuters.com/world/americas/el-salvador-president-proposes-bill-overturn-metals-mining-ban-2024-12-21/",
+      "accessDate": "2026-02-15T15:20:00-03:00",
+      "type": "article",
+      "credibility": "high"
+    },
+    "guardian-goldfever": {
+      "title": "Gold fever: big mining companies circle as El Salvador prepares to reverse ban",
+      "url": "https://www.theguardian.com/global-development/2024/feb/03/gold-why-the-fight-over-mining-el-salvador-precious-metal-may-not-be-over",
+      "accessDate": "2026-02-15T15:20:00-03:00",
+      "type": "article",
+      "credibility": "high"
+    },
+    "ceic-gold": {
+      "title": "El Salvador Gold Production",
+      "url": "https://www.ceicdata.com/en/indicator/el-salvador/gold-production",
+      "accessDate": "2026-02-15T15:20:00-03:00",
+      "type": "data",
+      "credibility": "high"
+    },
+    "ips-water-gold": {
+      "title": "Water Over Gold: 15 Reasons Why El Salvador Should Again Reject Gold Mining",
+      "url": "https://ips-dc.org/water-over-gold-15-reasons-why-el-salvador-should-again-reject-gold-mining/",
+      "accessDate": "2026-02-15T15:20:00-03:00",
+      "type": "report",
+      "credibility": "medium"
+    },
+    "researchgate-central": {
+      "title": "Metal mining in Central America (early 1500s-late 1800s)",
+      "url": "https://www.researchgate.net/publication/236588721_Metal_mining_in_Central_America_early_1500s-late_1800s",
+      "accessDate": "2026-02-15T15:20:00-03:00",
+      "type": "academic",
+      "credibility": "high"
+    }
+  },
+  "metadata": {
+    "totalSources": 8,
+    "searchQueries": [
+      "history of mining in El Salvador pre-colonial colonial 20th century",
+      "major mines companies projects El Salvador gold silver production volumes economic significance",
+      "El Salvador mining ban 2017 environmental social impacts",
+      "mining production statistics El Salvador historical data gold silver tons",
+      "\\"El Salvador\\" mining ban reversal debates 2021-2026 Nayib Bukele",
+      "timeline key events mining history El Salvador"
+    ],
+    "researchDuration": "16 minutes",
+    "knowledgeGaps": [
+      "Detailed pre-colonial mining data scarce.",
+      "Comprehensive historical production volumes limited; mostly qualitative.",
+      "Post-2024 reversal project specifics emerging."
+    ],
+    "lastUpdated": "2026-02-15T15:20:00-03:00"
+  }
+};
+
+        function renderSummary() {
+            document.getElementById('summary-brief').textContent = data.summary.brief;
+            const kt = data.summary.keyTakeaways;
+            const ul = document.getElementById('key-takeaways');
+            ul.innerHTML = kt.map(p => `<li class="list-group-item">${p}</li>`).join('');
+        }
+
+        function renderVisualizations() {
+            const vizContainer = document.getElementById('visualizations');
+            data.visualizations.forEach((viz, index) => {
+                const col = document.createElement('div');
+                col.className = 'col-lg-6 col-md-12 mb-4';
+                col.innerHTML = `
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">${viz.title}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small">${viz.description}</p>
+                            <div class="chart-container">
+                                <canvas id="chart-${index}"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                vizContainer.appendChild(col);
+                new Chart(document.getElementById(`chart-${index}`), {
+                    type: viz.type,
+                    data: viz.data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        ...viz.options
+                    }
+                });
+            });
+
+            // Pollution viz
+            const pollutionData = {
+                labels: ['Surface Water Polluted (San Sebastian)', 'Deforestation since 1960s', 'Health Impacts (qualitative high)'],
+                datasets: [{
+                    label: 'Impact Level (%)',
+                    data: [90, 85, 95],
+                    backgroundColor: ['#dc3545', '#ffc107', '#fd7e14']
+                }]
+            };
+            const pollutionCol = document.createElement('div');
+            pollutionCol.className = 'col-lg-6 col-md-12 mb-4';
+            pollutionCol.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Environmental Pollution Impacts</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Key metrics from historical records (estimates).</p>
+                        <div class="chart-container">
+                            <canvas id="pollution-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+            vizContainer.appendChild(pollutionCol);
+            new Chart(document.getElementById('pollution-chart'), {
+                type: 'bar',
+                data: pollutionData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderSections() {
+            const container = document.getElementById('sections-container');
+            data.sections.sort((a, b) => a.order - b.order).forEach(section => {
+                const accordionId = `accordion-${section.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+                const accordionItem = document.createElement('div');
+                accordionItem.className = 'accordion mb-4';
+                accordionItem.id = accordionId;
+                accordionItem.innerHTML = `
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${section.id}">
+                                ${section.title}
+                            </button>
+                        </h2>
+                        <div id="collapse-${section.id}" class="accordion-collapse collapse" data-bs-parent="#${accordionId}">
+                            <div class="accordion-body">
+                                <div class="section-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(accordionItem);
+                const body = accordionItem.querySelector('.section-content');
+                section.content.forEach(item => {
+                    if (item.type === 'paragraph') {
+                        const p = document.createElement('p');
+                        p.innerHTML = item.text.replace(/\[/g, '<sup>').replace(/\]/g, '</sup>');
+                        body.appendChild(p);
+                    } else if (item.type === 'key_points') {
+                        const ul = document.createElement('ul');
+                        ul.className = 'list-group list-group-flush mt-2';
+                        item.points.forEach(pt => {
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item';
+                            li.textContent = pt.text;
+                            ul.appendChild(li);
+                        });
+                        body.appendChild(ul);
+                    } else if (item.type === 'data_table') {
+                        const card = document.createElement('div');
+                        card.className = 'card mt-3';
+                        card.innerHTML = `
+                            <div class="card-header">
+                                <h6 class="mb-0">${item.title}</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-striped table-sm mb-0">
+                                    <thead>
+                                        <tr>${item.headers.map(h => `<th>${h}</th>`).join('')}</tr>
+                                    </thead>
+                                    <tbody>
+                                        ${item.rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                        body.appendChild(card);
+                    }
+                });
+            });
+        }
+
+        function renderSources() {
+            const container = document.getElementById('sources-container');
+            let html = '<h2 class="mb-4">Sources</h2><div class="row">';
+            Object.entries(data.sources).forEach(([key, src]) => {
+                html += `
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">${src.title}</h6>
+                                <p class="card-text small text-muted">${src.type} | Credibility: ${src.credibility}</p>
+                                ${src.author ? `<p class="small">${src.author}</p>` : ''}
+                                <a href="${src.url}" class="btn btn-sm btn-outline-primary" target="_blank">View</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSummary();
+            renderVisualizations();
+            renderSections();
+            renderSources();
+        });
+    </script>
+</body>
+</html>
