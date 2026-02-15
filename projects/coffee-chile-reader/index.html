@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coffee Production in Chile: History, Economics, Regions, and Volumes</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* E-reader optimized styles */
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.7;
+            max-width: 55rem;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            background: #fefefe;
+            color: #1a1a1a;
+            font-size: 1.2rem;
+            hyphens: auto;
+            -webkit-hyphens: auto;
+        }
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #121212;
+                color: #e0e0e0;
+            }
+            table { background: #1e1e1e; }
+            th { background: #2a2a2a; }
+        }
+        h1, h2, h3 {
+            font-weight: 400;
+            color: #333;
+        }
+        @media (prefers-color-scheme: dark) {
+            h1, h2, h3 { color: #f0f0f0; }
+        }
+        /* Responsive tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            display: block;
+            white-space: nowrap;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        @media (max-width: 768px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr {
+                border: 1px solid #ccc;
+                margin-bottom: 1rem;
+                padding: 1rem;
+            }
+            td {
+                border: none;
+                position: relative;
+                padding-left: 50%;
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
+            td:before {
+                content: attr(data-label) ': ';
+                position: absolute;
+                left: 6px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+            }
+        }
+        th, td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+        @media (prefers-color-scheme: dark) {
+            th { background: #2a2a2a; }
+            td { border-bottom-color: #444; }
+        }
+        /* Hamburger menu */
+        .hamburger {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1100;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 0.5rem 0.75rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        @media (prefers-color-scheme: dark) {
+            .hamburger { background: rgba(0,0,0,0.8); }
+        }
+        @media (min-width: 1024px) {
+            .hamburger { display: none; }
+        }
+        #toc {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: #fff;
+            overflow-y: auto;
+            padding: 2rem 1.5rem;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            transition: left 0.3s ease;
+            z-index: 1000;
+        }
+        @media (prefers-color-scheme: dark) {
+            #toc { background: #1a1a1a; }
+        }
+        #toc.open {
+            left: 0;
+        }
+        @media (min-width: 1024px) {
+            #toc {
+                position: static;
+                width: 25%;
+                float: left;
+                margin-right: 4%;
+                height: auto;
+                box-shadow: none;
+            }
+            .main-content {
+                margin-left: 29%;
+            }
+        }
+        #toc h2 {
+            margin-top: 0;
+            font-size: 1.4rem;
+        }
+        #toc ul {
+            list-style: none;
+            padding: 0;
+        }
+        #toc li {
+            margin: 0.5rem 0;
+        }
+        #toc a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        #toc a:hover {
+            text-decoration: underline;
+        }
+        .main-content {
+            clear: both;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 2rem auto;
+            max-width: 800px;
+        }
+        @media (max-width: 768px) {
+            .chart-container { height: 300px; }
+            body { font-size: 1.1rem; padding: 1rem; }
+        }
+        blockquote {
+            border-left: 4px solid #ccc;
+            padding-left: 1rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <button class="hamburger" onclick="toggleToc()">☰</button>
+    
+    <nav id="toc">
+        <h2>On this page</h2>
+        <ul>
+            <li><a href="#executive-summary">Executive Summary</a></li>
+            <li><a href="#history">History</a></li>
+            <li><a href="#regions">Regions</a></li>
+            <li><a href="#production-volumes">Production Volumes</a></li>
+            <li><a href="#economics">Economics</a></li>
+            <li><a href="#visualizations">Visualizations</a></li>
+            <li><a href="#sources">Sources</a></li>
+        </ul>
+    </nav>
+    
+    <main class="main-content">
+        <h1>Coffee Production in Chile: History, Economics, Regions, and Volumes</h1>
+        
+        <section id="executive-summary">
+            <h2>Executive Summary</h2>
+            <p>Chile has virtually no commercial coffee production due to unfavorable climate conditions across its continental territory. The only notable efforts are small-scale, artisanal cultivation on Easter Island (Rapa Nui), where wild coffee plants introduced in the early 19th century persist. Production volumes are negligible compared to global leaders, with Chile absent from FAO lists of significant producers. Economic impact is minimal, though specialty coffee from Rapa Nui holds niche potential.</p>
+            
+            <p><strong>Key Takeaways:</strong></p>
+            <ul>
+                <li>No large-scale production; climate unsuitable for continental Chile.</li>
+                <li>Easter Island hosts wild and small artisanal plantations targeting specialty market.</li>
+                <li>Chile is a net importer of coffee for domestic consumption.</li>
+            </ul>
+            
+            <p><em>Date: 2026-02-15 | Researcher: Wiki-Marvin Subagent</em></p>
+        </section>
+        
+        <section id="history">
+            <h2>History</h2>
+            <p>Coffee plants were likely introduced to Easter Island (Rapa Nui) by Dutch navigators in the early 19th century. These plants have survived as wild specimens scattered across the island.<sup>[s1]</sup><sup>[s2]</sup></p>
+            
+            <p>In 2017, initiatives led by local importers and agronomists aimed to revive and commercialize Rapa Nui coffee as a specialty product, focusing on organic, artisanal production rather than volume.<sup>[s2]</sup> Continental Chile has historically produced coffee substitutes (e.g., barley coffee) due to lack of suitable tropical climates.<sup>[s1]</sup></p>
+            
+            <p>No evidence of significant historical production on the mainland.</p>
+        </section>
+        
+        <section id="regions">
+            <h2>Regions</h2>
+            <h3>Easter Island (Rapa Nui)</h3>
+            <ul>
+                <li>The sole region with viable coffee plants.</li>
+                <li>Subtropical climate allows survival of wild <em>Coffea</em> species.</li>
+                <li>Small family plots and experimental plantations.<sup>[s1]</sup><sup>[s2]</sup><sup>[s4]</sup></li>
+            </ul>
+            
+            <h3>Continental Chile</h3>
+            <p><strong>Unsuitable:</strong></p>
+            <ul>
+                <li>Northern regions (e.g., Atacama Desert): Extreme aridity blocks humidity.<sup>[s5]</sup></li>
+                <li>Central/Southern regions: Temperatures too low for coffee arabica/robusta.</li>
+            </ul>
+        </section>
+        
+        <section id="production-volumes">
+            <h2>Production Volumes</h2>
+            <p>Chile does not appear in FAO's list of 36 countries producing &gt;10,000 tonnes of green coffee in 2023 (world total: 11.1 million tonnes).<sup>[s3]</sup></p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th>Production (tonnes)</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2023</td>
+                        <td>0 (not listed)</td>
+                        <td>FAO via Wikipedia <sup>[s3]</sup></td>
+                    </tr>
+                    <tr>
+                        <td>Historical</td>
+                        <td>Negligible</td>
+                        <td>IndexMundi, no data <sup>[s6]</sup></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p>Easter Island: No official volumes reported; limited to family-scale production for local/tourist use. Not competitive with Brazil's ~3.4M tonnes.<sup>[s2]</sup><sup>[s4]</sup></p>
+        </section>
+        
+        <section id="economics">
+            <h2>Economics</h2>
+            <ul>
+                <li><strong>Production Impact:</strong> Negligible contribution to GDP or exports.</li>
+                <li><strong>Consumption/Imports:</strong> Chile imports significant volumes for domestic market (e.g., Statista data on green coffee imports).<sup>[s7]</sup></li>
+                <li><strong>Niche Opportunity:</strong> Rapa Nui coffee as premium specialty product, leveraging uniqueness for tourism and high-end markets.<sup>[s2]</sup><sup>[s4]</sup></li>
+                <li>Global Context: Coffee belt excludes most of Chile geographically.</li>
+            </ul>
+        </section>
+        
+        <section id="visualizations">
+            <h2>Visualizations</h2>
+            
+            <h3>Top Global Coffee Producers (2023)</h3>
+            <div class="chart-container">
+                <canvas id="coffeeChart"></canvas>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Country</th>
+                        <th>Tonnes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Brazil</td>
+                        <td>3,405,267</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Vietnam</td>
+                        <td>1,956,782</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Indonesia</td>
+                        <td>760,192</td>
+                    </tr>
+                    <tr>
+                        <td>...</td>
+                        <td>Chile</td>
+                        <td>0</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p><sup>[s3]</sup></p>
+        </section>
+        
+        <section id="sources">
+            <h2>Sources</h2>
+            <ul>
+                <li><sup>[s1]</sup> Café de Chile - Wikipedia (es.wikipedia.org, accessed 2026-02-15)</li>
+                <li><sup>[s2]</sup> Chile busca ingresar al mercado del café... - ChileBIO (2017)</li>
+                <li><sup>[s3]</sup> List of countries by coffee production - Wikipedia (en.wikipedia.org)</li>
+                <li><sup>[s4]</sup> El café más remoto de Chile... - lafinca.io (2025)</li>
+                <li><sup>[s5]</sup> Reddit r/Coffee discussion on climate</li>
+                <li><sup>[s6]</sup> IndexMundi Chile Green Coffee Production</li>
+                <li><sup>[s7]</sup> Various Statista import stats</li>
+            </ul>
+            
+            <p><strong>Knowledge Gaps:</strong> Exact current production volumes from Easter Island; recent developments post-2025.</p>
+            
+            <p><strong>Research Duration:</strong> ~15 minutes | Total Sources: 7 | Queries: [&quot;coffee production Chile...&quot;]</p>
+        </section>
+    </main>
+    
+    <script>
+        function toggleToc() {
+            document.getElementById('toc').classList.toggle('open');
+        }
+        
+        // Chart.js visualization
+        const ctx = document.getElementById('coffeeChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Brazil', 'Vietnam', 'Indonesia', 'Chile'],
+                datasets: [{
+                    label: 'Production (tonnes, 2023)',
+                    data: [3405267, 1956782, 760192, 0],
+                    backgroundColor: [
+                        '#28a745', // green
+                        '#007bff', // blue
+                        '#ffc107', // yellow
+                        '#dc3545'  // red for 0
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Top Producers vs. Chile (2023)'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
