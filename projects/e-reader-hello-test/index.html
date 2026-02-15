@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Reader Styling Test</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --fg: #000000;
+  --text: #333333;
+  --link: #0066cc;
+  --header-bg: #f0f0f0;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121212;
+    --fg: #ffffff;
+    --text: #e0e0e0;
+    --link: #4da6ff;
+    --header-bg: #333333;
+  }
+}
+body {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+h1, h2 {
+  color: var(--fg);
+  border-bottom: 2px solid var(--header-bg);
+  padding-bottom: 10px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+th, td {
+  border: 1px solid var(--text);
+  padding: 8px;
+  text-align: left;
+}
+@media (max-width: 600px) {
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  tr {
+    border: 1px solid var(--text);
+    margin-bottom: 10px;
+  }
+  td {
+    border: none;
+    border-bottom: 1px solid var(--text);
+    position: relative;
+    padding-left: 50%;
+  }
+  td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 6px;
+    width: 45%;
+    font-weight: bold;
+  }
+}
+code {
+  background: var(--header-bg);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+nav#toc {
+  background: var(--header-bg);
+  padding: 15px;
+  margin-bottom: 30px;
+  border-radius: 5px;
+}
+nav#toc ul {
+  list-style: none;
+  padding: 0;
+}
+nav#toc a {
+  color: var(--link);
+}
+@media (max-width: 600px) {
+  body { 
+    padding: 10px; 
+    font-size: 18px; 
+  }
+}
+</style>
+</head>
+<body>
+<nav id="toc">
+<h2>Table of Contents</h2>
+<ul>
+<li><a href="#hello">Hello</a></li>
+<li><a href="#world">World</a></li>
+</ul>
+</nav>
+<h1 id="hello">Hello</h1>
+<h2 id="world">World</h2>
+<p><strong>Bold</strong> <em>italic</em></p>
+<table>
+<thead>
+<tr><th>A</th><th>B</th></tr>
+</thead>
+<tbody>
+<tr><td data-label="A">1</td><td data-label="B">2</td></tr>
+</tbody>
+</table>
+<p><code>code</code>. List:</p>
+<ul>
+<li>Item</li>
+</ul>
+</body>
+</html>
