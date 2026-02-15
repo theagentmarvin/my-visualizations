@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Salvador Mining History Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            line-height: 1.6;
+        }
+        header {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        h1 { color: #1a202c; margin: 0 0 10px; }
+        .summary { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .key-takeaway {
+            background: #4299e1;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            box-shadow: 0 2px 4px rgba(66,153,225,0.3);
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+        @media (max-width: 768px) {
+            .charts-grid { grid-template-columns: 1fr; }
+            .chart-wrapper { height: 300px; }
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th { background: #f7fafc; font-weight: 600; }
+        .timeline-container { height: 600px; }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 20px; }
+        }
+        .sources {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .source-card {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4299e1;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>The History of Mining in El Salvador</h1>
+        <p>From Pre-Colonial Origins to the 2024 Ban Reversal</p>
+        <div class="summary">
+            <div class="key-takeaway">First country to ban metal mining (2017), reversed 2024</div>
+            <div class="key-takeaway">San Sebastián mine: 35 tons gold, severe arsenic pollution (300x limits)</div>
+            <div class="key-takeaway">4 environmental activists murdered in 2009</div>
+            <div class="key-takeaway">Mining: 0.3% GDP, 90% surface water polluted</div>
+            <div class="key-takeaway">Bukele claims $131B gold reserves (disputed)</div>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2>Production & Pollution Charts</h2>
+        <div class="charts-grid">
+            <div>
+                <h3>Gold Production (Metric Tons)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="productionChart"></canvas>
+                </div>
+            </div>
+            <div>
+                <h3>Pollution Levels (Times Above Safe Standards)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="pollutionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Interactive Timeline (26 Key Events)</h2>
+        <div id="timeline" class="timeline-container"></div>
+    </div>
+
+    <div class="container">
+        <h2>Key Data Tables</h2>
+        <table>
+            <caption>San Sebastián Mine Production</caption>
+            <thead>
+                <tr><th>Period</th><th>Gold Production</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>1904-1917 (13 years)</td><td>25+ metric tons</td><td>Initial boom period</td></tr>
+                <tr><td>1904-1920</td><td>~1 million ounces (31 tons)</td><td>High-grade ore</td></tr>
+                <tr><td>1904-1953 (total)</td><td>1,136,000 oz (35.33 tons)</td><td>Complete operational period</td></tr>
+            </tbody>
+        </table>
+
+        <table>
+            <caption>San Sebastián River Contamination</caption>
+            <thead>
+                <tr><th>Contaminant</th><th>Level vs. Safe Standards</th><th>Source Year</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Cyanide</td><td>9x acceptable level</td><td>2012</td></tr>
+                <tr><td>Iron</td><td>1,000x acceptable level</td><td>2012</td></tr>
+                <tr><td>Arsenic</td><td>300x international standards</td><td>Recent</td></tr>
+                <tr><td>Cadmium</td><td>72x EPA recommended</td><td>Research</td></tr>
+                <tr><td>Mercury</td><td>36x EPA recommended</td><td>Research</td></tr>
+            </tbody>
+        </table>
+
+        <table>
+            <caption>Anti-Mining Activists Murdered (2009)</caption>
+            <thead>
+                <tr><th>Name</th><th>Date</th><th>Role</th><th>Details</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Marcelo Rivera</td><td>June 18</td><td>Environmental activist</td><td>Tortured, found in well</td></tr>
+                <tr><td>Ramiro Rivera Gómez</td><td>Dec 20</td><td>Vice President, Cabañas Committee</td><td>Shot despite police protection</td></tr>
+                <tr><td>Dora Alicia Sorto</td><td>Dec 26</td><td>Committee member</td><td>8 months pregnant, child died</td></tr>
+                <tr><td>Juan Francisco Durán Ayala</td><td>2009</td><td>Community activist</td><td>Killed for anti-mining work</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container">
+        <h2>Sources (Sample Cards)</h2>
+        <div class="sources">
+            <div class="source-card"><strong>guardian-ban-2017</strong><br>The Guardian: El Salvador bans metals mining</div>
+            <div class="source-card"><strong>elpais-2025-mining</strong><br>El Pais: Mining history analysis</div>
+            <div class="source-card"><strong>elfaro-1912-letter</strong><br>El Faro: 1912 cyanide complaint letter</div>
+            <div class="source-card"><strong>mining-es-wiki-2025</strong><br>Wikipedia: Mining in El Salvador</div>
+            <!-- Add more as needed -->
+        </div>
+    </div>
+
+    <script>
+        // Production Chart
+        const productionCtx = document.getElementById(\'productionChart\').getContext(\'2d\');
+        new Chart(productionCtx, {
+            type: \'bar\',
+            data: {
+                labels: [\'1904-1920 San Sebastián\', \'Santa Elena (1904-1954)\', \'1948-1953 El Dorado\', \'1969-1980 San Sebastián\', \'Total San Sebastián\'],
+                datasets: [{
+                    label: \'Gold (metric tons)\',
+                    data: [31, 32, 2.26, 1, 35.33],
+                    backgroundColor: \'#f59e0b\',
+                    borderColor: \'#d97706\',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                },
+                plugins: {
+                    title: { display: true, text: \'Major Gold Production Periods\' }
+                }
+            }
+        });
+
+        // Pollution Chart
+        const pollutionCtx = document.getElementById(\'pollutionChart\').getContext(\'2d\');
+        new Chart(pollutionCtx, {
+            type: \'bar\',
+            data: {
+                labels: [\'Cyanide\', \'Iron\', \'Arsenic\', \'Cadmium\', \'Mercury\'],
+                datasets: [{
+                    label: \'Times above safe levels\',
+                    data: [9, 1000, 300, 72, 36],
+                    backgroundColor: \'#ef4444\',
+                    borderColor: \'#dc2626\',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: \'y\',
+                scales: {
+                    x: { type: \'logarithmic\', position: \'bottom\' }
+                },
+                plugins: {
+                    title: { display: true, text: \'San Sebastián River Contamination (log scale)\' }
+                }
+            }
+        });
+
+        // Timeline Data - 26 events
+        const timelineData = [
+            {xbegin: \'Pre-1500\', xend: \'Pre-1500\', y: \'Pipil indigenous metalworking\'},
+            {xbegin: \'1524\', xend: \'1524\', y: \'Spanish conquistadors arrive seeking gold\'},
+            {xbegin: \'Early 1500s\', xend: \'Early 1500s\', y: \'Jocoro-Divisadero district mining begins\'},
+            {xbegin: \'1904\', xend: \'1904\', y: \'San Sebastián Gold Mine opens\'},
+            {xbegin: \'1909\', xend: \'1909\', y: \'Gold exports peak at $1.1M USD\'},
+            {xbegin: \'1911\', xend: \'1911\', y: \'Harry Garthwaite death\'},
+            {xbegin: \'1912\', xend: \'1912\', y: \'Cyanide pollution complaints from locals\'},
+            {xbegin: \'1915\', xend: \'1915\', y: \'Divisadero explosion kills 50 workers\'},
+            {xbegin: \'1948\', xend: \'1948\', y: \'El Dorado mine starts\'},
+            {xbegin: \'1953\', xend: \'1953\', y: \'El Dorado closes\'},
+            {xbegin: \'1969\', xend: \'1969\', y: \'San Sebastián “gem of industry”\'},
+            {xbegin: \'1970s\', xend: \'1970s\', y: \'Commerce Group industrializes\'},
+            {xbegin: \'1980\', xend: \'1980\', y: \'Civil War halts mining\'},
+            {xbegin: \'1992\', xend: \'1992\', y: \'Peace accords, reforms begin\'},
+            {xbegin: \'1995\', xend: \'1995\', y: \'3% mining royalty set\'},
+            {xbegin: \'2001\', xend: \'2001\', y: \'Mining Law revised\'},
+            {xbegin: \'2002\', xend: \'2002\', y: \'Pacific Rim acquires El Dorado\'},
+            {xbegin: \'2005\', xend: \'2005\', y: \'Anti-Mining Roundtable formed\'},
+            {xbegin: \'2005\', xend: \'2005\', y: \'Au Martinique prospecting starts\'},
+            {xbegin: \'2006\', xend: \'2006\', y: \'Au Martinique halted by community\'},
+            {xbegin: \'2006\', xend: \'2006\', y: \'De facto moratorium\'},
+            {xbegin: \'2009-06\', xend: \'2009-06\', y: \'Marcelo Rivera murdered\'},
+            {xbegin: \'2009-12\', xend: \'2009-12\', y: \'3 more activists murdered\'},
+            {xbegin: \'2009\', xend: \'2009\', y: \'Pacific Rim $250M lawsuit\'},
+            {xbegin: \'2016-10\', xend: \'2016-10\', y: \'ICSID win, $8M awarded\'},
+            {xbegin: \'2017-03\', xend: \'2017-03\', y: \'Global first mining ban passed\'}
+        ];
+
+        const trace = {
+            type: \"timeline",
+            xbegin: timelineData.map(d => d.xbegin),
+            xend: timelineData.map(d => d.xend),
+            y: timelineData.map(d => d.y),
+            text: timelineData.map(d => d.y),
+            mode: \'markers\',
+            marker: { color: \'#4299e1\' },
+            hovertemplate: \'%{y} <br> %{xbegin} <extra></extra>\'
+        };
+
+        Plotly.newPlot(\'timeline\', [trace], {
+            title: {
+                text: \'Mining History Timeline (Hover for details)\',
+                font: { size: 20 }
+            },
+            xaxis: {
+                title: \'Year\',
+                type: \'category\'
+            },
+            yaxis: {
+                autorange: \'reversed\',
+                title: \'Events (chronological)\'
+            },
+            height: 600,
+            responsive: true
+        });
+    </script>
+</body>
+</html>
