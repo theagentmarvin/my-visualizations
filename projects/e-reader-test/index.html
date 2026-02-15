@@ -1,0 +1,224 @@
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;E-Reader Test&lt;/title&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/markdown-it-footnote@3.0.3/index.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/markdown-it-anchor@8.6.1/dist/markdownItAnchor.umd.min.js&quot;&gt;&lt;/script&gt;
+    &lt;style&gt;
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { 
+            font-family: &apos;Georgia&apos;, serif; 
+            line-height: 1.6; 
+            margin: 0; 
+            padding: 0;
+            color: #333;
+            background: #f9f9f9;
+        }
+        #sidebar {
+            position: fixed;
+            left: -300px;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            transition: left 0.3s ease;
+            z-index: 1000;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        #sidebar.open { left: 0; }
+        #main {
+            transition: margin-left 0.3s ease;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding-top: 60px;
+        }
+        @media (min-width: 768px) {
+            #sidebar { 
+                left: 0; 
+                position: absolute; 
+                width: 250px;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+            #main { margin-left: 270px; padding: 20px; }
+            #openbtn, #closebtn { display: none; }
+        }
+        #openbtn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        #closebtn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #toc {
+            position: sticky;
+            top: 20px;
+        }
+        #toc h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        #toc ul {
+            list-style: none;
+            padding: 0;
+        }
+        #toc li {
+            margin: 5px 0;
+        }
+        #toc a {
+            color: #007acc;
+            text-decoration: none;
+            font-size: 0.95em;
+        }
+        #toc a:hover {
+            text-decoration: underline;
+        }
+        #content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        #content h1, #content h2, #content h3 {
+            scroll-margin-top: 80px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .footnotes {
+            font-size: 0.9em;
+            margin-top: 2em;
+            padding-top: 1em;
+            border-top: 1px solid #eee;
+        }
+        .footnote-ref {
+            font-size: 0.8em;
+            vertical-align: super;
+        }
+        .footnotes-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .footnote-backref {
+            font-size: 0.8em;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div id=&quot;sidebar&quot;&gt;
+        &lt;button id=&quot;closebtn&quot;&gt;&amp;times;&lt;/button&gt;
+        &lt;div id=&quot;toc&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div id=&quot;main&quot;&gt;
+        &lt;button id=&quot;openbtn&quot;&gt;&amp;#9776;&lt;/button&gt;
+        &lt;div id=&quot;content&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;script&gt;
+        document.addEventListener(&apos;DOMContentLoaded&apos;, function() {
+            const md = window.markdownit({
+                html: true,
+                linkify: true,
+                typographer: true
+            })
+            .use(window.markdownitFootnote)
+            .use(window.markdownItAnchor);
+
+            const rawMD = `# Test
+
+## Section 1
+
+Content.
+
+| A | B |
+| - | - |
+|1|2|
+
+## Section 2
+
+More. Footnotes[^1].
+
+[^1]: Note.`;
+
+            let html = md.render(rawMD);
+
+            // Generate TOC
+            const tempDiv = document.createElement(&apos;div&apos;);
+            tempDiv.innerHTML = html;
+            const headings = Array.from(tempDiv.querySelectorAll(&apos;h1, h2, h3, h4, h5, h6&apos;)).map(heading =&gt; ({
+                level: parseInt(heading.tagName.substring(1)),
+                text: heading.textContent.trim(),
+                id: heading.id
+            })).filter(h =&gt; h.id); // only with id
+
+            const toc = document.getElementById(&apos;toc&apos;);
+            if (headings.length &gt; 0) {
+                let tocHTML = &apos;&lt;h3&gt;Table of Contents&lt;/h3&gt;&lt;ul&gt;&apos;;
+                headings.forEach(h =&gt; {
+                    tocHTML += `&lt;li style=&quot;padding-left: ${(h.level - 1) * 15}px;&quot;&gt;&lt;a href=&quot;#${h.id}&quot;&gt;${h.text}&lt;/a&gt;&lt;/li&gt;`;
+                });
+                tocHTML += &apos;&lt;/ul&gt;&apos;;
+                toc.innerHTML = tocHTML;
+            }
+
+            // Add click handlers for TOC links to close sidebar on mobile
+            document.addEventListener(&apos;click&apos;, function(e) {
+                if (e.target.matches(&apos;#toc a[href^=&quot;#&quot;]&apos;)) {
+                    document.getElementById(&apos;sidebar&apos;).classList.remove(&apos;open&apos;);
+                }
+            });
+
+            document.getElementById(&apos;content&apos;).innerHTML = html;
+
+            // Event listeners
+            document.getElementById(&apos;openbtn&apos;).addEventListener(&apos;click&apos;, () =&gt; {
+                document.getElementById(&apos;sidebar&apos;).classList.add(&apos;open&apos;);
+            });
+            document.getElementById(&apos;closebtn&apos;).addEventListener(&apos;click&apos;, () =&gt; {
+                document.getElementById(&apos;sidebar&apos;).classList.remove(&apos;open&apos;);
+            });
+        });
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
