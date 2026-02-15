@@ -1,0 +1,418 @@
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;Mining Paginated Reader - GoldVein Project&lt;/title&gt;
+  &lt;script src=&quot;https://cdn.jsdelivr.net/npm/marked@14.1.2/marked.min.js&quot;&gt;&lt;/script&gt;
+  &lt;style&gt;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      line-height: 1.6; 
+      color: #333; 
+      background: linear-gradient(to bottom, #f0f8f0, #e8f4e8); 
+    }
+    .sidebar { 
+      position: fixed; 
+      left: 0; 
+      top: 0; 
+      width: 300px; 
+      height: 100vh; 
+      background: linear-gradient(180deg, #2c5530 0%, #1a3d22 100%); 
+      color: white; 
+      transform: translateX(-100%); 
+      transition: transform 0.3s ease; 
+      overflow-y: auto; 
+      z-index: 1000; 
+      box-shadow: 2px 0 10px rgba(0,0,0,0.2); 
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-header { 
+      padding: 1rem; 
+      border-bottom: 1px solid rgba(255,255,255,0.2); 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+    }
+    .sidebar-header h2 { font-size: 1.3rem; margin: 0; }
+    .close-btn { 
+      background: none; 
+      border: none; 
+      color: white; 
+      font-size: 1.5rem; 
+      cursor: pointer; 
+      padding: 0.2rem 0.5rem; 
+      border-radius: 50%; 
+      transition: background 0.2s; 
+    }
+    .close-btn:hover { background: rgba(255,255,255,0.2); }
+    #toc { list-style: none; padding: 1rem 0; }
+    #toc li { margin: 0.3rem 0; }
+    #toc a { 
+      color: white; 
+      text-decoration: none; 
+      display: block; 
+      padding: 0.8rem 1.5rem; 
+      transition: all 0.2s; 
+    }
+    #toc a:hover, #toc a.active { 
+      background: rgba(212, 160, 23, 0.3); 
+      padding-left: 2rem; 
+    }
+    .hamburger { 
+      position: fixed; 
+      top: 1rem; 
+      left: 1rem; 
+      background: linear-gradient(45deg, #d4a017, #b8860b); 
+      color: white; 
+      border: none; 
+      padding: 0.8rem 1.2rem; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      z-index: 1001; 
+      font-size: 1.1rem; 
+      font-weight: bold; 
+      box-shadow: 0 2px 10px rgba(212,160,23,0.4); 
+      display: none; 
+    }
+    #content { 
+      padding: 7rem 2rem 2rem 2rem; 
+      max-width: 1200px; 
+      margin: 0 auto; 
+    }
+    details.section { 
+      margin: 2rem 0; 
+      border: 1px solid #d4d4d4; 
+      border-radius: 12px; 
+      overflow: hidden; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+      background: white; 
+    }
+    summary.section-title { 
+      font-size: 1.8rem; 
+      font-weight: bold; 
+      padding: 1.5rem 2rem; 
+      background: linear-gradient(90deg, #e8f0e8, #f0f8f0); 
+      cursor: pointer; 
+      color: #2c5530; 
+      list-style: none; 
+      user-select: none; 
+    }
+    summary::-webkit-details-marker, summary::-moz-list-bullet { display: none; }
+    details[open] summary { 
+      background: linear-gradient(90deg, #d4a017, #b8860b); 
+      color: white; 
+    }
+    .content { 
+      padding: 2rem; 
+      background: white; 
+    }
+    h1, h2, h3, h4 { color: #2c5530; margin-top: 1.5rem; }
+    h1 { font-size: 2.8rem; text-align: center; margin-bottom: 3rem; color: #1a3d22; }
+    h3 { font-size: 1.4rem; }
+    p { margin-bottom: 1rem; }
+    ul, ol { margin-bottom: 1rem; padding-left: 2rem; }
+    pre { 
+      background: #1e1e1e; 
+      color: #d4d4d4; 
+      padding: 1.5rem; 
+      overflow: auto; 
+      border-radius: 8px; 
+      margin: 1rem 0; 
+    }
+    code { 
+      background: #f0f0f0; 
+      padding: 0.2rem 0.5rem; 
+      border-radius: 4px; 
+      font-family: 'Courier New', monospace; 
+    }
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      margin: 1.5rem 0; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+    }
+    th, td { 
+      border: 1px solid #ddd; 
+      padding: 1rem; 
+      text-align: left; 
+    }
+    th { 
+      background: linear-gradient(90deg, #2c5530, #1a3d22); 
+      color: white; 
+      font-weight: bold; 
+    }
+    tr:nth-child(even) { background: #f8f8f8; }
+    tr:hover { background: #e8f4e8; }
+    blockquote { 
+      border-left: 4px solid #d4a017; 
+      margin: 1.5rem 0; 
+      padding-left: 1.5rem; 
+      background: #fff8e8; 
+      font-style: italic; 
+    }
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hamburger { display: block; }
+      .sidebar { width: 85vw; }
+      #content { padding: 5rem 1rem 1rem 1rem; }
+      summary.section-title { font-size: 1.5rem; padding: 1.2rem 1.5rem; }
+      .content { padding: 1.5rem; }
+      table { font-size: 0.9rem; }
+      th, td { padding: 0.8rem 0.5rem; }
+    }
+    html { scroll-behavior: smooth; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1 style=&quot;text-align: center; padding: 2rem; color: #1a3d22; font-size: 3rem; margin-bottom: 0;&quot;&gt;Mining Paginated Reader&lt;/h1&gt;
+  &lt;p style=&quot;text-align: center; font-size: 1.2rem; margin-bottom: 3rem; color: #555;&quot;&gt;Full report rendering with no truncation, H2-level accordions, TOC navigation, mobile hamburger menu&lt;/p&gt;
+  &lt;nav id=&quot;sidebar&quot; class=&quot;sidebar&quot;&gt;
+    &lt;div class=&quot;sidebar-header&quot;&gt;
+      &lt;h2&gt;Table of Contents&lt;/h2&gt;
+      &lt;button id=&quot;close-btn&quot; class=&quot;close-btn&quot;&gt;&amp;times;&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;ul id=&quot;toc&quot;&gt;&lt;/ul&gt;
+  &lt;/nav&gt;
+  &lt;button id=&quot;hamburger&quot; class=&quot;hamburger&quot;&gt;☰ TOC&lt;/button&gt;
+  &lt;main id=&quot;content&quot;&gt;
+    &lt;p&gt;Loading report...&lt;/p&gt;
+  &lt;/main&gt;
+  &lt;script&gt;
+    const md = \`# GoldVein Mining Project - Comprehensive Feasibility Report
+
+## Introduction
+
+The GoldVein Mining Project is a greenfield gold mining operation located in the high Andes of Chile. This report provides a detailed analysis of the project's geology, resources, mining plan, economics, and environmental considerations.
+
+**Key Highlights:**
+- Indicated Resource: 2.5 Moz gold at 1.2 g/t
+- Projected Life of Mine: 12 years
+- Average Annual Production: 180koz gold
+- NPV(5%) : \\\\$450 million
+
+The project benefits from excellent infrastructure access, low jurisdictional risk, and favorable metallurgy with 93% recovery.
+
+## Geological Survey
+
+### Stratigraphy and Mineralization
+
+The deposit is hosted in a porphyry gold system within volcanic rocks of the Paleocene age. Key units include:
+
+* Andesite flows (host rock)
+* Breccia pipes (high-grade zones)
+* Quartz vein stockworks
+
+Mineralization is controlled by NW-trending structures intersecting domes.
+
+### Sampling Results
+
+Extensive surface sampling (n=1,200) returned highlights:
+* 45m @ 2.8 g/t (including 12m @ 8.2 g/t)
+* 28m @ 3.1 g/t
+
+\`\`\`python
+# Example geochemical analysis
+import pandas as pd
+data = {'Au_gpt': [1.2, 2.8, 0.9, 5.1], 'Ag_gpt': [15, 42, 8, 120]}
+df = pd.DataFrame(data)
+print(df.describe())
+\`\`\`
+
+## Drilling Program
+
+### Drill Hole Database
+
+Phase 1 drilling (45 holes, 22,500m) confirmed continuity:
+
+| Hole ID | From (m) | To (m) | Width (m) | Au (g/t) | Ag (g/t) |
+|---------|----------|--------|-----------|----------|----------|
+| GV-001  | 45       | 128    | 83        | 1.8      | 22       |
+| GV-002  | 112      | 156    | 44        | 2.9      | 35       |
+| GV-003  | 89       | 145    | 56        | 1.5      | 18       |
+| GV-018  | 67       | 189    | 122       | 1.1      | 12       |
+| GV-025  | 134      | 201    | 67        | 2.2      | 28       |
+
+### Interpretation
+
+Strong correlation between IP anomalies and gold mineralization. Oxidized cap averages 0.8 g/t over 50m vertical.
+
+## Resource Estimation
+
+An NI 43-101 compliant resource estimate (effective date Dec 2023):
+
+**Indicated Resources**
+- 5.8 Mt @ 1.24 g/t Au = 760 koz
+- 12.2 Mt @ 0.89 g/t AuEq = 1.7 Moz
+
+**Inferred Resources**
+- 3.2 Mt @ 1.1 g/t Au = 350 koz
+
+Block model uses ID3 with 10x10x5m blocks, 0.3 g/t cut-off.
+
+\`\`\`
+Resource Summary:
+Cut-off: 0.3 g/t Au
+Tonnes: 5.8 Mt
+Grade: 1.24 g/t
+Ounces: 231 koz (oxide) + 529 koz (sulphide)
+\`\`\`
+
+## Mining Method
+
+Open pit mining using conventional truck-shuttle methods.
+
+**Pit Design Parameters:**
+| Parameter | Value |
+|-----------|-------|
+| OS | 1.8:1 |
+| Bench Height | 10 m |
+| Ramp Width | 25 m |
+| Max Depth | 320 m |
+
+> "The orebody geometry supports selective mining with minimal dilution." - QP Statement
+
+## Production Schedule
+
+Phase 1: Pre-production waste strip (Years 1-2)
+Phase 2: Peak production 200ktpd (Years 3-10)
+Phase 3: Low-grade stockpiles (Years 11-12)
+
+Annual production profile:
+
+| Year | Ore (kt) | Waste (kt) | Total Mov&#39;d (Mt) | Au Recovered (koz) |
+|------|----------|------------|---------------------|--------------------|
+| 1    | 0        | 8,500      | 8.5                 | 0                  |
+| 2    | 1,200    | 12,000     | 13.2                | 45                 |
+| 3-5  | 1,800    | 15,000     | 16.8                | 185                |
+| 6-10 | 1,650    | 13,500     | 15.15               | 170                |
+| 11-12| 900      | 4,500      | 5.4                 | 85                 |
+
+## Operating Costs
+
+**LOM AISC: \\\\$1,150/oz**
+
+| Cost Category | \\\\$/t mined | \\\\$/oz |
+|---------------|---------------|----------|
+| Mining        | 2.85          | 720      |
+| Processing    | 18.50         | 285      |
+| G&amp;A       | -             | 145      |
+
+## Capital Costs
+
+Initial Capex: \\\\$285 million
+Sustaining: \\\\$95 million LOM
+
+**Major Equipment:**
+- 6 x 90t Haulers ( \\\\$18M )
+- Primary Crusher ( \\\\$42M )
+- 2 x SAG Mills ( \\\\$65M )
+
+## Environmental and Social
+
+- Water use: 80% recycled
+- Tailings: Dry-stack facility
+- Community: 15% NSR royalty fund
+- Biodiversity: No endangered species impact
+
+## Financial Analysis
+
+**Base Case (Au \\\\$1,900/oz):**
+- IRR: 28%
+- NPV5%: \\\\$512M
+- Payback: 2.8 years
+
+Sensitivity table:
+
+| Au Price | NPV5% (US$M) | IRR (%) |
+|----------|--------------|---------|
+| 1600     | 245          | 17      |
+| 1900     | 512          | 28      |
+| 2200     | 850          | 38      |
+
+## Conclusion and Recommendations
+
+The GoldVein Project presents a low-risk, high-return opportunity. Recommend advancing to Feasibility Study with \\\\$15M budget for additional drilling and engineering.
+
+Next steps:
+1. Secure water rights
+2. Advance PFS to FS
+3. Partner discussions
+
+**Contact:** project@marvinmining.com
+\`;
+
+    function buildReader() {
+      const toc = document.getElementById(&#39;toc&#39;);
+      const content = document.getElementById(&#39;content&#39;);
+      toc.innerHTML = &#39;&#39;;
+      content.innerHTML = &#39;&lt;h1&gt;GoldVein Mining Project Report&lt;/h1&gt;&lt;p&gt;Comprehensive feasibility study with full details.&lt;/p&gt;\&#39;;
+      const h2Regex = /##\\s+(.*)$/gm;
+      const matches = [...md.matchAll(h2Regex)];
+      let index = 0;
+      for (let i = 0; i &lt; matches.length; i++) {
+        const m = matches[i];
+        const title = m[1].trim();
+        const contentStart = m.index + m[0].length;
+        const contentEnd = i + 1 &lt; matches.length ? matches[i + 1].index : md.length;
+        const sectionContent = md.slice(contentStart, contentEnd).trim();
+        const secId = \`sec-\${index++}\`;
+        // TOC
+        const li = document.createElement(&#39;li&#39;);
+        const a = document.createElement(&#39;a&#39;);
+        a.href = \`#\${secId}\`;
+        a.textContent = title;
+        li.appendChild(a);
+        toc.appendChild(li);
+        // Content
+        const details = document.createElement(&#39;details&#39;);
+        details.className = &#39;section&#39;
+        details.id = secId;
+        const summary = document.createElement(&#39;summary&#39;);
+        summary.className = &#39;section-title&#39;;
+        summary.textContent = title;
+        details.appendChild(summary);
+        const contentDiv = document.createElement(&#39;div&#39;);
+        contentDiv.className = &#39;content&#39;;
+        contentDiv.innerHTML = marked.parse(sectionContent);
+        details.appendChild(contentDiv);
+        content.appendChild(details);
+      }
+      // Open first
+      const firstSec = document.getElementById(&#39;sec-0&#39;);
+      if (firstSec) firstSec.open = true;
+    }
+
+    document.addEventListener(&#39;DOMContentLoaded&#39;, () =&gt; {
+      marked.setOptions({
+        breaks: true,
+        gfm: true,
+        headerIds: false 
+      });
+      buildReader();
+      const hamburger = document.getElementById(&#39;hamburger&#39;);
+      const sidebar = document.getElementById(&#39;sidebar&#39;);
+      const closeBtn = document.getElementById(&#39;close-btn&#39;);
+      hamburger.onclick = () =&gt; sidebar.classList.toggle(&#39;open&#39;);
+      closeBtn.onclick = () =&gt; sidebar.classList.remove(&#39;open&#39;);
+      // TOC links
+      document.addEventListener(&#39;click&#39;, (e) =&gt; {
+        if (e.target.matches(&#39;#toc a&#39;)) {
+          e.preventDefault();
+          const href = e.target.getAttribute(&#39;href&#39;);
+          const target = document.querySelector(href);
+          if (target) {
+            target.scrollIntoView({ behavior: &#39;smooth&#39;, block: &#39;start&#39; });
+            target.open = true;
+            sidebar.classList.remove(&#39;open&#39;);
+            // active class
+            document.querySelectorAll(&#39;#toc a&#39;).forEach(a =&gt; a.classList.remove(&#39;active&#39;));
+            e.target.classList.add(&#39;active&#39;);
+          }
+        }
+      });
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
