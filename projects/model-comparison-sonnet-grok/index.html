@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Model Comparison: Claude Sonnet vs xAI Grok</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #d4a574, #f4a261);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #f4a261;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .chart-icon {
+            font-size: 1.5rem;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        th {
+            background: rgba(244, 162, 97, 0.2);
+            color: #f4a261;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .model-claude { color: #e76f51; }
+        .model-claude-new { color: #2a9d8f; }
+        .model-grok { color: #e9c46a; }
+        .best { 
+            background: rgba(42, 157, 143, 0.2);
+            font-weight: 600;
+        }
+        .sources {
+            margin-top: 40px;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border-left: 4px solid #f4a261;
+        }
+        .sources h3 {
+            margin-top: 0;
+            color: #f4a261;
+        }
+        .sources ul {
+            margin: 10px 0 0 0;
+            padding-left: 20px;
+        }
+        .sources li {
+            margin-bottom: 8px;
+            color: #aaa;
+        }
+        .sources a {
+            color: #2a9d8f;
+            text-decoration: none;
+        }
+        .sources a:hover {
+            text-decoration: underline;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        .date-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #888;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            .chart-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Model Comparison Dashboard</h1>
+        <p class="subtitle">Claude Sonnet 3.5 / 4.5 vs xAI Grok 4.1 Fast Reasoning</p>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e76f51;"></div>
+                <span>Claude 3.5 Sonnet <span class="date-badge">Oct 2024</span></span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2a9d8f;"></div>
+                <span>Claude 4.5 Sonnet <span class="date-badge">Sept 2025</span></span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e9c46a;"></div>
+                <span>xAI Grok 4.1 Fast <span class="date-badge">Nov 2025</span></span>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="chart-container">
+                <div class="chart-title"><span class="chart-icon">💰</span> API Cost ($ per 1M tokens)</div>
+                <div id="costChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title"><span class="chart-icon">📏</span> Context Window Size</div>
+                <div id="contextChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title"><span class="chart-icon">⚡</span> Throughput Speed (tokens/sec)</div>
+                <div id="speedChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title"><span class="chart-icon">🎯</span> Performance Radar (MMLU, HumanEval, GPQA)</div>
+                <div id="radarChart"></div>
+            </div>
+            
+            <div class="chart-container full-width">
+                <div class="chart-title"><span class="chart-icon">📊</span> Complete Specification Comparison</div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Specification</th>
+                                <th class="model-claude">Claude 3.5 Sonnet</th>
+                                <th class="model-claude-new">Claude 4.5 Sonnet</th>
+                                <th class="model-grok">xAI Grok 4.1 Fast</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Release Date</strong></td>
+                                <td>Oct 22, 2024</td>
+                                <td class="best">Sept 29, 2025</td>
+                                <td>Nov 17, 2025</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Input Cost ($/1M tokens)</strong></td>
+                                <td>$3.00</td>
+                                <td>$3.00</td>
+                                <td>$3.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Output Cost ($/1M tokens)</strong></td>
+                                <td>$15.00</td>
+                                <td>$15.00</td>
+                                <td>$15.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Context Window</strong></td>
+                                <td>200K tokens</td>
+                                <td>200K tokens</td>
+                                <td class="best">256K tokens</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Max Output Tokens</strong></td>
+                                <td class="best">200K tokens</td>
+                                <td>64K tokens</td>
+                                <td>8K tokens</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Speed (tokens/sec)</strong></td>
+                                <td class="best">~100 t/s</td>
+                                <td>~42 t/s</td>
+                                <td class="best">~100 t/s</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Latency (TTFT)</strong></td>
+                                <td>~0.5s</td>
+                                <td class="best">~0.4s</td>
+                                <td>~0.7s</td>
+                            </tr>
+                            <tr>
+                                <td><strong>MMLU Score</strong></td>
+                                <td>~88-90%</td>
+                                <td>~90%</td>
+                                <td class="best">~87%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>HumanEval Score</strong></td>
+                                <td>~92%</td>
+                                <td class="best">~95%+</td>
+                                <td>~90%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>GPQA Diamond</strong></td>
+                                <td>~65%</td>
+                                <td class="best">83.4%</td>
+                                <td>~70%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>SWE-bench Verified</strong></td>
+                                <td>~50%</td>
+                                <td class="best">77.2%</td>
+                                <td>~55%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Multimodal</strong></td>
+                                <td>✅ Text, Image</td>
+                                <td>✅ Text, Image</td>
+                                <td>✅ Text, Image, Audio, Video</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Key Strength</strong></td>
+                                <td>Fast coding, tool use</td>
+                                <td class="best">Best coding model</td>
+                                <td>Creative, emotional interactions</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="sources">
+            <h3>📚 Data Sources</h3>
+            <ul>
+                <li>Anthropic Official - <a href="https://www.anthropic.com/news/claude-3-5-sonnet">Claude 3.5 Sonnet Announcement</a></li>
+                <li>Anthropic Official - <a href="https://www.anthropic.com">Claude 4.5 Sonnet Release (Sept 2025)</a></li>
+                <li>xAI Official - <a href="https://x.ai">Grok 4.1 Documentation</a></li>
+                <li>LLM Stats - <a href="https://llm-stats.com/models/claude-3-5-sonnet-20241022">Claude 3.5 Sonnet Specs</a></li>
+                <li>LLM Stats - <a href="https://llm-stats.com/models/claude-sonnet-4-5-20250929">Claude 4.5 Sonnet Specs</a></li>
+                <li>LLM Stats - <a href="https://llm-stats.com/models/grok-4.1-2025-11-17">Grok 4.1 Specs</a></li>
+                <li>Artificial Analysis - <a href="https://artificialanalysis.ai">Model Performance Comparisons</a></li>
+                <li>Leanware - <a href="https://www.leanware.co/insights/claude-sonnet-4-5-overview">Claude 4.5 Benchmarks</a></li>
+            </ul>
+            <p style="margin-top: 15px; font-size: 0.85rem; color: #666;">
+                <strong>Note:</strong> Benchmarks may vary based on evaluation methodology. Speed metrics are approximate and can vary by provider/infrastructure. 
+                Prices shown are standard API rates; batch and caching discounts may apply.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const colors = {
+            claude35: '#e76f51',
+            claude45: '#2a9d8f', 
+            grok41: '#e9c46a'
+        };
+
+        const models = ['Claude 3.5 Sonnet', 'Claude 4.5 Sonnet', 'xAI Grok 4.1 Fast'];
+
+        // Cost Chart
+        const costData = [
+            {
+                x: models,
+                y: [3.00, 3.00, 3.00],
+                name: 'Input ($/1M)',
+                type: 'bar',
+                marker: { color: [colors.claude35, colors.claude45, colors.grok41] },
+                text: ['$3.00', '$3.00', '$3.00'],
+                textposition: 'outside'
+            },
+            {
+                x: models,
+                y: [15.00, 15.00, 15.00],
+                name: 'Output ($/1M)',
+                type: 'bar',
+                marker: { 
+                    color: [colors.claude35, colors.claude45, colors.grok41],
+                    opacity: 0.6
+                },
+                text: ['$15.00', '$15.00', '$15.00'],
+                textposition: 'outside'
+            }
+        ];
+
+        Plotly.newPlot('costChart', costData, {
+            barmode: 'group',
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            font: { color: '#ccc' },
+            xaxis: { tickfont: { color: '#ccc' } },
+            yaxis: { 
+                title: 'Cost (USD)',
+                tickfont: { color: '#ccc' },
+                gridcolor: 'rgba(255,255,255,0.1)'
+            },
+            legend: { 
+                orientation: 'h',
+                y: -0.2,
+                font: { color: '#ccc' }
+            },
+            margin: { t: 20, b: 60 }
+        }, {responsive: true, displayModeBar: false});
+
+        // Context Window Chart
+        const contextData = [{
+            x: models,
+            y: [200, 200, 256],
+            type: 'bar',
+            marker: { 
+                color: [colors.claude35, colors.claude45, colors.grok41],
+                line: { color: 'rgba(255,255,255,0.3)', width: 2 }
+            },
+            text: ['200K', '200K', '256K'],
+            textposition: 'outside',
+            textfont: { color: '#fff', size: 14 }
+        }];
+
+        Plotly.newPlot('contextChart', contextData, {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            font: { color: '#ccc' },
+            xaxis: { tickfont: { color: '#ccc' } },
+            yaxis: { 
+                title: 'Tokens (thousands)',
+                tickfont: { color: '#ccc' },
+                gridcolor: 'rgba(255,255,255,0.1)'
+            },
+            margin: { t: 20, b: 40 },
+            showlegend: false
+        }, {responsive: true, displayModeBar: false});
+
+        // Speed Chart
+        const speedData = [{
+            x: models,
+            y: [100, 42, 100],
+            type: 'bar',
+            marker: { 
+                color: [colors.claude35, colors.claude45, colors.grok41],
+                line: { color: 'rgba(255,255,255,0.3)', width: 2 }
+            },
+            text: ['~100 t/s', '~42 t/s', '~100 t/s'],
+            textposition: 'outside',
+            textfont: { color: '#fff', size: 13 }
+        }];
+
+        Plotly.newPlot('speedChart', speedData, {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            font: { color: '#ccc' },
+            xaxis: { tickfont: { color: '#ccc' } },
+            yaxis: { 
+                title: 'Tokens per second',
+                tickfont: { color: '#ccc' },
+                gridcolor: 'rgba(255,255,255,0.1)'
+            },
+            margin: { t: 20, b: 40 },
+            showlegend: false
+        }, {responsive: true, displayModeBar: false});
+
+        // Radar Chart for Performance Metrics
+        const radarData = [
+            {
+                type: 'scatterpolar',
+                r: [88.5, 92, 65, 50, 90],
+                theta: ['MMLU', 'HumanEval', 'GPQA', 'SWE-bench', 'Speed'],
+                fill: 'toself',
+                name: 'Claude 3.5 Sonnet',
+                fillcolor: 'rgba(231, 111, 81, 0.3)',
+                line: { color: colors.claude35, width: 2 }
+            },
+            {
+                type: 'scatterpolar',
+                r: [90, 95, 83.4, 77.2, 42],
+                theta: ['MMLU', 'HumanEval', 'GPQA', 'SWE-bench', 'Speed'],
+                fill: 'toself',
+                name: 'Claude 4.5 Sonnet',
+                fillcolor: 'rgba(42, 157, 143, 0.3)',
+                line: { color: colors.claude45, width: 2 }
+            },
+            {
+                type: 'scatterpolar',
+                r: [87, 90, 70, 55, 100],
+                theta: ['MMLU', 'HumanEval', 'GPQA', 'SWE-bench', 'Speed'],
+                fill: 'toself',
+                name: 'xAI Grok 4.1 Fast',
+                fillcolor: 'rgba(233, 196, 106, 0.3)',
+                line: { color: colors.grok41, width: 2 }
+            }
+        ];
+
+        Plotly.newPlot('radarChart', radarData, {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            font: { color: '#ccc' },
+            polar: {
+                bgcolor: 'transparent',
+                radialaxis: {
+                    visible: true,
+                    range: [0, 100],
+                    tickfont: { color: '#888', size: 10 },
+                    gridcolor: 'rgba(255,255,255,0.1)'
+                },
+                angularaxis: {
+                    tickfont: { color: '#ccc', size: 12 },
+                    gridcolor: 'rgba(255,255,255,0.2)'
+                }
+            },
+            legend: {
+                orientation: 'h',
+                y: -0.15,
+                font: { color: '#ccc' }
+            },
+            margin: { t: 40, b: 60 }
+        }, {responsive: true, displayModeBar: false});
+    </script>
+</body>
+</html>
