@@ -1,38 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coffee Production in Chile: History, Economics, Regions, and Volumes</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;Coffee Production in Chile: History, Economics, Regions, and Volumes&lt;/title&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/chart.js&quot;&gt;&lt;/script&gt;
+    &lt;style&gt;
+        :root {
+            --bg: #fefefe;
+            --text: #1a1a1a;
+            --heading: #333;
+            --header-bg: rgba(255,255,255,0.95);
+            --toc-bg: #fff;
+            --th-bg: #f5f5f5;
+            --td-border: #ddd;
+            --link: #0066cc;
+            --shadow: rgba(0,0,0,0.1);
+            --border-light: #ccc;
+            --font-size: 18px;
+        }
+        .dark {
+            --bg: #121212;
+            --text: #e0e0e0;
+            --heading: #f0f0f0;
+            --header-bg: rgba(18,18,18,0.95);
+            --toc-bg: #1a1a1a;
+            --th-bg: #2a2a2a;
+            --td-border: #444;
+            --link: #4da6ff;
+            --shadow: rgba(0,0,0,0.2);
+            --border-light: #555;
+        }
         /* E-reader optimized styles */
         body {
             font-family: 'Georgia', 'Times New Roman', serif;
             line-height: 1.7;
             max-width: 55rem;
             margin: 0 auto;
-            padding: 2rem 1.5rem;
-            background: #fefefe;
-            color: #1a1a1a;
-            font-size: 1.2rem;
+            padding: 80px 1.5rem 100px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: var(--font-size);
             hyphens: auto;
             -webkit-hyphens: auto;
         }
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #121212;
-                color: #e0e0e0;
+        @media (max-width: 768px) {
+            body { 
+                padding: 80px 1rem 100px; 
+                font-size: calc(var(--font-size) * 0.95);
             }
-            table { background: #1e1e1e; }
-            th { background: #2a2a2a; }
         }
         h1, h2, h3 {
             font-weight: 400;
-            color: #333;
-        }
-        @media (prefers-color-scheme: dark) {
-            h1, h2, h3 { color: #f0f0f0; }
+            color: var(--heading);
         }
         /* Responsive tables */
         table {
@@ -42,7 +62,7 @@
             overflow-x: auto;
             display: block;
             white-space: nowrap;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px var(--shadow);
         }
         @media (max-width: 768px) {
             table, thead, tbody, th, td, tr {
@@ -54,7 +74,7 @@
                 left: -9999px;
             }
             tr {
-                border: 1px solid #ccc;
+                border: 1px solid var(--border-light);
                 margin-bottom: 1rem;
                 padding: 1rem;
             }
@@ -73,56 +93,122 @@
                 padding-right: 10px;
                 white-space: nowrap;
                 font-weight: bold;
+                color: var(--heading);
             }
         }
         th, td {
             padding: 0.8rem 1rem;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--td-border);
         }
         th {
-            background: #f5f5f5;
+            background: var(--th-bg);
             font-weight: 600;
         }
-        @media (prefers-color-scheme: dark) {
-            th { background: #2a2a2a; }
-            td { border-bottom-color: #444; }
+        blockquote {
+            border-left: 4px solid var(--border-light);
+            padding-left: 1rem;
+            margin: 1.5rem 0;
+            font-style: italic;
         }
-        /* Hamburger menu */
-        .hamburger {
+        /* Header */
+        .header {
             position: fixed;
-            top: 1rem;
-            left: 1rem;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--header-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--td-border);
             z-index: 1100;
-            background: rgba(255,255,255,0.9);
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+        .header input[type=&quot;search&quot;] {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--td-border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .header input[type=&quot;search&quot;]::placeholder {
+            color: var(--text);
+            opacity: 0.6;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .controls button {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 1.2rem;
+            color: var(--text);
+            transition: background 0.2s;
+        }
+        .controls button:hover {
+            background: rgba(0,0,0,0.1);
+        }
+        .dark .controls button:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .font-control {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        #font-slider {
+            width: 70px;
+            height: 4px;
+            background: var(--td-border);
+            border-radius: 2px;
+        }
+        #font-value {
+            min-width: 28px;
+            text-align: right;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        /* Menu toggle */
+        .menu-toggle {
+            background: var(--header-bg);
             border: none;
             padding: 0.5rem 0.75rem;
             font-size: 1.5rem;
             cursor: pointer;
             border-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 3px var(--shadow);
+            color: var(--text);
+            @media (min-width: 1024px) {
+                display: none;
+            }
         }
-        @media (prefers-color-scheme: dark) {
-            .hamburger { background: rgba(0,0,0,0.8); }
-        }
-        @media (min-width: 1024px) {
-            .hamburger { display: none; }
-        }
+        /* TOC */
         #toc {
             position: fixed;
             top: 0;
             left: -300px;
             width: 300px;
             height: 100vh;
-            background: #fff;
+            background: var(--toc-bg);
             overflow-y: auto;
             padding: 2rem 1.5rem;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: 2px 0 10px var(--shadow);
             transition: left 0.3s ease;
-            z-index: 1000;
-        }
-        @media (prefers-color-scheme: dark) {
-            #toc { background: #1a1a1a; }
+            z-index: 1200;
         }
         #toc.open {
             left: 0;
@@ -135,14 +221,17 @@
                 margin-right: 4%;
                 height: auto;
                 box-shadow: none;
+                z-index: auto;
             }
             .main-content {
                 margin-left: 29%;
             }
+            .menu-toggle { display: none !important; }
         }
         #toc h2 {
             margin-top: 0;
             font-size: 1.4rem;
+            color: var(--heading);
         }
         #toc ul {
             list-style: none;
@@ -152,7 +241,7 @@
             margin: 0.5rem 0;
         }
         #toc a {
-            color: #0066cc;
+            color: var(--link);
             text-decoration: none;
         }
         #toc a:hover {
@@ -160,6 +249,7 @@
         }
         .main-content {
             clear: both;
+            padding-top: 0;
         }
         .chart-container {
             position: relative;
@@ -169,16 +259,8 @@
         }
         @media (max-width: 768px) {
             .chart-container { height: 300px; }
-            body { font-size: 1.1rem; padding: 1rem; }
         }
-        blockquote {
-            border-left: 4px solid #ccc;
-            padding-left: 1rem;
-            margin: 1.5rem 0;
-            font-style: italic;
-        }
-
-        /* Backdrop and menu improvements */
+        /* Backdrop */
         #backdrop {
             position: fixed;
             top: 0;
@@ -186,7 +268,7 @@
             width: 100vw;
             height: 100vh;
             background: rgba(0,0,0,0.4);
-            z-index: 999;
+            z-index: 1199;
             opacity: 0;
             transition: opacity 0.3s ease;
             pointer-events: none;
@@ -199,257 +281,375 @@
             overflow: hidden;
         }
         @media (min-width: 1024px) {
-            #backdrop {
+            #backdrop { display: none !important; }
+            body.menu-open { overflow: visible; }
+        }
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem;
+            background: var(--header-bg);
+            border-top: 1px solid var(--td-border);
+            text-align: center;
+            font-size: 0.875em;
+            color: var(--text);
+            z-index: 1100;
+            box-shadow: 0 -2px 10px var(--shadow);
+        }
+        /* Print styles */
+        @media print {
+            * { 
+                color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .header,
+            #toc:not([class*=&quot;open&quot;]),
+            #backdrop,
+            .footer,
+            .menu-toggle,
+            .controls button:not(.print-btn) {
                 display: none !important;
             }
-            body.menu-open {
-                overflow: visible;
+            .print-btn {
+                display: inline-block !important;
+            }
+            body { 
+                padding: 0 !important; 
+                font-size: 12pt !important; 
+                max-width: none !important;
+            }
+            .main-content {
+                margin-left: 0 !important;
+            }
+            table { 
+                display: table !important; 
+                width: 100% !important; 
+                overflow: visible !important; 
+                white-space: normal !important;
+            }
+            @media (max-width: 768px) {
+                thead tr { position: static !important; }
+                tr { display: table-row !important; border: none !important; margin: 0 !important; padding: 0 !important; }
+                td { 
+                    display: table-cell !important; 
+                    position: static !important; 
+                    padding-left: 1rem !important;
+                    border-bottom: 1px solid var(--td-border) !important;
+                }
+                td:before { display: none !important; }
+            }
+            .chart-container { height: 300px !important; }
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;header class=&quot;header&quot;&gt;
+        &lt;button class=&quot;menu-toggle&quot; onclick=&quot;toggleToc()&quot;&gt;☰&lt;/button&gt;
+        &lt;input type=&quot;search&quot; id=&quot;search&quot; placeholder=&quot;🔍 Search content...&quot; oninput=&quot;performSearch()&quot;&gt;
+        &lt;div class=&quot;controls&quot;&gt;
+            &lt;button id=&quot;theme-toggle&quot; onclick=&quot;toggleTheme()&quot;&gt;🌙&lt;/button&gt;
+            &lt;div class=&quot;font-control&quot;&gt;
+                &lt;span&gt;🔤&lt;/span&gt;
+                &lt;input type=&quot;range&quot; id=&quot;font-slider&quot; min=&quot;14&quot; max=&quot;24&quot; value=&quot;18&quot; step=&quot;1&quot; onchange=&quot;setFontSize(this.value)&quot;&gt;
+                &lt;span id=&quot;font-value&quot;&gt;18px&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;button class=&quot;print-btn&quot; onclick=&quot;window.print()&quot; title=&quot;Print to PDF&quot;&gt;📄&lt;/button&gt;
+        &lt;/div&gt;
+    &lt;/header&gt;
+    
+    &lt;nav id=&quot;toc&quot;&gt;
+        &lt;h2&gt;On this page&lt;/h2&gt;
+        &lt;ul&gt;
+            &lt;li&gt;&lt;a href=&quot;#executive-summary&quot;&gt;Executive Summary&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href=&quot;#history&quot;&gt;History&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href=&quot;#regions&quot;&gt;Regions&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href=&quot;#production-volumes&quot;&gt;Production Volumes&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href=&quot;#economics&quot;&gt;Economics&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href=&quot;#visualizations&quot;&gt;Visualizations&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href=&quot;#sources&quot;&gt;Sources&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+    &lt;/nav&gt;
+    &lt;div id=&quot;backdrop&quot;&gt;&lt;/div&gt;
+    
+    &lt;main class=&quot;main-content&quot;&gt;
+        &lt;h1&gt;Coffee Production in Chile: History, Economics, Regions, and Volumes&lt;/h1&gt;
+        
+        &lt;section id=&quot;executive-summary&quot;&gt;
+            &lt;h2&gt;Executive Summary&lt;/h2&gt;
+            &lt;p&gt;Chile has virtually no commercial coffee production due to unfavorable climate conditions across its continental territory. The only notable efforts are small-scale, artisanal cultivation on Easter Island (Rapa Nui), where wild coffee plants introduced in the early 19th century persist. Production volumes are negligible compared to global leaders, with Chile absent from FAO lists of significant producers. Economic impact is minimal, though specialty coffee from Rapa Nui holds niche potential.&lt;/p&gt;
+            
+            &lt;p&gt;&lt;strong&gt;Key Takeaways:&lt;/strong&gt;&lt;/p&gt;
+            &lt;ul&gt;
+                &lt;li&gt;No large-scale production; climate unsuitable for continental Chile.&lt;/li&gt;
+                &lt;li&gt;Easter Island hosts wild and small artisanal plantations targeting specialty market.&lt;/li&gt;
+                &lt;li&gt;Chile is a net importer of coffee for domestic consumption.&lt;/li&gt;
+            &lt;/ul&gt;
+            
+            &lt;p&gt;&lt;em&gt;Date: 2026-02-15 | Researcher: Wiki-Marvin Subagent&lt;/em&gt;&lt;/p&gt;
+        &lt;/section&gt;
+        
+        &lt;section id=&quot;history&quot;&gt;
+            &lt;h2&gt;History&lt;/h2&gt;
+            &lt;p&gt;Coffee plants were likely introduced to Easter Island (Rapa Nui) by Dutch navigators in the early 19th century. These plants have survived as wild specimens scattered across the island.&lt;sup&gt;[s1]&lt;/sup&gt;&lt;sup&gt;[s2]&lt;/sup&gt;&lt;/p&gt;
+            
+            &lt;p&gt;In 2017, initiatives led by local importers and agronomists aimed to revive and commercialize Rapa Nui coffee as a specialty product, focusing on organic, artisanal production rather than volume.&lt;sup&gt;[s2]&lt;/sup&gt; Continental Chile has historically produced coffee substitutes (e.g., barley coffee) due to lack of suitable tropical climates.&lt;sup&gt;[s1]&lt;/sup&gt;&lt;/p&gt;
+            
+            &lt;p&gt;No evidence of significant historical production on the mainland.&lt;/p&gt;
+        &lt;/section&gt;
+        
+        &lt;section id=&quot;regions&quot;&gt;
+            &lt;h2&gt;Regions&lt;/h2&gt;
+            &lt;h3&gt;Easter Island (Rapa Nui)&lt;/h3&gt;
+            &lt;ul&gt;
+                &lt;li&gt;The sole region with viable coffee plants.&lt;/li&gt;
+                &lt;li&gt;Subtropical climate allows survival of wild &lt;em&gt;Coffea&lt;/em&gt; species.&lt;/li&gt;
+                &lt;li&gt;Small family plots and experimental plantations.&lt;sup&gt;[s1]&lt;/sup&gt;&lt;sup&gt;[s2]&lt;/sup&gt;&lt;sup&gt;[s4]&lt;/sup&gt;&lt;/li&gt;
+            &lt;/ul&gt;
+            
+            &lt;h3&gt;Continental Chile&lt;/h3&gt;
+            &lt;p&gt;&lt;strong&gt;Unsuitable:&lt;/strong&gt;&lt;/p&gt;
+            &lt;ul&gt;
+                &lt;li&gt;Northern regions (e.g., Atacama Desert): Extreme aridity blocks humidity.&lt;sup&gt;[s5]&lt;/sup&gt;&lt;/li&gt;
+                &lt;li&gt;Central/Southern regions: Temperatures too low for coffee arabica/robusta.&lt;/li&gt;
+            &lt;/ul&gt;
+        &lt;/section&gt;
+        
+        &lt;section id=&quot;production-volumes&quot;&gt;
+            &lt;h2&gt;Production Volumes&lt;/h2&gt;
+            &lt;p&gt;Chile does not appear in FAO&#39;s list of 36 countries producing &amp;gt;10,000 tonnes of green coffee in 2023 (world total: 11.1 million tonnes).&lt;sup&gt;[s3]&lt;/sup&gt;&lt;/p&gt;
+            
+            &lt;table&gt;
+                &lt;thead&gt;
+                    &lt;tr&gt;
+                        &lt;th&gt;Year&lt;/th&gt;
+                        &lt;th&gt;Production (tonnes)&lt;/th&gt;
+                        &lt;th&gt;Source&lt;/th&gt;
+                    &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;2023&lt;/td&gt;
+                        &lt;td&gt;0 (not listed)&lt;/td&gt;
+                        &lt;td&gt;FAO via Wikipedia &lt;sup&gt;[s3]&lt;/sup&gt;&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;Historical&lt;/td&gt;
+                        &lt;td&gt;Negligible&lt;/td&gt;
+                        &lt;td&gt;IndexMundi, no data &lt;sup&gt;[s6]&lt;/sup&gt;&lt;/td&gt;
+                    &lt;/tr&gt;
+                &lt;/tbody&gt;
+            &lt;/table&gt;
+            
+            &lt;p&gt;Easter Island: No official volumes reported; limited to family-scale production for local/tourist use. Not competitive with Brazil&#39;s ~3.4M tonnes.&lt;sup&gt;[s2]&lt;/sup&gt;&lt;sup&gt;[s4]&lt;/sup&gt;&lt;/p&gt;
+        &lt;/section&gt;
+        
+        &lt;section id=&quot;economics&quot;&gt;
+            &lt;h2&gt;Economics&lt;/h2&gt;
+            &lt;ul&gt;
+                &lt;li&gt;&lt;strong&gt;Production Impact:&lt;/strong&gt; Negligible contribution to GDP or exports.&lt;/li&gt;
+                &lt;li&gt;&lt;strong&gt;Consumption/Imports:&lt;/strong&gt; Chile imports significant volumes for domestic market (e.g., Statista data on green coffee imports).&lt;sup&gt;[s7]&lt;/sup&gt;&lt;/li&gt;
+                &lt;li&gt;&lt;strong&gt;Niche Opportunity:&lt;/strong&gt; Rapa Nui coffee as premium specialty product, leveraging uniqueness for tourism and high-end markets.&lt;sup&gt;[s2]&lt;/sup&gt;&lt;sup&gt;[s4]&lt;/sup&gt;&lt;/li&gt;
+                &lt;li&gt;Global Context: Coffee belt excludes most of Chile geographically.&lt;/li&gt;
+            &lt;/ul&gt;
+        &lt;/section&gt;
+        
+        &lt;section id=&quot;visualizations&quot;&gt;
+            &lt;h2&gt;Visualizations&lt;/h2&gt;
+            
+            &lt;h3&gt;Top Global Coffee Producers (2023)&lt;/h3&gt;
+            &lt;div class=&quot;chart-container&quot;&gt;
+                &lt;canvas id=&quot;coffeeChart&quot;&gt;&lt;/canvas&gt;
+            &lt;/div&gt;
+            
+            &lt;table&gt;
+                &lt;thead&gt;
+                    &lt;tr&gt;
+                        &lt;th&gt;Rank&lt;/th&gt;
+                        &lt;th&gt;Country&lt;/th&gt;
+                        &lt;th&gt;Tonnes&lt;/th&gt;
+                    &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;1&lt;/td&gt;
+                        &lt;td&gt;Brazil&lt;/td&gt;
+                        &lt;td&gt;3,405,267&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;2&lt;/td&gt;
+                        &lt;td&gt;Vietnam&lt;/td&gt;
+                        &lt;td&gt;1,956,782&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;3&lt;/td&gt;
+                        &lt;td&gt;Indonesia&lt;/td&gt;
+                        &lt;td&gt;760,192&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;...&lt;/td&gt;
+                        &lt;td&gt;Chile&lt;/td&gt;
+                        &lt;td&gt;0&lt;/td&gt;
+                    &lt;/tr&gt;
+                &lt;/tbody&gt;
+            &lt;/table&gt;
+            &lt;p&gt;&lt;sup&gt;[s3]&lt;/sup&gt;&lt;/p&gt;
+        &lt;/section&gt;
+        
+        &lt;section id=&quot;sources&quot;&gt;
+            &lt;h2&gt;Sources&lt;/h2&gt;
+            &lt;ul&gt;
+                &lt;li&gt;&lt;sup&gt;[s1]&lt;/sup&gt; Café de Chile - Wikipedia (es.wikipedia.org, accessed 2026-02-15)&lt;/li&gt;
+                &lt;li&gt;&lt;sup&gt;[s2]&lt;/sup&gt; Chile busca ingresar al mercado del café... - ChileBIO (2017)&lt;/li&gt;
+                &lt;li&gt;&lt;sup&gt;[s3]&lt;/sup&gt; List of countries by coffee production - Wikipedia (en.wikipedia.org)&lt;/li&gt;
+                &lt;li&gt;&lt;sup&gt;[s4]&lt;/sup&gt; El café más remoto de Chile... - lafinca.io (2025)&lt;/li&gt;
+                &lt;li&gt;&lt;sup&gt;[s5]&lt;/sup&gt; Reddit r/Coffee discussion on climate&lt;/li&gt;
+                &lt;li&gt;&lt;sup&gt;[s6]&lt;/sup&gt; IndexMundi Chile Green Coffee Production&lt;/li&gt;
+                &lt;li&gt;&lt;sup&gt;[s7]&lt;/sup&gt; Various Statista import stats&lt;/li&gt;
+            &lt;/ul&gt;
+            
+            &lt;p&gt;&lt;strong&gt;Knowledge Gaps:&lt;/strong&gt; Exact current production volumes from Easter Island; recent developments post-2025.&lt;/p&gt;
+            
+            &lt;p&gt;&lt;strong&gt;Research Duration:&lt;/strong&gt; ~15 minutes | Total Sources: 7 | Queries: [&amp;quot;coffee production Chile...&amp;quot;]&lt;/p&gt;
+        &lt;/section&gt;
+    &lt;/main&gt;
+    
+    &lt;footer class=&quot;footer&quot;&gt;
+        &lt;p&gt;&amp;copy; 2026 Marvin AI Research | &lt;a href=&quot;#sources&quot;&gt;View Sources&lt;/a&gt; | Generated: &lt;em&gt;2026-02-15&lt;/em&gt;&lt;/p&gt;
+    &lt;/footer&gt;
+    
+    &lt;script&gt;
+        let isDark = false;
+        
+        function initTheme() {
+            const saved = localStorage.getItem(&#39;theme&#39;);
+            isDark = saved === &#39;dark&#39;;
+            if (isDark) {
+                document.documentElement.classList.add(&#39;dark&#39;);
+                document.getElementById(&#39;theme-toggle&#39;).textContent = &#39;☀️&#39;;
             }
         }
-    </style>
-</head>
-<body>
-    <button class="hamburger" onclick="toggleToc()">☰</button>
-    
-    <nav id="toc">
-        <h2>On this page</h2>
-        <ul>
-            <li><a href="#executive-summary">Executive Summary</a></li>
-            <li><a href="#history">History</a></li>
-            <li><a href="#regions">Regions</a></li>
-            <li><a href="#production-volumes">Production Volumes</a></li>
-            <li><a href="#economics">Economics</a></li>
-            <li><a href="#visualizations">Visualizations</a></li>
-            <li><a href="#sources">Sources</a></li>
-        </ul>
-    </nav>
-    <div id="backdrop"></div>
-    
-    <main class="main-content">
-        <h1>Coffee Production in Chile: History, Economics, Regions, and Volumes</h1>
         
-        <section id="executive-summary">
-            <h2>Executive Summary</h2>
-            <p>Chile has virtually no commercial coffee production due to unfavorable climate conditions across its continental territory. The only notable efforts are small-scale, artisanal cultivation on Easter Island (Rapa Nui), where wild coffee plants introduced in the early 19th century persist. Production volumes are negligible compared to global leaders, with Chile absent from FAO lists of significant producers. Economic impact is minimal, though specialty coffee from Rapa Nui holds niche potential.</p>
-            
-            <p><strong>Key Takeaways:</strong></p>
-            <ul>
-                <li>No large-scale production; climate unsuitable for continental Chile.</li>
-                <li>Easter Island hosts wild and small artisanal plantations targeting specialty market.</li>
-                <li>Chile is a net importer of coffee for domestic consumption.</li>
-            </ul>
-            
-            <p><em>Date: 2026-02-15 | Researcher: Wiki-Marvin Subagent</em></p>
-        </section>
-        
-        <section id="history">
-            <h2>History</h2>
-            <p>Coffee plants were likely introduced to Easter Island (Rapa Nui) by Dutch navigators in the early 19th century. These plants have survived as wild specimens scattered across the island.<sup>[s1]</sup><sup>[s2]</sup></p>
-            
-            <p>In 2017, initiatives led by local importers and agronomists aimed to revive and commercialize Rapa Nui coffee as a specialty product, focusing on organic, artisanal production rather than volume.<sup>[s2]</sup> Continental Chile has historically produced coffee substitutes (e.g., barley coffee) due to lack of suitable tropical climates.<sup>[s1]</sup></p>
-            
-            <p>No evidence of significant historical production on the mainland.</p>
-        </section>
-        
-        <section id="regions">
-            <h2>Regions</h2>
-            <h3>Easter Island (Rapa Nui)</h3>
-            <ul>
-                <li>The sole region with viable coffee plants.</li>
-                <li>Subtropical climate allows survival of wild <em>Coffea</em> species.</li>
-                <li>Small family plots and experimental plantations.<sup>[s1]</sup><sup>[s2]</sup><sup>[s4]</sup></li>
-            </ul>
-            
-            <h3>Continental Chile</h3>
-            <p><strong>Unsuitable:</strong></p>
-            <ul>
-                <li>Northern regions (e.g., Atacama Desert): Extreme aridity blocks humidity.<sup>[s5]</sup></li>
-                <li>Central/Southern regions: Temperatures too low for coffee arabica/robusta.</li>
-            </ul>
-        </section>
-        
-        <section id="production-volumes">
-            <h2>Production Volumes</h2>
-            <p>Chile does not appear in FAO's list of 36 countries producing &gt;10,000 tonnes of green coffee in 2023 (world total: 11.1 million tonnes).<sup>[s3]</sup></p>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th>Year</th>
-                        <th>Production (tonnes)</th>
-                        <th>Source</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>2023</td>
-                        <td>0 (not listed)</td>
-                        <td>FAO via Wikipedia <sup>[s3]</sup></td>
-                    </tr>
-                    <tr>
-                        <td>Historical</td>
-                        <td>Negligible</td>
-                        <td>IndexMundi, no data <sup>[s6]</sup></td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <p>Easter Island: No official volumes reported; limited to family-scale production for local/tourist use. Not competitive with Brazil's ~3.4M tonnes.<sup>[s2]</sup><sup>[s4]</sup></p>
-        </section>
-        
-        <section id="economics">
-            <h2>Economics</h2>
-            <ul>
-                <li><strong>Production Impact:</strong> Negligible contribution to GDP or exports.</li>
-                <li><strong>Consumption/Imports:</strong> Chile imports significant volumes for domestic market (e.g., Statista data on green coffee imports).<sup>[s7]</sup></li>
-                <li><strong>Niche Opportunity:</strong> Rapa Nui coffee as premium specialty product, leveraging uniqueness for tourism and high-end markets.<sup>[s2]</sup><sup>[s4]</sup></li>
-                <li>Global Context: Coffee belt excludes most of Chile geographically.</li>
-            </ul>
-        </section>
-        
-        <section id="visualizations">
-            <h2>Visualizations</h2>
-            
-            <h3>Top Global Coffee Producers (2023)</h3>
-            <div class="chart-container">
-                <canvas id="coffeeChart"></canvas>
-            </div>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Country</th>
-                        <th>Tonnes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>Brazil</td>
-                        <td>3,405,267</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Vietnam</td>
-                        <td>1,956,782</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>Indonesia</td>
-                        <td>760,192</td>
-                    </tr>
-                    <tr>
-                        <td>...</td>
-                        <td>Chile</td>
-                        <td>0</td>
-                    </tr>
-                </tbody>
-            </table>
-            <p><sup>[s3]</sup></p>
-        </section>
-        
-        <section id="sources">
-            <h2>Sources</h2>
-            <ul>
-                <li><sup>[s1]</sup> Café de Chile - Wikipedia (es.wikipedia.org, accessed 2026-02-15)</li>
-                <li><sup>[s2]</sup> Chile busca ingresar al mercado del café... - ChileBIO (2017)</li>
-                <li><sup>[s3]</sup> List of countries by coffee production - Wikipedia (en.wikipedia.org)</li>
-                <li><sup>[s4]</sup> El café más remoto de Chile... - lafinca.io (2025)</li>
-                <li><sup>[s5]</sup> Reddit r/Coffee discussion on climate</li>
-                <li><sup>[s6]</sup> IndexMundi Chile Green Coffee Production</li>
-                <li><sup>[s7]</sup> Various Statista import stats</li>
-            </ul>
-            
-            <p><strong>Knowledge Gaps:</strong> Exact current production volumes from Easter Island; recent developments post-2025.</p>
-            
-            <p><strong>Research Duration:</strong> ~15 minutes | Total Sources: 7 | Queries: [&quot;coffee production Chile...&quot;]</p>
-        </section>
-    </main>
-    
-    <script>
-        function toggleToc() {
-            const toc = document.getElementById('toc');
-            const backdrop = document.getElementById('backdrop');
-            toc.classList.toggle('open');
-            backdrop.classList.toggle('show');
-            document.body.classList.toggle('menu-open');
+        function toggleTheme() {
+            isDark = !isDark;
+            document.documentElement.classList.toggle(&#39;dark&#39;);
+            const btn = document.getElementById(&#39;theme-toggle&#39;);
+            btn.textContent = isDark ? &#39;☀️&#39; : &#39;🌙&#39;;
+            localStorage.setItem(&#39;theme&#39;, isDark ? &#39;dark&#39; : &#39;light&#39;);
         }
         
-        // Close on backdrop, esc, and links
-        document.getElementById('backdrop').addEventListener('click', function() {
-            const toc = document.getElementById('toc');
-            const backdrop = document.getElementById('backdrop');
-            toc.classList.remove('open');
-            backdrop.classList.remove('show');
-            document.body.classList.remove('menu-open');
+        function setFontSize(size) {
+            document.documentElement.style.setProperty(&#39;--font-size&#39;, size + &#39;px&#39;);
+            document.getElementById(&#39;font-value&#39;).textContent = size + &#39;px&#39;
+            localStorage.setItem(&#39;fontSize&#39;, size);
+        }
+        
+        function performSearch() {
+            const query = document.getElementById(&#39;search&#39;).value.toLowerCase().trim();
+            const sections = document.querySelectorAll(&#39;.main-content section&#39;);
+            sections.forEach(section =&gt; {
+                if (query === &#39;&#39; || section.textContent.toLowerCase().includes(query)) {
+                    section.style.display = &#39;&#39;;
+                } else {
+                    section.style.display = &#39;none&#39;;
+                }
+            });
+        }
+        
+        function toggleToc() {
+            const toc = document.getElementById(&#39;toc&#39;);
+            const backdrop = document.getElementById(&#39;backdrop&#39;);
+            toc.classList.toggle(&#39;open&#39;);
+            backdrop.classList.toggle(&#39;show&#39;);
+            document.body.classList.toggle(&#39;menu-open&#39;);
+        }
+        
+        // Close on backdrop click
+        document.getElementById(&#39;backdrop&#39;).addEventListener(&#39;click&#39;, function() {
+            const toc = document.getElementById(&#39;toc&#39;);
+            const backdrop = document.getElementById(&#39;backdrop&#39;);
+            toc.classList.remove(&#39;open&#39;);
+            backdrop.classList.remove(&#39;show&#39;);
+            document.body.classList.remove(&#39;menu-open&#39;);
         });
         
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                const toc = document.getElementById('toc');
-                const backdrop = document.getElementById('backdrop');
-                if (toc.classList.contains('open')) {
-                    toc.classList.remove('open');
-                    backdrop.classList.remove('show');
-                    document.body.classList.remove('menu-open');
+        // Close on ESC
+        document.addEventListener(&#39;keydown&#39;, function(e) {
+            if (e.key === &#39;Escape&#39;) {
+                const toc = document.getElementById(&#39;toc&#39;);
+                const backdrop = document.getElementById(&#39;backdrop&#39;);
+                if (toc.classList.contains(&#39;open&#39;)) {
+                    toc.classList.remove(&#39;open&#39;);
+                    backdrop.classList.remove(&#39;show&#39;);
+                    document.body.classList.remove(&#39;menu-open&#39;);
                 }
             }
         });
         
-        // Close on TOC link clicks
-        document.querySelectorAll('#toc a').forEach(function(link) {
-            link.addEventListener('click', function() {
-                const toc = document.getElementById('toc');
-                const backdrop = document.getElementById('backdrop');
-                toc.classList.remove('open');
-                backdrop.classList.remove('show');
-                document.body.classList.remove('menu-open');
+        // Close TOC on link clicks
+        document.querySelectorAll(&#39;#toc a&#39;).forEach(function(link) {
+            link.addEventListener(&#39;click&#39;, function() {
+                const toc = document.getElementById(&#39;toc&#39;);
+                const backdrop = document.getElementById(&#39;backdrop&#39;);
+                toc.classList.remove(&#39;open&#39;);
+                backdrop.classList.remove(&#39;show&#39;);
+                document.body.classList.remove(&#39;menu-open&#39;);
             });
         });
         
-        // Chart.js visualization
-        const ctx = document.getElementById('coffeeChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Brazil', 'Vietnam', 'Indonesia', 'Chile'],
-                datasets: [{
-                    label: 'Production (tonnes, 2023)',
-                    data: [3405267, 1956782, 760192, 0],
-                    backgroundColor: [
-                        '#28a745', // green
-                        '#007bff', // blue
-                        '#ffc107', // yellow
-                        '#dc3545'  // red for 0
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value.toLocaleString();
+        // Font and theme init
+        window.addEventListener(&#39;load&#39;, () =&gt; {
+            const savedFont = localStorage.getItem(&#39;fontSize&#39;) || &#39;18&#39;;
+            document.getElementById(&#39;font-slider&#39;).value = savedFont;
+            setFontSize(savedFont);
+            initTheme();
+            
+            // Chart
+            const ctx = document.getElementById(&#39;coffeeChart&#39;).getContext(&#39;2d&#39;);
+            new Chart(ctx, {
+                type: &#39;bar&#39;,
+                data: {
+                    labels: [&#39;Brazil&#39;, &#39;Vietnam&#39;, &#39;Indonesia&#39;, &#39;Chile&#39;],
+                    datasets: [{
+                        label: &#39;Production (tonnes, 2023)&#39;,
+                        data: [3405267, 1956782, 760192, 0],
+                        backgroundColor: [
+                            &#39;#28a745&#39;, 
+                            &#39;#007bff&#39;, 
+                            &#39;#ffc107&#39;, 
+                            &#39;#dc3545&#39;  
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
                             }
                         }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
                     },
-                    title: {
-                        display: true,
-                        text: 'Top Producers vs. Chile (2023)'
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: &#39;Top Producers vs. Chile (2023)&#39;
+                        }
                     }
                 }
-            }
+            });
         });
-    </script>
-</body>
-</html>
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
