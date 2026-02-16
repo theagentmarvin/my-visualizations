@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BIM Viewer - FragmentsManager</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; }
+    #container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+    
+    /* Stats.js positioning */
+    .stats-panel { position: absolute !important; top: 0; left: 0; z-index: 1000; }
+    
+    /* UI Panel styles */
+    .options-menu {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      padding: 15px;
+      min-width: 200px;
+      z-index: 100;
+    }
+    
+    .phone-menu-toggler {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 101;
+      display: none;
+    }
+    
+    @media (max-width: 768px) {
+      .phone-menu-toggler { display: block; }
+      .options-menu {
+        right: -300px;
+        transition: right 0.3s ease;
+      }
+      .options-menu-visible { right: 10px; }
+    }
+    
+    button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    button:hover { background: #0056b3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    
+    .panel-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .panel-section { margin-bottom: 10px; }
+    .panel-section-title { font-weight: 600; margin-bottom: 5px; color: #333; }
+    
+    /* Loading indicator */
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      z-index: 200;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <div id="loading">Loading models...</div>
+  
+  <div id="ui-panel" class="options-menu">
+    <div class="panel-title">FragmentsManager Tutorial</div>
+    <div class="panel-section">
+      <div class="panel-section-title">Controls</div>
+      <button id="btn-load">Load Fragments</button>
+      <button id="btn-dispose-arch" style="display:none;">Dispose Arch Model</button>
+      <button id="btn-dispose-all" style="display:none;">Dispose All Models</button>
+      <button id="btn-export" style="display:none;">Export Fragments</button>
+    </div>
+  </div>
+  
+  <button class="phone-menu-toggler" id="menu-toggle">☰</button>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "@thatopen/components": "https://esm.sh/@thatopen/components@2.4.5",
+      "@thatopen/ui": "https://esm.sh/@thatopen/ui@2.4.1",
+      "stats.js": "https://esm.sh/stats.js@0.17.0",
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as OBC from "@thatopen/components";
+    import Stats from "stats.js";
+
+    console.log("Starting BIM Viewer...");
+
+    // ============================================
+    // 🌎 Setting up a Simple Scene
+    // ============================================
+    
+    const components = new OBC.Components();
+
+    const worlds = components.get(OBC.Worlds);
+    const world = worlds.create();
+
+    world.scene = new OBC.SimpleScene(components);
+    world.scene.setup();
+    world.scene.three.background = null;
+
+    const container = document.getElementById("container");
+    world.renderer = new OBC.SimpleRenderer(components, container);
+    world.camera = new OBC.OrthoPerspectiveCamera(components);
+    
+    // Set initial camera position
+    await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
+
+    // Initialize components
+    components.init();
+
+    // Add grid
+    components.get(OBC.Grids).create(world);
+
+    console.log("Scene setup complete");
+
+    // ============================================
+    // ✨ Utilizing the FragmentsManager Component
+    // ============================================
+    
+    // Fetch worker from GitHub and create blob URL
+    const githubUrl = "https://thatopen.github.io/engine_fragment/resources/worker.mjs";
+    const fetchedUrl = await fetch(githubUrl);
+    const workerBlob = await fetchedUrl.blob();
+    const workerFile = new File([workerBlob], "worker.mjs", {
+      type: "text/javascript",
+    });
+    const workerUrl = URL.createObjectURL(workerFile);
+
+    // Get FragmentsManager and initialize
+    const fragments = components.get(OBC.FragmentsManager);
+    await fragments.init(workerUrl);
+
+    console.log("FragmentsManager initialized");
+
+    // Update fragments when camera moves
+    world.camera.controls.addEventListener("update", () => {
+      if (fragments.core) {
+        fragments.core.update();
+      }
+    });
+
+    // ============================================
+    // 🗂️ Fragments List
+    // ============================================
+    
+    fragments.list.onItemSet.add(({ value: model }) => {
+      console.log("Model loaded:", model.modelId);
+      model.useCamera(world.camera.three);
+      world.scene.three.add(model.object);
+      if (fragments.core) {
+        fragments.core.update(true);
+      }
+      updateUI();
+    });
+
+    fragments.list.onItemDeleted.add(() => {
+      updateUI();
+    });
+
+    // ============================================
+    // 🗂️ Fragments Materials List
+    // ============================================
+    
+    if (fragments.core && fragments.core.models && fragments.core.models.materials) {
+      fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
+        if (!("isLodMaterial" in material && material.isLodMaterial)) {
+          material.polygonOffset = true;
+          material.polygonOffsetUnits = 1;
+          material.polygonOffsetFactor = Math.random();
+        }
+      });
+    }
+
+    // ============================================
+    // 📂 Loading Fragments Models
+    // ============================================
+    
+    const fragPaths = [
+      "https://thatopen.github.io/engine_components/resources/frags/school_arq.frag",
+      "https://thatopen.github.io/engine_components/resources/frags/school_str.frag",
+    ];
+
+    const loadFragments = async () => {
+      const loadingEl = document.getElementById("loading");
+      loadingEl.style.display = "block";
+      
+      try {
+        // Promise.all loads models concurrently for faster execution.
+        await Promise.all(
+          fragPaths.map(async (path) => {
+            const modelId = path.split("/").pop()?.split(".").shift();
+            if (!modelId) return null;
+            console.log("Fetching:", modelId);
+            const file = await fetch(path);
+            const buffer = await file.arrayBuffer();
+            console.log("Loading model:", modelId, "size:", buffer.byteLength);
+            // this is the main function to load the fragments
+            return fragments.core.load(buffer, { modelId });
+          }),
+        );
+        console.log("All models loaded successfully");
+      } catch (error) {
+        console.error("Error loading fragments:", error);
+        alert("Error loading models: " + error.message);
+      } finally {
+        loadingEl.style.display = "none";
+      }
+    };
+
+    // ============================================
+    // 🎁 Exporting the Fragments Model
+    // ============================================
+    
+    const downloadFragments = async () => {
+      for (const [, model] of fragments.list) {
+        const fragsBuffer = await model.getBuffer(false);
+        const file = new File([fragsBuffer], `${model.modelId}.frag`);
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(file);
+        link.download = file.name;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+    };
+
+    // ============================================
+    // 🗑️ Deleting Models
+    // ============================================
+    
+    const deleteArchModel = () => {
+      const modelIds = [...fragments.list.keys()];
+      const modelId = modelIds.find((key) => /arq/.test(key));
+      if (!modelId) return;
+      fragments.core.disposeModel(modelId);
+    };
+
+    const deleteAllModels = () => {
+      for (const [modelId] of fragments.list) {
+        fragments.core.disposeModel(modelId);
+      }
+    };
+
+    // ============================================
+    // 🧩 UI Controls
+    // ============================================
+    
+    const btnLoad = document.getElementById("btn-load");
+    const btnDisposeArch = document.getElementById("btn-dispose-arch");
+    const btnDisposeAll = document.getElementById("btn-dispose-all");
+    const btnExport = document.getElementById("btn-export");
+    const btnMenuToggle = document.getElementById("menu-toggle");
+    const uiPanel = document.getElementById("ui-panel");
+
+    function updateUI() {
+      const hasModels = fragments.list.size > 0;
+      const hasArchModel = [...fragments.list.keys()].some((key) => /arq/.test(key));
+
+      btnLoad.style.display = hasModels ? "none" : "block";
+      btnDisposeArch.style.display = hasArchModel ? "block" : "none";
+      btnDisposeAll.style.display = hasModels ? "block" : "none";
+      btnExport.style.display = hasModels ? "block" : "none";
+    }
+
+    btnLoad.addEventListener("click", () => {
+      btnLoad.disabled = true;
+      btnLoad.textContent = "Loading...";
+      loadFragments().then(() => {
+        btnLoad.disabled = false;
+        btnLoad.textContent = "Load Fragments";
+      });
+    });
+
+    btnDisposeArch.addEventListener("click", deleteArchModel);
+    btnDisposeAll.addEventListener("click", deleteAllModels);
+    btnExport.addEventListener("click", downloadFragments);
+
+    btnMenuToggle.addEventListener("click", () => {
+      uiPanel.classList.toggle("options-menu-visible");
+    });
+
+    // ============================================
+    // ⏱️ Measuring the performance
+    // ============================================
+    
+    const stats = new Stats();
+    stats.showPanel(2); // 0: fps, 1: ms, 2: mb
+    document.body.appendChild(stats.dom);
+    stats.dom.style.left = "0px";
+    stats.dom.style.top = "0px";
+    stats.dom.style.zIndex = "unset";
+    
+    // Add stats to render loop
+    world.renderer.onBeforeUpdate.add(() => stats.begin());
+    world.renderer.onAfterUpdate.add(() => stats.end());
+
+    console.log("BIM Viewer initialized successfully");
+    console.log("Click 'Load Fragments' to load the school models");
+
+    // Initial UI state
+    updateUI();
+
+    // ============================================
+    // Handle window resize
+    // ============================================
+    window.addEventListener("resize", () => {
+      if (world.renderer) {
+        world.renderer.resize();
+      }
+    });
+  </script>
+</body>
+</html>
