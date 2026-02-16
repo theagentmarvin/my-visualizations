@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#1a1a1a">
-  <title>BIM Mobile Viewer</title>
+  <title>Items Finder - BIM Mobile</title>
   <style>
     * {
       margin: 0;
@@ -35,7 +35,7 @@
       background: #1a1a1a;
     }
 
-    /* Progress Bar Styles */
+    /* Loading Overlay Styles */
     .loading-overlay {
       position: fixed;
       top: 0;
@@ -217,55 +217,20 @@
       pointer-events: auto;
     }
 
-    /* Selection info panel */
-    .selection-info {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      background: rgba(26, 26, 26, 0.95);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px;
-      padding: 12px;
-      color: #fff;
-      font-size: 13px;
-      max-width: 250px;
-      z-index: 100;
-      display: none;
-    }
-    
-    .selection-info.visible {
-      display: block;
-    }
-    
-    .selection-info .title {
-      font-weight: 600;
-      color: #2196F3;
-      margin-bottom: 8px;
-    }
-    
-    .selection-info .property {
-      display: flex;
-      justify-content: space-between;
+    /* Query button styles */
+    .query-btn {
       margin: 4px 0;
-    }
-    
-    .selection-info .property-name {
-      color: #888;
-    }
-    
-    .selection-info .property-value {
-      color: #fff;
     }
   </style>
   <!-- Import Map for Three.js and That Open -->
   <script type="importmap">
   {
     "imports": {
-      "three": "https://esm.sh/three@0.160.0",
-      "three/addons/": "https://esm.sh/three@0.160.0/examples/jsm/",
-      "@thatopen/components": "https://esm.sh/@thatopen/components@2.4.5",
-      "@thatopen/ui": "https://esm.sh/@thatopen/ui@2.4.1",
-      "stats.js": "https://esm.sh/stats.js@0.17.0"
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+      "@thatopen/components": "https://unpkg.com/@thatopen/components@2.4.5/dist/index.js",
+      "@thatopen/ui": "https://unpkg.com/@thatopen/ui@2.4.2/dist/index.js",
+      "stats.js": "https://unpkg.com/stats.js@0.17.0/build/stats.min.js"
     }
   }
   </script>
@@ -284,12 +249,6 @@
 
   <div id="container"></div>
   
-  <!-- Selection Info Panel -->
-  <div class="selection-info" id="selectionInfo">
-    <div class="title">Selected Element</div>
-    <div id="selectionContent"></div>
-  </div>
-  
   <div class="panel-backdrop" id="panelBackdrop"></div>
 
   <script type="module">
@@ -304,19 +263,18 @@
     // Create components instance
     const components = new OBC.Components();
 
-    // Setup world with proper typing
+    // Setup world
     const worlds = components.get(OBC.Worlds);
     const world = worlds.create();
 
     world.scene = new OBC.SimpleScene(components);
     world.scene.setup();
-    world.scene.three.background = new THREE.Color(0x1a1a1a);
+    world.scene.three.background = null;
 
     const container = document.getElementById("container");
     world.renderer = new OBC.SimpleRenderer(components, container);
     world.camera = new OBC.OrthoPerspectiveCamera(components);
 
-    // Initialize components
     components.init();
 
     // Add grid
@@ -324,10 +282,6 @@
 
     // Get FragmentsManager
     const fragments = components.get(OBC.FragmentsManager);
-
-    // Setup Highlighter for item selection
-    const highlighter = components.get(OBC.Highlighter);
-    highlighter.setup({ world });
 
     // Track loading state
     let fragmentsLoaded = false;
@@ -357,24 +311,54 @@
       updateUI();
     };
 
-    // Load fragments models automatically on page start
+    // Show notification
+    function showNotification(message, isError = false) {
+      const notification = document.createElement("div");
+      notification.className = "mobile-notification";
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${isError ? "#f44336" : "#4CAF50"};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 24px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        animation: slideDown 0.3s ease;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = "slideUp 0.3s ease";
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+
+    // Load fragments models automatically
     const loadFragments = async () => {
       if (loadingInProgress && fragmentsLoaded) return;
       
       const fragPaths = [
-        { path: "https://thatopen.github.io/engine_components/resources/frags/school_arq.frag", name: "school_arq" },
-        { path: "https://thatopen.github.io/engine_components/resources/frags/school_str.frag", name: "school_str" }
+        "https://thatopen.github.io/engine_components/resources/frags/school_arq.frag",
+        "https://thatopen.github.io/engine_components/resources/frags/school_str.frag",
       ];
 
       const totalModels = fragPaths.length;
 
       try {
         for (let i = 0; i < fragPaths.length; i++) {
-          const { path, name } = fragPaths[i];
+          const path = fragPaths[i];
+          const modelId = path.split("/").pop()?.split(".").shift();
           
-          if (loadedModelIds.includes(name)) continue;
+          if (!modelId) continue;
+          if (loadedModelIds.includes(modelId)) continue;
 
-          updateProgress((i / totalModels) * 80, `Loading ${name}...`);
+          updateProgress((i / totalModels) * 70, `Loading ${modelId}...`);
 
           const file = await fetch(path);
           const buffer = await file.arrayBuffer();
@@ -382,18 +366,18 @@
 
           // Load the fragment
           const group = fragments.load(data, {
-            name: name,
+            name: modelId,
             coordinate: true,
           });
 
           // Add to scene
           world.scene.three.add(group);
-          loadedModelIds.push(name);
+          loadedModelIds.push(modelId);
 
-          console.log(`Loaded model: ${name}`, group);
+          console.log(`Loaded model: ${modelId}`, group);
         }
 
-        updateProgress(90, 'Processing geometry...');
+        updateProgress(85, 'Processing geometry...');
 
         // Fit camera to scene after loading
         const meshes = [];
@@ -426,248 +410,138 @@
       }
     };
 
-    // Delete architectural model
-    const deleteArchModel = () => {
-      for (const [id, group] of fragments.groups) {
-        if (/arq/.test(id)) {
-          fragments.disposeGroup(group);
-          loadedModelIds = loadedModelIds.filter((mid) => mid !== id);
-        }
-      }
-      if (fragments.groups.size === 0) {
-        fragmentsLoaded = false;
-      }
-      updateUI();
+    // ============================================
+    // ITEMS FINDER COMPONENT
+    // ============================================
+    
+    const finder = components.get(OBC.ItemsFinder);
+
+    // Create queries
+    finder.create("Walls & Slabs", [{ categories: [/WALL/, /SLAB/] }]);
+
+    finder.create("Masonry Walls", [
+      {
+        categories: [/WALL/],
+        attributes: { queries: [{ name: /Name/, value: /Masonry/ }] },
+      },
+    ]);
+
+    // Define entry level query for columns
+    const entryLevel = {
+      categories: [/BUILDINGSTOREY/],
+      attributes: { queries: [{ name: /Name/, value: /Entry/ }] },
     };
 
-    // Delete all models
-    const deleteAllModels = () => {
-      const groups = [...fragments.groups.values()];
-      for (const group of groups) {
-        fragments.disposeGroup(group);
-      }
-      loadedModelIds = [];
-      fragmentsLoaded = false;
-      updateUI();
+    finder.create("First Level Columns", [
+      {
+        categories: [/COLUMN/],
+        relation: { name: "ContainedInStructure", query: entryLevel },
+      },
+    ]);
+
+    // Helper function to get query result
+    const getResult = async (name) => {
+      const finderQuery = finder.list.get(name);
+      if (!finderQuery) return {};
+      const result = await finderQuery.test();
+      return result;
     };
 
-    // Export fragments
-    const downloadFragments = async () => {
-      for (const [id, group] of fragments.groups) {
-        const fragsBuffer = fragments.export(group);
-        const blob = new Blob([fragsBuffer], { type: "application/octet-stream" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `${id}.frag`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-      }
-    };
+    // ============================================
+    // UI COMPONENTS
+    // ============================================
 
-    // Handle selection change
-    const updateSelectionInfo = (selection) => {
-      const selectionInfo = document.getElementById('selectionInfo');
-      const selectionContent = document.getElementById('selectionContent');
-      
-      if (!selection || Object.keys(selection).length === 0) {
-        selectionInfo.classList.remove('visible');
-        return;
-      }
-
-      // Get the first selected fragment
-      const fragmentID = Object.keys(selection)[0];
-      const itemIDs = selection[fragmentID];
-      
-      if (!itemIDs || itemIDs.size === 0) {
-        selectionInfo.classList.remove('visible');
-        return;
-      }
-
-      const itemID = Array.from(itemIDs)[0];
-      
-      // Get fragment and property data
-      const fragment = fragments.list.get(fragmentID);
-      let propertiesHTML = '';
-      
-      if (fragment) {
-        // Try to get properties from fragment
-        const data = fragment.get(itemID);
-        if (data) {
-          propertiesHTML = `
-            <div class="property">
-              <span class="property-name">ID:</span>
-              <span class="property-value">${itemID}</span>
-            </div>
-            <div class="property">
-              <span class="property-name">Fragment:</span>
-              <span class="property-value">${fragmentID.substring(0, 20)}...</span>
-            </div>
-          `;
-        }
-      }
-
-      selectionContent.innerHTML = propertiesHTML || `
-        <div class="property">
-          <span class="property-name">ID:</span>
-          <span class="property-value">${itemID}</span>
-        </div>
-      `;
-      
-      selectionInfo.classList.add('visible');
-    };
-
-    // Listen for selection events
-    highlighter.events.select.onHighlight.add((selection) => {
-      updateSelectionInfo(selection);
-    });
-
-    highlighter.events.select.onClear.add(() => {
-      const selectionInfo = document.getElementById('selectionInfo');
-      selectionInfo.classList.remove('visible');
-    });
-
-    // Create UI Panel
     let panel;
+    let queriesList;
 
-    const [panelComponent, updatePanel] = BUI.Component.create((_) => {
-      // Loading indicator (only shown during initial load)
-      let loadingIndicator;
-      if (loadingInProgress) {
-        loadingIndicator = BUI.html`
-          <div style="padding: 12px; text-align: center; color: #666;">
-            <div class="loading-spinner" style="width: 24px; height: 24px; border-width: 2px;"></div>
-            <span style="font-size: 13px; margin-top: 8px; display: block;">Loading models...</span>
-          </div>
-        `;
-      }
+    // Create queries table
+    const queriesListTemplate = () => {
+      const onCreated = (e) => {
+        if (!e) return;
+        const table = e;
 
-      // Dispose architectural model button
-      let disposeArchModelBtn;
-      if ([...fragments.groups.keys()].some((key) => /arq/.test(key))) {
-        disposeArchModelBtn = BUI.html`
-          <bim-button 
-            label="Remove Arch Model" 
-            icon="solar:trash-bin-trash-bold"
-            @click=${deleteArchModel}>
-          </bim-button>
-        `;
-      }
+        table.loadFunction = async () => {
+          const data = [];
 
-      // Download and dispose all buttons - only when models exist
-      let downloadFragmentsBtn;
-      let disposeModelsBtn;
-      if (fragments.groups.size > 0) {
-        disposeModelsBtn = BUI.html`
-          <bim-button 
-            label="Remove All Models" 
-            icon="solar:trash-bin-2-bold"
-            @click=${deleteAllModels}
-            style="--bim-button-bg: #f44336;">
-          </bim-button>
-        `;
+          for (const [name] of finder.list) {
+            data.push({
+              data: { Name: name, Actions: "" },
+            });
+          }
 
-        downloadFragmentsBtn = BUI.html`
-          <bim-button 
-            label="Export Models" 
-            icon="solar:file-download-bold"
-            @click=${downloadFragments}>
-          </bim-button>
-        `;
-      }
+          return data;
+        };
 
-      // Properties table section - only visible after fragments loaded
-      let propertiesSection;
-      if (fragmentsLoaded) {
-        propertiesSection = BUI.html`
-          <bim-panel-section label="Model Information" collapsed>
-            <div style="padding: 8px; font-size: 13px; color: #666;">
-              <div style="margin-bottom: 8px;">
-                <strong>Status:</strong> 
-                <span style="color: #4CAF50;">● Loaded</span>
-              </div>
-              <div style="margin-bottom: 8px;">
-                <strong>Models:</strong> ${fragments.groups.size}
-              </div>
-              <div>
-                <strong>Fragments:</strong> ${fragments.list.size}
-              </div>
-            </div>
-          </bim-panel-section>
-        `;
-      }
-
-      // Model info section - shows list of loaded models
-      let modelInfoSection;
-      if (fragments.groups.size > 0) {
-        modelInfoSection = BUI.html`
-          <bim-panel-section label="Loaded Models" collapsed>
-            <div style="padding: 8px; font-size: 13px; color: #666;">
-              ${[...fragments.groups.keys()].map((id) =>
-                BUI.html`<div style="padding: 4px 0; display: flex; align-items: center; gap: 8px;">
-                  <span style="color: #4CAF50;">●</span>
-                  ${id}
-                </div>`
-              )}
-            </div>
-          </bim-panel-section>
-        `;
-      }
-
-      // Instructions section
-      let instructionsSection;
-      if (fragmentsLoaded) {
-        instructionsSection = BUI.html`
-          <bim-panel-section label="Controls" collapsed>
-            <div style="padding: 8px; font-size: 12px; color: #888;">
-              <div style="margin-bottom: 4px;">🖱️ <strong>Left Click:</strong> Select element</div>
-              <div style="margin-bottom: 4px;">🖱️ <strong>Right Click:</strong> Pan</div>
-              <div style="margin-bottom: 4px;">🖱️ <strong>Scroll:</strong> Zoom</div>
-              <div>🖱️ <strong>Double Click:</strong> Fit view</div>
-            </div>
-          </bim-panel-section>
-        `;
-      }
+        table.loadData(true);
+      };
 
       return BUI.html`
-        <bim-panel active label="BIM Mobile Viewer" class="options-menu">
-          <bim-panel-section label="Controls">
-            ${loadingIndicator}
-            ${disposeArchModelBtn}
-            ${downloadFragmentsBtn}
-            ${disposeModelsBtn}
+        <bim-table ${BUI.ref(onCreated)}></bim-table>
+      `;
+    };
+
+    queriesList = BUI.Component.create(queriesListTemplate);
+
+    queriesList.style.maxHeight = "25rem";
+    queriesList.columns = ["Name", { name: "Actions", width: "auto" }];
+    queriesList.noIndentation = true;
+    queriesList.headersHidden = true;
+    queriesList.dataTransform = {
+      Actions: (_, rowData) => {
+        const { Name } = rowData;
+        if (!Name) return _;
+
+        const hider = components.get(OBC.Hider);
+        const onClick = async ({ target }) => {
+          target.loading = true;
+          const modelIdMap = await getResult(Name);
+          await hider.isolate(modelIdMap);
+          target.loading = false;
+          showNotification(`Showing: ${Name}`);
+        };
+
+        return BUI.html`<bim-button icon="solar:cursor-bold" @click=${onClick}></bim-button>`;
+      },
+    };
+
+    // Create main panel
+    const panelComponent = BUI.Component.create(() => {
+      const onResetVisibility = async ({ target }) => {
+        target.loading = true;
+        const hider = components.get(OBC.Hider);
+        await hider.set(true);
+        target.loading = false;
+        showNotification("Visibility reset");
+      };
+
+      return BUI.html`
+        <bim-panel active label="Items Finder" class="options-menu">
+          <bim-panel-section style="min-width: 14rem" label="General">
+            <bim-button label="Reset Visibility" @click=${onResetVisibility}></bim-button>
           </bim-panel-section>
-          ${modelInfoSection}
-          ${propertiesSection}
-          ${instructionsSection}
+          <bim-panel-section label="Queries">
+            ${queriesList}
+          </bim-panel-section>
         </bim-panel>
       `;
-    }, {});
+    });
 
     panel = panelComponent;
-
-    // Function to update the entire UI
-    function updateUI() {
-      updatePanel();
-    }
-
-    // Listen for fragment changes
-    const updateFunction = () => updateUI();
-    fragments.groups.onItemSet.add(updateFunction);
-    fragments.groups.onItemDeleted.add(updateFunction);
-    fragments.onFragmentsLoaded.add(updateFunction);
-    fragments.onFragmentsDisposed.add(updateFunction);
-
     document.body.append(panel);
 
-    // Mobile menu toggle button - always visible at bottom right
+    // Mobile menu toggle button
     const menuButton = BUI.Component.create(() => {
       return BUI.html`
         <bim-button 
           class="phone-menu-toggler" 
-          icon="solar:menu-dots-bold"
+          icon="solar:settings-bold"
           tooltip="Menu"
           @click="${() => {
-            panel.classList.toggle("options-menu-visible");
+            if (panel.classList.contains("options-menu-visible")) {
+              panel.classList.remove("options-menu-visible");
+            } else {
+              panel.classList.add("options-menu-visible");
+            }
           }}">
         </bim-button>
       `;
@@ -675,33 +549,26 @@
 
     document.body.append(menuButton);
 
-    // Notification system
-    function showNotification(message, isError = false) {
-      const notification = document.createElement("div");
-      notification.className = "mobile-notification";
-      notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: ${isError ? "#f44336" : "#4CAF50"};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 24px;
-        font-size: 14px;
-        font-weight: 500;
-        z-index: 10000;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        animation: slideDown 0.3s ease;
-      `;
-      notification.textContent = message;
-      document.body.appendChild(notification);
-
-      setTimeout(() => {
-        notification.style.animation = "slideUp 0.3s ease";
-        setTimeout(() => notification.remove(), 300);
-      }, 3000);
+    // Backdrop click to close panel
+    const backdrop = document.getElementById('panelBackdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', () => {
+        panel.classList.remove("options-menu-visible");
+      });
     }
+
+    // Update UI function
+    function updateUI() {
+      if (queriesList) {
+        queriesList.loadData(true);
+      }
+    }
+
+    // Listen for fragment changes
+    fragments.groups.onItemSet.add(() => updateUI());
+    fragments.groups.onItemDeleted.add(() => updateUI());
+    fragments.onFragmentsLoaded.add(() => updateUI());
+    fragments.onFragmentsDisposed.add(() => updateUI());
 
     // Stats for performance monitoring
     const stats = new Stats();
@@ -715,12 +582,12 @@
     // Set initial camera position
     world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
 
-    // Disable stats on mobile (small screens)
+    // Disable stats on mobile
     if (window.innerWidth < 768) {
       stats.dom.style.display = "none";
     }
 
-    console.log("BIM Mobile Viewer initialized successfully!");
+    console.log("Items Finder Mobile Viewer initialized!");
     console.log("Auto-loading BIM models...");
 
     // AUTO-LOAD FRAGMENTS ON PAGE START
