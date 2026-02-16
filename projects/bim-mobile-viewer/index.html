@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <!-- Import Map - Single Three.js Instance -->
+
   <!-- Mobile optimization: prevent zoom/pinch conflicts, proper viewport -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -262,7 +264,15 @@
       pointer-events: auto;
     }
   </style>
-  <script type="module" crossorigin src="/assets/index-BDjYNf3X.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.1/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" crossorigin src="/assets/index-J4CbDoY4.js"></script>
 </head>
 <body>
   <div id="container"></div>
