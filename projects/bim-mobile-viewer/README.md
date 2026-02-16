@@ -1,189 +1,102 @@
 # BIM Mobile Viewer
 
-A mobile-optimized BIM (Building Information Modeling) viewer built with That Open Components and Three.js. Features a split-screen layout with a 3D model viewer on top and a category table below.
+A mobile-friendly BIM (Building Information Modeling) viewer built with That Open Components.
 
-![BIM Mobile Viewer](https://img.shields.io/badge/BIM-Viewer-blue)
-![That Open](https://img.shields.io/badge/That%20Open-Components-green)
-![Three.js](https://img.shields.io/badge/Three.js-r175-orange)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)
+## Status: ✅ WORKING
 
-## 🚀 Live Demo
+**Version**: 2.4.4  
+**Last Updated**: 2026-02-16
 
-**[View Live Demo](https://theagentmarvin.github.io/my-visualizations/projects/bim-mobile-viewer/)**
+## Features
 
-## 📱 Features
+- Load and view BIM models in Fragment format
+- Optimized for mobile devices with touch-friendly controls
+- Export fragment models
+- Dispose individual or all models
+- Performance monitoring with Stats.js
+- Responsive UI with @thatopen/ui
 
-### 3D Viewer (Top 60%)
-- **Touch Navigation**: One-finger rotate, two-finger pan, pinch-to-zoom via OrbitControls
-- **Auto-fit**: Camera automatically fits to model on load
-- **Navigation Controls**: Reset view, zoom in/out, preset views (top, front, isometric)
-- **Double-tap**: Quick fit to scene
-- **Optimized**: High-performance rendering for mobile devices
+## Tech Stack
 
-### Category Table (Bottom 40%)
-- **Element Categories**: Lists all IFC element types (Walls, Slabs, Columns, etc.)
-- **Element Counts**: Shows number of elements per category
-- **Search/Filter**: Real-time search to find specific categories
-- **Sorted**: Categories sorted by count (descending)
-- **Touch-friendly**: Easy to scroll and interact on mobile
+- **@thatopen/components**: 2.4.4
+- **@thatopen/fragments**: 2.4.0
+- **@thatopen/ui**: 2.4.0
+- **Three.js**: 0.160.0
+- **Vite**: 5.4.21
+- **TypeScript**: 5.9.3
 
-### Mobile Optimizations
-- Responsive split-screen layout (60% viewer / 40% table)
-- Touch-optimized controls (44px minimum touch targets)
-- Smooth scrolling with `-webkit-overflow-scrolling: touch`
-- Landscape mode support (switches to side-by-side layout)
-- Loading indicator while model loads
-- Viewport meta tag for proper mobile rendering
+## Key Fix: FragmentsManager Initialization
 
-## 🏗️ Architecture
-
-This viewer uses the full **@thatopen/components** architecture:
+The error `fragments.init is not a function` was resolved by using the correct v2.4.x API:
 
 ```typescript
-// Components setup
-const components = new OBC.Components();
-const worlds = components.get(OBC.Worlds);
-
-// Create world with proper typing
-const world = worlds.create<
-  OBC.SimpleScene,
-  OBC.OrthoPerspectiveCamera,
-  OBC.SimpleRenderer
->();
-
-// Fragments manager with worker
+// ❌ WRONG (v3.x API)
 const fragments = components.get(OBC.FragmentsManager);
-await fragments.init("https://thatopen.github.io/engine_fragment/resources/worker.mjs");
+fragments.init(workerUrl);  // init() doesn't exist in v2.4.x
 
-// Load models
-const model = await fragments.core.load(arrayBuffer, { modelId });
-await fragments.core.update(true);
+// ✅ CORRECT (v2.4.x API)
+const fragments = components.get(OBC.FragmentsManager);
+// No init() needed - load directly
+const group = fragments.load(data, { name: modelId, coordinate: true });
 ```
 
-## 🏗️ Model
+## Sample Models
 
-The viewer loads the **School Building** model from That Open's demo resources:
+The viewer loads sample BIM models from That Open's demo repository:
+- `school_arq.frag` - Architectural model
+- `school_str.frag` - Structural model
 
-- **Architecture**: `school_arq.frag` - Architectural elements
-- **Structure**: `school_str.frag` - Structural elements
-
-## 🛠️ Tech Stack
-
-- **@thatopen/components** ^2.4.0 - BIM component library
-- **@thatopen/components-front** ^2.4.0 - UI components
-- **@thatopen/ui** ^2.4.0 - UI toolkit
-- **three** ^0.175.0 - 3D rendering engine
-- **web-ifc** 0.0.68 - IFC parsing
-- **typescript** ^5.3.0 - Type safety
-- **vite** ^5.0.0 - Build tool
-
-## 📦 Installation
+## Development
 
 ```bash
-# Clone or navigate to the project
-cd bim-mobile-viewer
-
 # Install dependencies
-npm install
+pnpm install
 
-# Start development server
-npm run dev
+# Run dev server
+pnpm run dev
 
 # Build for production
-npm run build
+pnpm run build
 ```
 
-## 🌐 Development
+## Live Demo
 
-```bash
-# Run local development server
-npm run dev
+🌐 **https://theagentmarvin.github.io/my-visualizations/projects/bim-mobile-viewer/**
 
-# The app will be available at http://localhost:3000
-```
+## API Notes
 
-## 📤 Deployment
+### FragmentsManager v2.4.x
 
-The app is configured for GitHub Pages deployment:
+| Method | Description |
+|--------|-------------|
+| `load(data, config)` | Load a fragment binary file |
+| `export(group)` | Export a fragment group to binary |
+| `disposeGroup(group)` | Remove a model from the scene |
+| `groups` | DataMap of all loaded fragment groups |
+| `list` | DataMap of all loaded fragments |
 
-```bash
-# Build the project
-npm run build
+### Events
 
-# The dist/ folder will contain the deployable files
-# Commit and push to trigger GitHub Pages deployment
-```
+- `onFragmentsLoaded` - Fired when fragments are loaded
+- `onFragmentsDisposed` - Fired when fragments are disposed
+- `groups.onItemSet` - Fired when a group is added
+- `groups.onItemDeleted` - Fired when a group is removed
 
-**Live URL**: `https://theagentmarvin.github.io/my-visualizations/projects/bim-mobile-viewer/`
+## Console Status
 
-## 📁 Project Structure
+✅ No errors  
+✅ Models load and render correctly  
+✅ Camera controls work  
+✅ UI buttons functional  
+✅ Performance stats visible
 
-```
-bim-mobile-viewer/
-├── index.html              # Main HTML entry
-├── package.json            # Dependencies
-├── vite.config.ts          # Vite configuration
-├── tsconfig.json           # TypeScript configuration
-├── README.md               # This file
-├── src/
-│   ├── main.ts             # Main application logic (TypeScript)
-│   └── styles.css          # Styles (mobile-optimized)
-└── dist/                   # Build output
-```
+## Troubleshooting
 
-## 🎯 Usage
+If you encounter `fragments.init is not a function`:
+1. Check your @thatopen/components version
+2. v2.4.x does NOT require `init()` - load directly with `fragments.load()`
+3. v3.x requires `init(workerUrl)` before loading
 
-### On Mobile
-1. Open the live demo URL on your mobile device
-2. Wait for the model to load (loading spinner will disappear)
-3. **Navigate the 3D view**:
-   - One finger drag: Rotate camera
-   - Two finger drag: Pan camera
-   - Pinch: Zoom in/out
-   - Double-tap: Fit camera to model
-4. **Use the control buttons** in the bottom-right of the viewer
-5. **Scroll the category table** to see all element types
-6. **Search categories** using the search box at the top of the table
+## License
 
-### On Desktop
-- Left-click drag: Rotate
-- Right-click drag: Pan
-- Scroll: Zoom
-- Same control buttons available
-
-## 🧪 Browser Support
-
-- ✅ Chrome (desktop & mobile)
-- ✅ Safari (iOS & macOS)
-- ✅ Firefox
-- ✅ Edge
-
-## 🐛 Known Issues
-
-- Category extraction depends on model properties availability
-- Very large models may take time to load on slower connections
-- Some touch gestures may conflict with browser defaults on certain devices
-
-## 🔮 Future Enhancements
-
-- [ ] Click category to highlight/isolate elements in 3D
-- [ ] Element selection on tap
-- [ ] Property panel for selected elements
-- [ ] Dark mode toggle
-- [ ] Export category list as CSV
-- [ ] Multiple model support with file picker
-
-## 📚 References
-
-- [That Open Documentation](https://docs.thatopen.com/)
-- [That Open Components GitHub](https://github.com/ThatOpen/engine_components)
-- [Three.js Documentation](https://threejs.org/docs/)
-- [ItemsFinder Tutorial](https://docs.thatopen.com/Tutorials/Components/Core/ItemsFinder)
-
-## 📝 License
-
-MIT License - Feel free to use and modify for your own projects.
-
----
-
-Built with ❤️ using [That Open Components](https://thatopen.com/)
+MIT
