@@ -1,12 +1,14 @@
 import * as OBC from "@thatopen/components";
+import * as FRAGS from "@thatopen/fragments";
 import * as THREE from "three";
+import CameraControls from "camera-controls";
 
-// Global variables
-let components;
-let world;
-let fragments;
-let categoryData = [];
-let loadedModels = [];
+// Global variables with proper types
+let components: OBC.Components;
+let world: OBC.SimpleWorld<OBC.SimpleScene, OBC.OrthoPerspectiveCamera, OBC.SimpleRenderer>;
+let fragments: OBC.FragmentsManager;
+let categoryData: { category: string; count: number }[] = [];
+let loadedModels: FRAGS.FragmentsGroup[] = [];
 
 // Model URLs
 const MODEL_URLS = [
@@ -82,46 +84,21 @@ async function setupComponents() {
   
   // Setup controls for touch interaction
   world.camera.controls.touches = {
-    ONE: THREE.TOUCH.ROTATE,
-    TWO: THREE.TOUCH.DOLLY_PAN
+    one: CameraControls.ACTION.TOUCH_ROTATE,
+    two: CameraControls.ACTION.TOUCH_DOLLY_ROTATE,
+    three: CameraControls.ACTION.NONE
   };
-  world.camera.controls.enableDamping = true;
-  world.camera.controls.dampingFactor = 0.05;
+  world.camera.controls.smoothTime = 0.05;
   
   // Get fragments manager
   fragments = components.get(OBC.FragmentsManager);
 
-  // Initialize fragments worker
-  await fragments.init("https://thatopen.github.io/engine_fragment/resources/worker.mjs");
-
-  // FIX 1: Add model to scene when loaded
-  fragments.list.onItemSet.add(({ value: model }) => {
-    model.useCamera(world.camera.three);
-    world.scene.three.add(model.object);  // ← CRITICAL!
-    fragments.core.update(true);
+  // Handle fragment groups when loaded
+  fragments.groups.onItemSet.add(({ value: group }) => {
+    world.scene.three.add(group);
   });
 
-  // FIX 2: Update fragments on camera move
-  world.camera.controls.addEventListener("update", () => fragments.core.update());
-
-  // FIX 3: Handle camera changes
-  world.onCameraChanged.add((camera) => {
-    for (const [, model] of fragments.list) {
-      model.useCamera(camera.three);
-    }
-    fragments.core.update(true);
-  });
-
-  // FIX 4: Fix z-fighting
-  fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
-    if (!("isLodMaterial" in material && material.isLodMaterial)) {
-      material.polygonOffset = true;
-      material.polygonOffsetUnits = 1;
-      material.polygonOffsetFactor = Math.random();
-    }
-  });
-
-  // FIX 5: Set initial camera position
+  // Set initial camera position
   await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
 
   // Handle window resize
@@ -130,11 +107,11 @@ async function setupComponents() {
   console.log("✅ Components and world initialized");
 }
 
-// Load fragment models using fragments.core.load()
+// Load fragment models using fragments.load()
 async function loadModels() {
   console.log("📦 Loading models...");
   
-  const loadingText = document.querySelector(".loading-text");
+  const loadingText = document.querySelector(".loading-text") as HTMLElement;
   
   for (let i = 0; i < MODEL_URLS.length; i++) {
     const { url, id } = MODEL_URLS[i];
@@ -148,10 +125,14 @@ async function loadModels() {
       }
       
       const arrayBuffer = await response.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
       
-      // Load model using fragments.core.load with modelId
-      const model = await fragments.core.load(arrayBuffer, { modelId: id });
-      loadedModels.push(model);
+      // Load model using fragments.load (returns FragmentsGroup)
+      const group = fragments.load(uint8Array, { 
+        coordinate: true,
+        name: id 
+      });
+      loadedModels.push(group);
       
       console.log(`✅ Loaded model: ${id}`);
     } catch (error) {
@@ -159,10 +140,7 @@ async function loadModels() {
     }
   }
   
-  // Update fragments after all loads
-  await fragments.core.update(true);
-  
-  // Fit camera to scene
+  // Fit camera to scene after all loads
   fitCameraToScene();
   
   console.log("✅ All models loaded");
@@ -173,19 +151,25 @@ async function extractCategories() {
   console.log("🔍 Extracting categories...");
   
   try {
-    // Get all fragment IDs
-    const fragmentIds = fragments.core.list();
-    console.log(`Found ${fragmentIds.length} fragments`);
-    
     const categoryMap = new Map<string, number>();
     
-    // Iterate through all fragments to collect category data
-    for (const fragmentId of fragmentIds) {
-      const fragment = fragments.core.get(fragmentId);
-      if (fragment && fragment.data) {
+    // Iterate through all loaded groups
+    for (const group of loadedModels) {
+      // Get items (fragments) from the group
+      for (const fragment of group.items) {
         // Try to get category from fragment data
-        const category = fragment.data.category || fragment.data.type || "Unknown";
+        // Fragments don't have a direct 'data' property with category
+        // We count by fragment ID instead
+        const category = fragment.id?.split("-")[0] || "Unknown";
         categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
+      }
+    }
+    
+    // If we have groups but no fragment categories, use model names
+    if (categoryMap.size === 0 && loadedModels.length > 0) {
+      for (const group of loadedModels) {
+        const name = group.ifcMetadata?.name || "Unknown Model";
+        categoryMap.set(name, group.items.length || 1);
       }
     }
     
@@ -214,8 +198,8 @@ async function extractCategories() {
 
 // Populate category table
 function populateCategoryTable() {
-  const tbody = document.getElementById("category-tbody");
-  const summary = document.getElementById("category-summary");
+  const tbody = document.getElementById("category-tbody") as HTMLTableSectionElement;
+  const summary = document.getElementById("category-summary") as HTMLElement;
   
   tbody.innerHTML = "";
   
@@ -235,32 +219,43 @@ function populateCategoryTable() {
 // Setup UI interactions
 function setupUI() {
   // Navigation buttons
-  document.getElementById("btn-reset").onclick = fitCameraToScene;
-  document.getElementById("btn-zoom-in").onclick = () => zoomCamera(0.8);
-  document.getElementById("btn-zoom-out").onclick = () => zoomCamera(1.2);
-  document.getElementById("btn-top").onclick = setTopView;
-  document.getElementById("btn-front").onclick = setFrontView;
-  document.getElementById("btn-iso").onclick = setIsoView;
+  const btnReset = document.getElementById("btn-reset");
+  const btnZoomIn = document.getElementById("btn-zoom-in");
+  const btnZoomOut = document.getElementById("btn-zoom-out");
+  const btnTop = document.getElementById("btn-top");
+  const btnFront = document.getElementById("btn-front");
+  const btnIso = document.getElementById("btn-iso");
+  
+  if (btnReset) btnReset.onclick = fitCameraToScene;
+  if (btnZoomIn) btnZoomIn.onclick = () => zoomCamera(0.8);
+  if (btnZoomOut) btnZoomOut.onclick = () => zoomCamera(1.2);
+  if (btnTop) btnTop.onclick = setTopView;
+  if (btnFront) btnFront.onclick = setFrontView;
+  if (btnIso) btnIso.onclick = setIsoView;
   
   // Search functionality
   const searchInput = document.getElementById("search-input") as HTMLInputElement;
-  searchInput.addEventListener("input", (e) => {
-    const query = (e.target as HTMLInputElement).value.toLowerCase();
-    filterTable(query);
-  });
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      const query = (e.target as HTMLInputElement).value.toLowerCase();
+      filterTable(query);
+    });
+  }
   
   // Double-tap on canvas to fit view
   const canvas = document.getElementById("viewer-canvas");
-  let lastTap = 0;
-  canvas.addEventListener("touchend", (e) => {
-    const currentTime = Date.now();
-    const tapLength = currentTime - lastTap;
-    if (tapLength < 300 && tapLength > 0) {
-      fitCameraToScene();
-      e.preventDefault();
-    }
-    lastTap = currentTime;
-  });
+  if (canvas) {
+    let lastTap = 0;
+    canvas.addEventListener("touchend", (e) => {
+      const currentTime = Date.now();
+      const tapLength = currentTime - lastTap;
+      if (tapLength < 300 && tapLength > 0) {
+        fitCameraToScene();
+        e.preventDefault();
+      }
+      lastTap = currentTime;
+    });
+  }
 }
 
 // Filter table based on search query
@@ -274,29 +269,25 @@ function filterTable(query: string) {
 
 // Window resize handler
 function onWindowResize() {
-  const container = document.getElementById("viewer-container");
-  const width = container.clientWidth;
-  const height = container.clientHeight;
-  
-  world.renderer.resize();
-  world.camera.updateAspect();
+  if (world?.renderer) {
+    world.renderer.resize();
+  }
+  if (world?.camera) {
+    world.camera.updateAspect();
+  }
 }
 
 // Fit camera to scene
 function fitCameraToScene() {
-  if (!world || !fragments) return;
+  if (!world || loadedModels.length === 0) return;
   
   try {
-    // Get all fragment meshes
-    const fragmentIds = fragments.core.list();
-    if (fragmentIds.length === 0) return;
-    
     const box = new THREE.Box3();
     
-    for (const fragmentId of fragmentIds) {
-      const fragment = fragments.core.get(fragmentId);
-      if (fragment && fragment.mesh) {
-        box.expandByObject(fragment.mesh);
+    // Expand box by all loaded groups
+    for (const group of loadedModels) {
+      if (group.boundingBox) {
+        box.union(group.boundingBox);
       }
     }
     
@@ -323,7 +314,6 @@ function zoomCamera(factor: number) {
   const direction = new THREE.Vector3();
   world.camera.three.getWorldDirection(direction);
   world.camera.three.position.addScaledVector(direction, -world.camera.three.position.length() * (factor - 1));
-  world.camera.controls.update();
 }
 
 // Set top view
@@ -347,12 +337,14 @@ function setIsoView() {
 // Hide loading screen
 function hideLoading() {
   const loading = document.getElementById("loading");
-  loading.classList.add("hidden");
+  if (loading) {
+    loading.classList.add("hidden");
+  }
 }
 
 // Show error message
 function showError(message: string) {
-  const loadingText = document.querySelector(".loading-text");
+  const loadingText = document.querySelector(".loading-text") as HTMLElement;
   if (loadingText) {
     loadingText.textContent = message;
     loadingText.style.color = "#ef4444";
