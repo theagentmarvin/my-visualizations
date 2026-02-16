@@ -5,6 +5,7 @@ A mobile-optimized BIM (Building Information Modeling) viewer built with That Op
 ![BIM Mobile Viewer](https://img.shields.io/badge/BIM-Viewer-blue)
 ![That Open](https://img.shields.io/badge/That%20Open-Components-green)
 ![Three.js](https://img.shields.io/badge/Three.js-r175-orange)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)
 
 ## 🚀 Live Demo
 
@@ -13,7 +14,7 @@ A mobile-optimized BIM (Building Information Modeling) viewer built with That Op
 ## 📱 Features
 
 ### 3D Viewer (Top 60%)
-- **Touch Navigation**: One-finger rotate, two-finger pan, pinch-to-zoom
+- **Touch Navigation**: One-finger rotate, two-finger pan, pinch-to-zoom via OrbitControls
 - **Auto-fit**: Camera automatically fits to model on load
 - **Navigation Controls**: Reset view, zoom in/out, preset views (top, front, isometric)
 - **Double-tap**: Quick fit to scene
@@ -27,12 +28,37 @@ A mobile-optimized BIM (Building Information Modeling) viewer built with That Op
 - **Touch-friendly**: Easy to scroll and interact on mobile
 
 ### Mobile Optimizations
-- Responsive split-screen layout
+- Responsive split-screen layout (60% viewer / 40% table)
 - Touch-optimized controls (44px minimum touch targets)
 - Smooth scrolling with `-webkit-overflow-scrolling: touch`
 - Landscape mode support (switches to side-by-side layout)
 - Loading indicator while model loads
 - Viewport meta tag for proper mobile rendering
+
+## 🏗️ Architecture
+
+This viewer uses the full **@thatopen/components** architecture:
+
+```typescript
+// Components setup
+const components = new OBC.Components();
+const worlds = components.get(OBC.Worlds);
+
+// Create world with proper typing
+const world = worlds.create<
+  OBC.SimpleScene,
+  OBC.OrthoPerspectiveCamera,
+  OBC.SimpleRenderer
+>();
+
+// Fragments manager with worker
+const fragments = components.get(OBC.FragmentsManager);
+await fragments.init("https://thatopen.github.io/engine_fragment/resources/worker.mjs");
+
+// Load models
+const model = await fragments.core.load(arrayBuffer, { modelId });
+await fragments.core.update(true);
+```
 
 ## 🏗️ Model
 
@@ -48,6 +74,7 @@ The viewer loads the **School Building** model from That Open's demo resources:
 - **@thatopen/ui** ^2.4.0 - UI toolkit
 - **three** ^0.175.0 - 3D rendering engine
 - **web-ifc** 0.0.68 - IFC parsing
+- **typescript** ^5.3.0 - Type safety
 - **vite** ^5.0.0 - Build tool
 
 ## 📦 Installation
@@ -95,10 +122,11 @@ npm run build
 bim-mobile-viewer/
 ├── index.html              # Main HTML entry
 ├── package.json            # Dependencies
-├── vite.config.js          # Vite configuration
+├── vite.config.ts          # Vite configuration
+├── tsconfig.json           # TypeScript configuration
 ├── README.md               # This file
 ├── src/
-│   ├── main.js             # Main application logic
+│   ├── main.ts             # Main application logic (TypeScript)
 │   └── styles.css          # Styles (mobile-optimized)
 └── dist/                   # Build output
 ```
