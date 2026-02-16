@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .citation { 
+            color: #3b82f6; 
+            cursor: pointer; 
+            font-size: 0.8em; 
+            vertical-align: super; 
+        }
+        .source-card {
+            transition: all 0.3s ease;
+        }
+        .source-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-6xl mx-auto p-4 md:p-8">
+        <!-- Header -->
+        <header class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h1 id="report-title" class="text-3xl font-bold text-gray-900 mb-2"></h1>
+            <div class="flex flex-wrap gap-4 text-sm text-gray-600">
+                <span>📅 <span id="report-date"></span></span>
+                <span>🤖 <span id="report-researcher"></span></span>
+                <span>📊 <span id="total-sources"></span> sources</span>
+            </div>
+            <div id="tags" class="mt-4 flex flex-wrap gap-2"></div>
+        </header>
+
+        <!-- Summary -->
+        <section class="bg-blue-50 rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold text-blue-900 mb-3">Executive Summary</h2>
+            <p id="summary-brief" class="text-gray-700 mb-4"></p>
+            <div id="key-takeaways" class="space-y-2"></div>
+        </section>
+
+        <!-- Table of Contents -->
+        <nav class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-3">Table of Contents</h2>
+            <ul id="toc" class="space-y-2"></ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main id="main-content" class="space-y-8"></main>
+
+        <!-- Visualizations -->
+        <section id="visualizations" class="space-y-8 my-8"></section>
+
+        <!-- Sources -->
+        <section class="bg-white rounded-lg shadow-sm p-6 mt-12">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Sources & References</h2>
+            <div id="sources-list" class="grid gap-4 md:grid-cols-2"></div>
+        </section>
+
+        <!-- Metadata -->
+        <footer class="text-center text-sm text-gray-500 mt-12 pb-8">
+            <p>Research duration: <span id="research-duration"></span></p>
+            <p id="knowledge-gaps" class="mt-2"></p>
+            <p class="mt-2">Last updated: <span id="last-updated"></span></p>
+        </footer>
+    </div>
+
+    <script>
+        // Load and render JSON data
+        async function loadResearch() {
+            try {
+                // In production, this would load from the JSON file
+                // For now, using placeholder that coder will replace
+                const data = RESEARCH_DATA_PLACEHOLDER;
+                
+                renderReport(data);
+            } catch (error) {
+                console.error('Failed to load research data:', error);
+            }
+        }
+
+        function renderReport(data) {
+            // Header
+            document.getElementById('report-title').textContent = data.meta.title;
+            document.getElementById('report-date').textContent = new Date(data.meta.date).toLocaleDateString();
+            document.getElementById('report-researcher').textContent = data.meta.researcher;
+            document.getElementById('total-sources').textContent = data.metadata.totalSources;
+
+            // Tags
+            const tagsContainer = document.getElementById('tags');
+            data.summary.tags.forEach(tag => {
+                const span = document.createElement('span');
+                span.className = 'px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm';
+                span.textContent = '#' + tag;
+                tagsContainer.appendChild(span);
+            });
+
+            // Summary
+            document.getElementById('summary-brief').textContent = data.summary.brief;
+            
+            const takeawaysContainer = document.getElementById('key-takeaways');
+            data.summary.keyTakeaways.forEach(takeaway => {
+                const div = document.createElement('div');
+                div.className = 'flex items-start';
+                div.innerHTML = `<span class="text-blue-600 mr-2">▸</span><span>${takeaway}</span>`;
+                takeawaysContainer.appendChild(div);
+            });
+
+            // Table of Contents & Sections
+            const toc = document.getElementById('toc');
+            const mainContent = document.getElementById('main-content');
+            
+            data.sections.forEach(section => {
+                // TOC entry
+                const tocItem = document.createElement('li');
+                tocItem.innerHTML = `<a href="#${section.id}" class="text-blue-600 hover:underline">${section.title}</a>`;
+                toc.appendChild(tocItem);
+
+                // Section content
+                const sectionEl = document.createElement('section');
+                sectionEl.id = section.id;
+                sectionEl.className = 'bg-white rounded-lg shadow-sm p-6';
+                
+                let sectionHTML = `<h2 class="text-xl font-semibold text-gray-900 mb-4">${section.title}</h2>`;
+                
+                section.content.forEach(item => {
+                    if (item.type === 'paragraph') {
+                        sectionHTML += `<p class="text-gray-700 mb-4">${addCitations(item.text, item.citations)}</p>`;
+                    } else if (item.type === 'data_table') {
+                        sectionHTML += renderTable(item);
+                    } else if (item.type === 'key_points') {
+                        sectionHTML += renderKeyPoints(item);
+                    }
+                });
+                
+                sectionEl.innerHTML = sectionHTML;
+                mainContent.appendChild(sectionEl);
+            });
+
+            // Visualizations
+            const vizContainer = document.getElementById('visualizations');
+            data.visualizations.forEach((viz, index) => {
+                const vizSection = document.createElement('div');
+                vizSection.className = 'bg-white rounded-lg shadow-sm p-6';
+                vizSection.innerHTML = `
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">${viz.title}</h3>
+                    <p class="text-gray-600 mb-4">${viz.description}</p>
+                    <div class="relative" style="height: 400px;">
+                        <canvas id="chart-${index}"></canvas>
+                    </div>
+                `;
+                vizContainer.appendChild(vizSection);
+
+                // Render chart after DOM update
+                setTimeout(() => {
+                    const ctx = document.getElementById(`chart-${index}`).getContext('2d');
+                    new Chart(ctx, {
+                        type: viz.type.replace('_chart', ''),
+                        data: viz.data,
+                        options: viz.options
+                    });
+                }, 100);
+            });
+
+            // Sources
+            const sourcesContainer = document.getElementById('sources-list');
+            Object.entries(data.sources).forEach(([id, source]) => {
+                const sourceCard = document.createElement('div');
+                sourceCard.className = 'source-card bg-gray-50 rounded-lg p-4 border border-gray-200';
+                sourceCard.innerHTML = `
+                    <h4 class="font-semibold text-gray-900">${source.title}</h4>
+                    <p class="text-sm text-gray-600">${source.author} - ${source.organization}</p>
+                    <a href="${source.url}" target="_blank" class="text-blue-600 text-sm hover:underline">View source</a>
+                    <p class="text-xs text-gray-500 mt-1">Accessed: ${new Date(source.accessDate).toLocaleString()}</p>
+                `;
+                sourcesContainer.appendChild(sourceCard);
+            });
+
+            // Metadata
+            document.getElementById('research-duration').textContent = data.metadata.researchDuration;
+            if (data.metadata.knowledgeGaps.length > 0) {
+                document.getElementById('knowledge-gaps').textContent = 
+                    'Knowledge gaps identified: ' + data.metadata.knowledgeGaps.join(', ');
+            }
+            document.getElementById('last-updated').textContent = 
+                new Date(data.metadata.lastUpdated).toLocaleString();
+        }
+
+        function addCitations(text, citations) {
+            if (!citations || citations.length === 0) return text;
+            const citationLinks = citations.map((id, index) => 
+                `<span class="citation" onclick="scrollToSource('${id}')">[${index + 1}]</span>`
+            ).join('');
+            return text + ' ' + citationLinks;
+        }
+
+        function renderTable(item) {
+            let html = `<div class="overflow-x-auto mb-4">
+                <h4 class="font-semibold mb-2">${item.title}</h4>
+                <table class="min-w-full border-collapse border border-gray-300">
+                    <thead><tr>`;
+            
+            item.headers.forEach(header => {
+                html += `<th class="border border-gray-300 px-4 py-2 bg-gray-100">${header}</th>`;
+            });
+            
+            html += '</tr></thead><tbody>';
+            
+            item.rows.forEach(row => {
+                html += '<tr>';
+                row.forEach(cell => {
+                    html += `<td class="border border-gray-300 px-4 py-2">${cell}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            return html + addCitations('', item.citations);
+        }
+
+        function renderKeyPoints(item) {
+            let html = '<ul class="list-disc list-inside space-y-2 mb-4">';
+            item.points.forEach(point => {
+                html += `<li class="text-gray-700">${addCitations(point.text, point.citations)}</li>`;
+            });
+            html += '</ul>';
+            return html;
+        }
+
+        function scrollToSource(sourceId) {
+            // In a full implementation, this would scroll to the specific source
+            document.querySelector('#sources-list').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Load research on page load
+        loadResearch();
+    </script>
+</body>
+</html>

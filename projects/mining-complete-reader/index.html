@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The History of Mining in El Salvador</title>
+    <style>
+        /* E-reader optimized styles */
+        :root {
+            --bg-color: #fafafa;
+            --text-color: #1a1a1a;
+            --accent-color: #2c5282;
+            --border-color: #e2e8f0;
+            --quote-bg: #f7fafc;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a1a;
+                --text-color: #e2e8f0;
+                --accent-color: #63b3ed;
+                --border-color: #4a5568;
+                --quote-bg: #2d3748;
+            }
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 18px;
+            line-height: 1.8;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+        
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-weight: 600;
+            line-height: 1.3;
+            margin-top: 2em;
+            margin-bottom: 0.5em;
+            color: var(--accent-color);
+        }
+        
+        h1 {
+            font-size: 2.2em;
+            text-align: center;
+            margin-top: 0;
+            padding-bottom: 0.5em;
+            border-bottom: 3px solid var(--accent-color);
+        }
+        
+        h2 {
+            font-size: 1.6em;
+            padding-bottom: 0.3em;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h3 {
+            font-size: 1.3em;
+        }
+        
+        h4 {
+            font-size: 1.1em;
+        }
+        
+        p {
+            margin-bottom: 1.2em;
+            text-align: justify;
+            hyphens: auto;
+        }
+        
+        /* Executive summary styling */
+        h2:first-of-type + p + ul {
+            background: var(--quote-bg);
+            padding: 1em 1.5em;
+            border-left: 4px solid var(--accent-color);
+            border-radius: 4px;
+        }
+        
+        /* Table of Contents */
+        .toc {
+            background: var(--quote-bg);
+            padding: 1.5em;
+            border-radius: 8px;
+            margin: 2em 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            font-size: 1.3em;
+            border-bottom: none;
+            text-align: center;
+        }
+        
+        .toc ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .toc li {
+            margin: 0.4em 0;
+        }
+        
+        .toc li.toc-level-1 {
+            font-weight: 600;
+        }
+        
+        .toc li.toc-level-2 {
+            padding-left: 1.5em;
+        }
+        
+        .toc li.toc-level-3 {
+            padding-left: 3em;
+            font-size: 0.95em;
+        }
+        
+        .toc a {
+            color: var(--text-color);
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+        
+        /* Links */
+        a {
+            color: var(--accent-color);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        
+        a:hover {
+            text-decoration: none;
+        }
+        
+        /* Blockquotes */
+        blockquote {
+            margin: 1.5em 0;
+            padding: 1em 1.5em;
+            background: var(--quote-bg);
+            border-left: 4px solid var(--accent-color);
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        blockquote p {
+            margin: 0;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5em 0;
+            font-size: 0.95em;
+            overflow-x: auto;
+            display: block;
+        }
+        
+        thead {
+            background: var(--quote-bg);
+        }
+        
+        th, td {
+            padding: 0.75em;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+        
+        th {
+            font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        tr:nth-child(even) {
+            background: var(--quote-bg);
+        }
+        
+        /* Lists */
+        ul, ol {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+        
+        li {
+            margin: 0.5em 0;
+        }
+        
+        /* Horizontal rule */
+        hr {
+            border: none;
+            border-top: 2px solid var(--border-color);
+            margin: 2em 0;
+        }
+        
+        /* Footnotes */
+        .footnote-ref {
+            font-size: 0.75em;
+            vertical-align: super;
+        }
+        
+        .footnote-ref a {
+            text-decoration: none;
+            padding: 0 2px;
+        }
+        
+        .footnotes {
+            margin-top: 3em;
+            padding-top: 1.5em;
+            border-top: 2px solid var(--border-color);
+        }
+        
+        .footnotes h2 {
+            font-size: 1.3em;
+        }
+        
+        .footnotes ol {
+            font-size: 0.9em;
+            padding-left: 1.5em;
+        }
+        
+        .footnotes li {
+            margin: 0.8em 0;
+        }
+        
+        /* Key Points styling */
+        strong:contains("Key Points:") {
+            color: var(--accent-color);
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                font-size: 16px;
+                padding: 20px 15px;
+            }
+            
+            h1 {
+                font-size: 1.7em;
+            }
+            
+            h2 {
+                font-size: 1.3em;
+            }
+            
+            table {
+                font-size: 0.85em;
+            }
+            
+            th, td {
+                padding: 0.5em;
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                font-size: 12pt;
+                max-width: none;
+            }
+            
+            .toc {
+                page-break-after: always;
+            }
+            
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            
+            table {
+                page-break-inside: avoid;
+            }
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+<h1 id="the-history-of-mining-in-el-salvador-0">The History of Mining in El Salvador</h1>
+<h2 id="from-pre-colonial-origins-to-the-2024-ban-reversal-1">From Pre-Colonial Origins to the 2024 Ban Reversal</h2>
+<p><strong>Research Report</strong>   <strong>Date:</strong> February 15, 2026   <strong>Researcher:</strong> Wiki-Marvin   <strong>Research Duration:</strong> 2 hours 15 minutes</p>
+<hr>
+<h2 id="executive-summary-2">Executive Summary</h2>
+<p>El Salvador's mining history represents a centuries-long struggle between resource extraction and environmental protection. This comprehensive research documents the journey from indigenous Pipil metalworking through Spanish colonial exploitation, 20th-century industrial operations, a historic 2017 global-first mining ban, and its controversial December 2024 reversal under President Nayib Bukele.</p>
+<ul><li>El Salvador became the first country worldwide to ban metal mining (March 2017), then reversed it (December 2024)</li><li>San Sebastián mine (1904-1980s) produced ~35 metric tons of gold but left rivers with arsenic levels 300x above safety standards</li><li>Four environmental activists were murdered in 2009 during anti-mining resistance</li><li>Mining contributed only 0.3% of GDP (2010-2015) despite causing catastrophic environmental damage</li><li>90% of El Salvador's surface water is contaminated; the Lempa River supplies 70% of the capital's drinking water</li></ul>
+<hr>
+<h2 id="table-of-contents-3">Table of Contents</h2>
+<p>1. [Pre-Colonial and Indigenous Mining](#1-pre-colonial-and-indigenous-mining) 2. [Spanish Colonial Mining (1500s-1821)](#2-spanish-colonial-mining-1500s-1821) 3. [Early 20th Century Mining Boom (1904-1920)](#3-early-20th-century-mining-boom-1904-1920) 4. [Mid-20th Century Operations (1948-1980)](#4-mid-20th-century-operations-1948-1980) 5. [Post-Civil War Mining Revival (1992-2008)](#5-post-civil-war-mining-revival-1992-2008) 6. [Environmental and Social Impacts](#6-environmental-and-social-impacts) 7. [Grassroots Resistance Movement (2005-2017)](#7-grassroots-resistance-movement-2005-2017) 8. [International Legal Battles (2009-2016)](#8-international-legal-battles-2009-2016) 9. [The 2017 Mining Ban: A Global First](#9-the-2017-mining-ban-a-global-first) 10. [Economic Significance of Mining](#10-economic-significance-of-mining) 11. [The 2024 Mining Ban Reversal](#11-the-2024-mining-ban-reversal) 12. [Current Debates and Future Outlook](#12-current-debates-and-future-outlook)</p>
+<hr>
+<h2 id="1-pre-colonial-and-indigenous-mining-4">1. Pre-Colonial and Indigenous Mining</h2>
+<p>Before Spanish colonization, the territory now known as El Salvador was inhabited primarily by the <strong>Pipil people</strong>, a Nahua subgroup with sophisticated economic and political systems<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup><sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup>. While extensive documentation of pre-colonial mining practices is limited, archaeological evidence suggests indigenous peoples engaged in limited metalworking and may have extracted gold and other minerals on a small scale for ceremonial and ornamental purposes.</p>
+<p>The Pipil culture demonstrated economically advanced characteristics, with writings emphasizing currency and commodity exchange<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup>. However, unlike the extensive mining operations in Mexico or Peru, pre-colonial El Salvador's mineral extraction remained relatively modest, focused more on agricultural production than mineral wealth<sup class="footnote-ref"><a href="#fn3" id="fnref3">[3]</a></sup>.</p>
+<ul><li>Pipil people inhabited the region with sophisticated economic systems</li><li>Limited metalworking and small-scale mineral extraction for ceremonial purposes</li><li>Agriculture dominated the economy rather than mining</li></ul>
+<hr>
+<h2 id="2-spanish-colonial-mining-1500s-1821-5">2. Spanish Colonial Mining (1500s-1821)</h2>
+<p>Spanish conquistadors arrived in El Salvador in the early 16th century, seeking the legendary riches of El Dorado. The region's gold deposits, particularly in the departments of <strong>La Unión, Morazán, and Cabañas</strong>, attracted Spanish interest<sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a></sup><sup class="footnote-ref"><a href="#fn5" id="fnref5">[5]</a></sup>.</p>
+<p>The <strong>gold-silver district of Jocoro-Divisadero (San Cristóbal)</strong> in eastern El Salvador was exploited primarily between the early colonial period and the late 1800s<sup class="footnote-ref"><a href="#fn5" id="fnref5">[5]</a></sup>. However, El Salvador never became a major mining center like Mexico or Peru during the Spanish colonial era. Instead, the territory became the agricultural heartland of the Captaincy General of Guatemala, with cocoa as the most important source of wealth during the 16th century<sup class="footnote-ref"><a href="#fn3" id="fnref3">[3]</a></sup>.</p>
+<p>Colonial mining operations employed indigenous labor under exploitative conditions through the <strong>encomienda system</strong>, which effectively enslaved indigenous populations for resource extraction<sup class="footnote-ref"><a href="#fn6" id="fnref6">[6]</a></sup><sup class="footnote-ref"><a href="#fn7" id="fnref7">[7]</a></sup>.</p>
+<ul><li>Spanish colonizers exploited gold deposits from the 1500s onward</li><li>Jocoro-Divisadero district was the primary mining area</li><li>El Salvador remained primarily agricultural, never becoming a major colonial mining center</li><li>Indigenous populations exploited through the encomienda system</li></ul>
+<hr>
+<h2 id="3-early-20th-century-mining-boom-1904-1920-6">3. Early 20th Century Mining Boom (1904-1920)</h2>
+<p>Modern industrial mining in El Salvador began in <strong>1904 with the opening of the San Sebastián Gold Mine</strong> near Santa Rosa de Lima in La Unión department<sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a></sup><sup class="footnote-ref"><a href="#fn9" id="fnref9">[9]</a></sup>. This marked the transition from artisanal mining to industrial-scale operations.</p>
+<h3 id="economic-impact-7">Economic Impact</h3>
+<p>By 1912, mineral exports had reached an estimated <strong>15% of El Salvador's total exports</strong>, with gold and silver exports increasing from $183,760 USD in 1901 to $1,116,717 in 1909<sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a></sup>.</p>
+<h3 id="key-operations-8">Key Operations</h3>
+<ul><li><strong>Charles Butters</strong>: Californian metallurgical innovator and principal owner</li><li><strong>Harry Percival Garthwaite</strong>: Manager until his death in 1911, described in his obituary as the "confidential advisor to the president of El Salvador"<sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a></sup></li></ul>
+<p>The mining operations employed modern extraction techniques learned from South African mines, including <strong>cyanidation processes</strong>.</p>
+<h3 id="production-data-9">Production Data</h3>
+<table><thead><tr><th>Period</th><th>Gold Production</th><th>Notes</th></tr></thead><tbody><tr><td>1904-1917 (13 years)</td></tr></tbody></table> 25+ metric tons | Initial boom period<sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a></sup> |
+| 1904-1920 | ~31 metric tons (1 million oz) | High-grade ore: 2 oz/ton (62 g/ton)<sup class="footnote-ref"><a href="#fn10" id="fnref10">[10]</a></sup> |
+| 1904-1953 (total) | 35.33 metric tons (1,136,000 oz) | Complete operational period<sup class="footnote-ref"><a href="#fn11" id="fnref11">[11]</a></sup> |
+<h3 id="environmental-damage-and-community-resistance-10">Environmental Damage and Community Resistance</h3>
+<p>As early as <strong>1912</strong>, residents of Santa Rosa de Lima filed formal complaints with the government about cyanide contamination of the Santa Rosa and Agua Caliente rivers. In a letter dated August 8, 1912, local farmers described themselves as "victims of the cruelest injustice" suffering "incalculable losses to our rural properties" due to the mining company's cyanidation process poisoning their only water sources<sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a></sup>.</p>
+<p>The letter stated: <blockquote> "We have raised our humble voice to each of the past administrations to demand justice, in the erroneous belief that our rulers would act as protectors of the weak, but unfortunately that has not been the case, because they, in their path to supreme power, have done nothing more than fill their pockets with gold amassed through the sweat of the brow of their subjects"<sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a></sup></blockquote></p>
+<h3 id="industrial-disasters-11">Industrial Disasters</h3>
+<p>The <strong>Divisadero mine</strong> in Morazán operated concurrently with similar methods. In <strong>June 1915</strong>, the Divisadero dynamite warehouse exploded, causing a fire that <strong>killed fifty workers in a single day</strong>, demonstrating the hazardous nature of these operations<sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a></sup>.</p>
+<ul><li>San Sebastián mine opened in 1904, marking the start of industrial mining</li><li>Mineral exports reached 15% of total exports by 1912</li><li>American mining companies wielded significant political influence</li><li>Environmental contamination documented as early as 1912</li><li>1915 Divisadero explosion killed 50 workers</li></ul>
+<hr>
+<h2 id="4-mid-20th-century-operations-1948-1980-12">4. Mid-20th Century Operations (1948-1980)</h2>
+<p>Mining activity at San Sebastián continued intermittently through the mid-20th century.</p>
+<h3 id="el-dorado-mine-1948-1953-13">El Dorado Mine (1948-1953)</h3>
+<ul><li><strong>72,500 ounces of gold</strong></li><li><strong>335,100 ounces of silver</strong></li></ul>
+<p>The operation exploited six veins, with the majority of production coming from the Zancudo and Minita veins, reaching depths of approximately 130 meters across four levels<sup class="footnote-ref"><a href="#fn12" id="fnref12">[12]</a></sup><sup class="footnote-ref"><a href="#fn13" id="fnref13">[13]</a></sup>.</p>
+<h3 id="peak-period-1969-1980-14">Peak Period (1969-1980)</h3>
+<p>By 1969, the San Sebastián mining area was considered the country's "<strong>gem of the mining industry</strong>" and was one of the most prolific mines in Central America. Between 1969 and 1980, the mine yielded approximately one metric ton of gold<sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a></sup>.</p>
+<h3 id="commerce-group-industrialization-1970s-15">Commerce Group Industrialization (1970s)</h3>
+<p>The 1970s marked a turning point when <strong>U.S.-based Commerce Group Corp. industrialized the San Sebastián mine</strong>, making mining a nationally significant economic activity for the first time<sup class="footnote-ref"><a href="#fn9" id="fnref9">[9]</a></sup><sup class="footnote-ref"><a href="#fn14" id="fnref14">[14]</a></sup>. However, this industrialization dramatically increased environmental damage. The San Sebastián River turned orange from chemicals including <strong>cyanide, arsenic, and mercury</strong> that seeped into it from mining operations<sup class="footnote-ref"><a href="#fn14" id="fnref14">[14]</a></sup>.</p>
+<h3 id="santa-elena-mine-16">Santa Elena Mine</h3>
+<p>Santa Elena mine, also operated by Butters Salvador Mining between 1904 and 1954, extracted <strong>32 tons of gold</strong> during its operational period<sup class="footnote-ref"><a href="#fn15" id="fnref15">[15]</a></sup>.</p>
+<h3 id="civil-war-halt-1980-1992-17">Civil War Halt (1980-1992)</h3>
+<p>The <strong>Salvadoran Civil War (1980-1992)</strong> brought mining operations to a halt. After the 1992 peace agreements, the right-wing ARENA government sought to revive mining as part of neoliberal economic reforms<sup class="footnote-ref"><a href="#fn9" id="fnref9">[9]</a></sup><sup class="footnote-ref"><a href="#fn16" id="fnref16">[16]</a></sup>.</p>
+<ul><li>El Dorado mine (1948-1953) produced 72,500 oz gold and 335,100 oz silver</li><li>San Sebastián considered "gem of mining industry" by 1969</li><li>1970s industrialization by Commerce Group Corp. increased pollution dramatically</li><li>Salvadoran Civil War (1980-1992) halted mining operations</li></ul>
+<hr>
+<h2 id="5-post-civil-war-mining-revival-1992-2008-18">5. Post-Civil War Mining Revival (1992-2008)</h2>
+<p>Following the 1992 peace accords, the ARENA government implemented neoliberal economic reforms prioritizing privatization, foreign investment, and economic growth.</p>
+<h3 id="policy-changes-19">Policy Changes</h3>
+<ul><li><strong>1995</strong>: El Salvador established a <strong>3% royalty rate</strong> for mineral production to attract mining investment<sup class="footnote-ref"><a href="#fn17" id="fnref17">[17]</a></sup></li><li><strong>2001</strong>: Revised Mining Law, <strong>reducing royalty rates</strong> to compete with Guatemala (which had reduced its rate to 1% in 1997)<sup class="footnote-ref"><a href="#fn17" id="fnref17">[17]</a></sup></li></ul>
+<h3 id="company-operations-20">Company Operations</h3>
+<p>Two U.S. companies reactivated production at San Sebastián for more than 10 years after the peace agreements. By 2007, studies showed high levels of cyanide and sulfur leaching into the San Sebastián River from the mines<sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a></sup><sup class="footnote-ref"><a href="#fn18" id="fnref18">[18]</a></sup>.</p>
+<h3 id="new-exploration-projects-21">New Exploration Projects</h3>
+<p><strong>2000</strong>: Mirage Resources merged with Dayton Mining Corporation to continue exploration<sup class="footnote-ref"><a href="#fn12" id="fnref12">[12]</a></sup></p>
+<ul><li><strong>7.4 million ounces of silver</strong></li><li><strong>1.2 million ounces of gold</strong><sup class="footnote-ref"><a href="#fn12" id="fnref12">[12]</a></sup><sup class="footnote-ref"><a href="#fn19" id="fnref19">[19]</a></sup></li></ul>
+<p>Pacific Rim also targeted deposits in Cabañas department, estimating <strong>1.4 million ounces of gold and 9.4 million ounces of silver</strong><sup class="footnote-ref"><a href="#fn15" id="fnref15">[15]</a></sup>.</p>
+<p><strong>2005</strong>: Canadian company <strong>Au Martinique Silver</strong> began prospecting in Chalatenango municipality. Community leaders, with support from the Madison Arcatao Sister City Project, successfully <strong>halted the project in 2006</strong><sup class="footnote-ref"><a href="#fn9" id="fnref9">[9]</a></sup><sup class="footnote-ref"><a href="#fn14" id="fnref14">[14]</a></sup>.</p>
+<h3 id="de-facto-moratorium-22">De Facto Moratorium</h3>
+<p>By <strong>2006</strong>, the ARENA administration established a <strong>de facto moratorium on mining</strong>, refusing to grant new permits despite previous pro-mining legislation. This shift came amid mounting evidence of environmental damage and growing grassroots opposition<sup class="footnote-ref"><a href="#fn20" id="fnref20">[20]</a></sup>.</p>
+<ul><li>1995: 3% mining royalty rate established</li><li>2002: Pacific Rim acquired El Dorado project with 1.2M oz gold reserves</li><li>2005: Au Martinique began prospecting in Chalatenango</li><li>2006: ARENA government established de facto mining moratorium</li></ul>
+<hr>
+<h2 id="6-environmental-and-social-impacts-23">6. Environmental and Social Impacts</h2>
+<p>The environmental legacy of mining in El Salvador is catastrophic.</p>
+<h3 id="water-contamination-24">Water Contamination</h3>
+<p>The industrialization of the San Sebastian Gold Mine led to massive amounts of <strong>cyanide, arsenic, and mercury poisoning</strong> of the San Sebastián River<sup class="footnote-ref"><a href="#fn9" id="fnref9">[9]</a></sup><sup class="footnote-ref"><a href="#fn21" id="fnref21">[21]</a></sup><sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup>.</p>
+<h4 id="san-sebastin-river-contamination-levels-25">San Sebastián River Contamination Levels</h4>
+<table><thead><tr><th>Contaminant</th><th>Level vs. Safe Standards</th><th>Source</th></tr></thead><tbody><tr><td><strong>Cyanide</strong></td></tr></tbody></table> 9x acceptable level | 2012 government study<sup class="footnote-ref"><a href="#fn21" id="fnref21">[21]</a></sup> |
+| <strong>Iron</strong> | 1,000x acceptable level | 2012 government study<sup class="footnote-ref"><a href="#fn21" id="fnref21">[21]</a></sup> |
+| <strong>Arsenic</strong> | 300x international standards | Recent measurements<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup> |
+| <strong>Cadmium</strong> | 72x EPA recommended | Research study<sup class="footnote-ref"><a href="#fn23" id="fnref23">[23]</a></sup> |
+| <strong>Mercury</strong> | 36x EPA recommended | Research study<sup class="footnote-ref"><a href="#fn23" id="fnref23">[23]</a></sup> |
+<p>The acid drainage turns the water a <strong>poisonous red color</strong>, contaminating water, air, and land<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup>.</p>
+<h3 id="national-water-crisis-26">National Water Crisis</h3>
+<ul><li>El Salvador has been <strong>deforested by 85%</strong> since the 1960s</li><li>Approximately <strong>90% of surface water is polluted</strong><sup class="footnote-ref"><a href="#fn24" id="fnref24">[24]</a></sup></li></ul>
+<p>More than 90% of El Salvador's surface waters are estimated to be contaminated by toxic chemicals, heavy metals, and waste matter<sup class="footnote-ref"><a href="#fn25" id="fnref25">[25]</a></sup>.</p>
+<ul><li>Supplies about <strong>70% of drinking water</strong> for the San Salvador metropolitan area</li><li>Covers almost the entire country's watershed</li><li>Faces severe contamination risks<sup class="footnote-ref"><a href="#fn26" id="fnref26">[26]</a></sup></li></ul>
+<h3 id="vulnerability-context-27">Vulnerability Context</h3>
+<ul><li>The <strong>most densely populated country in Latin America</strong></li><li>Among the most vulnerable to climate change impacts</li><li>Has critically limited water resources per capita (Salvadorans have access to <strong>more than 40 times less water than Canadians</strong>)<sup class="footnote-ref"><a href="#fn27" id="fnref27">[27]</a></sup><sup class="footnote-ref"><a href="#fn28" id="fnref28">[28]</a></sup><sup class="footnote-ref"><a href="#fn29" id="fnref29">[29]</a></sup></li></ul>
+<h3 id="health-and-social-impacts-28">Health and Social Impacts</h3>
+<ul><li>Headaches</li><li>Fatigue</li><li>Memory problems</li><li>Respiratory issues</li></ul>
+<p>Women who wash clothes in contaminated rivers are particularly vulnerable<sup class="footnote-ref"><a href="#fn30" id="fnref30">[30]</a></sup>.</p>
+<h3 id="economic-burden-on-communities-29">Economic Burden on Communities</h3>
+<p>Communities have been forced to <strong>purchase water from distant sources, spending approximately 20% of their earnings on water</strong> - a basic necessity that should be freely available<sup class="footnote-ref"><a href="#fn31" id="fnref31">[31]</a></sup><sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a></sup>.</p>
+<p>The loss of productive land and contamination of water sources has devastated local economies. Without fertile ground for planting and clean water for livestock, many residents have been forced into precarious artisanal mining (güiriseros) or migration<sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a></sup>.</p>
+<ul><li>90% of El Salvador's surface water is polluted</li><li>San Sebastián River has arsenic levels 300x above safety standards</li><li>Lempa River supplies 70% of San Salvador's drinking water</li><li>Mining communities spend 20% of income purchasing clean water</li><li>El Salvador is most densely populated country in Americas with limited water per capita</li></ul>
+<hr>
+<h2 id="7-grassroots-resistance-movement-2005-2017-30">7. Grassroots Resistance Movement (2005-2017)</h2>
+<h3 id="formation-of-mesa-nacional-2005-31">Formation of Mesa Nacional (2005)</h3>
+<p>In 2005, the <strong>National Roundtable Against Metallic Mining (Mesa Nacional Frente a la Minería Metálica)</strong> was formed by local NGOs, religious and academic groups, and community activists<sup class="footnote-ref"><a href="#fn32" id="fnref32">[32]</a></sup><sup class="footnote-ref"><a href="#fn33" id="fnref33">[33]</a></sup>. This coalition became the figurehead for the anti-mining movement with the organizing principle: <strong>"Water over gold" (El agua vale más que el oro)</strong>.</p>
+<h3 id="week-against-mining-campaign-2006-32">Week Against Mining Campaign (2006)</h3>
+<p>In June 2006, a <strong>"Week Against Mining"</strong> was held across the country to protest extractive mining practices and educate the population about potential risks. This campaign successfully shifted majority public opinion against mining practices<sup class="footnote-ref"><a href="#fn34" id="fnref34">[34]</a></sup>.</p>
+<h3 id="catholic-church-leadership-2007-33">Catholic Church Leadership (2007)</h3>
+<p>In 2007, <strong>Archbishop Fernando Sáenz Lacalle</strong> announced that El Salvador's Church leadership was anti-mining, based on the argument that environmental concerns outweighed economic benefits. This made them the first major organization to prioritize environmental protection over economic growth<sup class="footnote-ref"><a href="#fn35" id="fnref35">[35]</a></sup>.</p>
+<h3 id="role-of-community-radio-34">Role of Community Radio</h3>
+<p>Community radio stations, particularly <strong>Radio Victoria in Cabañas</strong>, played a crucial role. Starting in 2008, Radio Victoria launched campaigns opposing mining that mobilized rural communities<sup class="footnote-ref"><a href="#fn36" id="fnref36">[36]</a></sup>.</p>
+<h3 id="the-murders-of-2009-a-campaign-of-terror-35">The Murders of 2009: A Campaign of Terror</h3>
+<p>However, resistance came at a terrible human cost. In <strong>2009</strong>, during the height of anti-mining protests, <strong>four environmental activists were murdered</strong> in what appears to have been a coordinated terror campaign<sup class="footnote-ref"><a href="#fn37" id="fnref37">[37]</a></sup><sup class="footnote-ref"><a href="#fn17" id="fnref17">[17]</a></sup>.</p>
+<h4 id="the-four-martyrs-36">The Four Martyrs</h4>
+<table><thead><tr><th>Name</th><th>Date</th><th>Role</th><th>Details</th></tr></thead><tbody><tr><td><strong>Marcelo Rivera</strong></td></tr></tbody></table> June 18-30, 2009 | Environmental activist | Disappeared June 18, found tortured and dead in well 12 days later<sup class="footnote-ref"><a href="#fn37" id="fnref37">[37]</a></sup> |
+| <strong>Ramiro Rivera Gómez</strong> | December 20, 2009 | Vice President, Cabañas Environmental Committee | Shot dead by heavily armed men despite 24-hour police protection<sup class="footnote-ref"><a href="#fn38" id="fnref38">[38]</a></sup> |
+| <strong>Dora "Alicia" Recinos Sorto</strong> | December 26, 2009 | Member, Cabañas Environmental Committee | 32 years old, 8 months pregnant; shot dead near her home; her unborn child also died<sup class="footnote-ref"><a href="#fn37" id="fnref37">[37]</a></sup> |
+| <strong>Juan Francisco Durán Ayala</strong> | 2009 | Community activist | Killed for work against mining<sup class="footnote-ref"><a href="#fn39" id="fnref39">[39]</a></sup> |
+<h3 id="official-response-and-community-belief-37">Official Response and Community Belief</h3>
+<p>The Salvadoran Public Prosecutor's Office attributed these deaths to criminal organizations and familial disputes<sup class="footnote-ref"><a href="#fn40" id="fnref40">[40]</a></sup>. However, communities and international observers considered the investigations insufficient and believe authorities never attempted to find those who ordered the killings<sup class="footnote-ref"><a href="#fn39" id="fnref39">[39]</a></sup><sup class="footnote-ref"><a href="#fn40" id="fnref40">[40]</a></sup>.</p>
+<p>The timing of the murders - during intense anti-mining mobilization - and the profile of victims as prominent activists strongly suggest they were targeted for their activism.</p>
+<h3 id="continued-mobilization-38">Continued Mobilization</h3>
+<p>Despite this violence, the movement persisted. By 2009, when the left-wing FMLN won the presidency with Mauricio Funes, strong opposition to mining was part of their campaign platform<sup class="footnote-ref"><a href="#fn16" id="fnref16">[16]</a></sup>. National polls consistently showed that approximately <strong>80% of Salvadorans supported a mining ban by 2016</strong><sup class="footnote-ref"><a href="#fn41" id="fnref41">[41]</a></sup>.</p>
+<ul><li>2005: National Roundtable Against Metallic Mining (Mesa Nacional) formed</li><li>2006: Week Against Mining campaign shifted public opinion</li><li>2007: Catholic Church leadership declared anti-mining position</li><li>2009: Four activists murdered during anti-mining campaign</li><li>By 2016: 80% of Salvadorans supported mining ban</li></ul>
+<hr>
+<h2 id="8-international-legal-battles-2009-2016-39">8. International Legal Battles (2009-2016)</h2>
+<p>El Salvador faced two major international lawsuits from mining companies seeking compensation for denied permits, both filed at the World Bank's <strong>International Centre for Settlement of Investment Disputes (ICSID)</strong>.</p>
+<h3 id="commerce-group-case-2009-2011-40">Commerce Group Case (2009-2011)</h3>
+<p><strong>Commerce Group Corp. and San Sebastián Gold Mines</strong> filed a case after the government revoked their environmental permits in 2006 following studies showing contamination of the San Sebastián River<sup class="footnote-ref"><a href="#fn42" id="fnref42">[42]</a></sup>.</p>
+<p><strong>Result</strong>: The ICSID ruled in favor of El Salvador in <strong>2011</strong><sup class="footnote-ref"><a href="#fn43" id="fnref43">[43]</a></sup>.</p>
+<h3 id="pacific-rimoceanagold-case-2009-2016-41">Pacific Rim/OceanaGold Case (2009-2016)</h3>
+<p><strong>Pacific Rim Mining Corporation</strong> (later acquired by OceanaGold) submitted its Environmental Impact Assessment (EIA) for the El Dorado project in 2004. The Salvadoran Ministry of Economy never granted exploitation permits because Pacific Rim failed to meet requirements, particularly regarding adequate reporting of planned groundwater use<sup class="footnote-ref"><a href="#fn20" id="fnref20">[20]</a></sup><sup class="footnote-ref"><a href="#fn44" id="fnref44">[44]</a></sup><sup class="footnote-ref"><a href="#fn13" id="fnref13">[13]</a></sup>.</p>
+<p>In 2009, Pacific Rim filed an ICSID arbitration claim seeking <strong>$250 million in compensation</strong> for alleged lost profits.</p>
+<h4 id="the-victory-42">The Victory</h4>
+<ul><li>Dismissed all of Pacific Rim/OceanaGold's claims as "<strong>without merit</strong>"</li><li>Ordered the company to pay El Salvador <strong>$8 million in legal costs</strong><sup class="footnote-ref"><a href="#fn45" id="fnref45">[45]</a></sup><sup class="footnote-ref"><a href="#fn46" id="fnref46">[46]</a></sup><sup class="footnote-ref"><a href="#fn47" id="fnref47">[47]</a></sup><sup class="footnote-ref"><a href="#fn48" id="fnref48">[48]</a></sup><sup class="footnote-ref"><a href="#fn49" id="fnref49">[49]</a></sup></li></ul>
+<p>Luis Parada, who headed El Salvador's legal defense, stated: <blockquote> "Winning both arbitrations was key for the mining ban. We won the last one in October 2016, and shortly after, in March 2017, the country had passed the law."<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup></blockquote></p>
+<h3 id="international-solidarity-43">International Solidarity</h3>
+<p>More than <strong>300 organizations worldwide</strong> supported El Salvador during these legal battles, with over <strong>180 million members</strong> collectively telling OceanaGold to "Pack Up and Pay Up"<sup class="footnote-ref"><a href="#fn50" id="fnref50">[50]</a></sup><sup class="footnote-ref"><a href="#fn51" id="fnref51">[51]</a></sup>.</p>
+<ul><li>2009: Pacific Rim filed $250M lawsuit at ICSID World Bank tribunal</li><li>2011: Commerce Group lawsuit dismissed in El Salvador's favor</li><li>October 2016: Pacific Rim/OceanaGold lawsuit dismissed, ordered to pay $8M to El Salvador</li><li>300+ organizations with 180M members supported El Salvador</li></ul>
+<hr>
+<h2 id="9-the-2017-mining-ban-a-global-first-44">9. The 2017 Mining Ban: A Global First</h2>
+<p>On <strong>March 29, 2017</strong>, El Salvador's Legislative Assembly unanimously voted to ban all forms of metal mining, making it the <strong>first country in the world</strong> to impose such a comprehensive prohibition<sup class="footnote-ref"><a href="#fn36" id="fnref36">[36]</a></sup><sup class="footnote-ref"><a href="#fn52" id="fnref52">[52]</a></sup><sup class="footnote-ref"><a href="#fn53" id="fnref53">[53]</a></sup>.</p>
+<h3 id="the-vote-45">The Vote</h3>
+<ul><li><strong>All 70 legislators present</strong> (out of 84 total) voted in favor</li><li>The three major political parties all supported the measure</li><li>The law prohibited "prospection, exploration, exploitation, extraction or processing of metallic minerals in El Salvador"<sup class="footnote-ref"><a href="#fn52" id="fnref52">[52]</a></sup></li></ul>
+<h3 id="grassroots-achievement-46">Grassroots Achievement</h3>
+<p>The legislative text was developed with significant input from the Catholic Church, civil society organizations, and the Mesa Nacional. The ban can be considered a <strong>"citizen ban"</strong> due to the extensive grassroots mobilization that made it politically possible<sup class="footnote-ref"><a href="#fn44" id="fnref44">[44]</a></sup>.</p>
+<p>Campaigners celebrated inside and outside the legislative assembly holding banners with the now-famous slogan: <blockquote> <strong>"No to mining, yes to life" (No a la minería, sí a la vida)</strong></blockquote></p>
+<h3 id="global-significance-47">Global Significance</h3>
+<p>The ban built on a rising tide of popular opposition to environmentally destructive projects across Latin America. While partial bans existed in Costa Rica, Argentina, and Colombia, El Salvador's was the first comprehensive national prohibition.</p>
+<p><strong>Jen Moore</strong> from MiningWatch Canada stated: <blockquote> "The Salvadoran people and leaders made huge efforts to weigh the short-term benefits with the long-term risks to their water, environment and social wellbeing... they showed it is possible to win against significant odds."<sup class="footnote-ref"><a href="#fn36" id="fnref36">[36]</a></sup></blockquote></p>
+<p><strong>Pedro Cabezas</strong> from International Allies Against Mining in El Salvador said: <blockquote> "The vote is a victory for communities who, for more than a decade, have relentlessly organised to keep mining companies out of their territories. The prohibition ensures the long-term ecological viability of a country already considered one of the most environmentally vulnerable in the world."<sup class="footnote-ref"><a href="#fn36" id="fnref36">[36]</a></sup></blockquote></p>
+<h3 id="rationale-48">Rationale</h3>
+<p>The ban represented a fundamental shift: prioritizing environmental protection and water security over potential economic gains from resource extraction. In a water-stressed nation where 90% of surface water was already contaminated, the decision reflected a clear assessment that mining's costs vastly outweighed any benefits.</p>
+<ul><li>March 29, 2017: El Salvador became first country to ban all metal mining</li><li>Unanimous 70-0 vote with all political parties supporting</li><li>Ban prohibited prospection, exploration, exploitation, extraction and processing of metallic minerals</li><li>Victory credited to decade-long grassroots organizing and citizen mobilization</li><li>Recognized as landmark victory for environmental movements globally</li></ul>
+<hr>
+<h2 id="10-economic-significance-of-mining-49">10. Economic Significance of Mining</h2>
+<p>Despite claims about mining's economic potential, the sector's actual contribution to El Salvador's economy has been minimal.</p>
+<h3 id="gdp-contribution-50">GDP Contribution</h3>
+<p>According to the <strong>Central American Institute for Fiscal Studies</strong>, metallic mining contributed only <strong>0.3% of the country's GDP between 2010 and 2015</strong><sup class="footnote-ref"><a href="#fn54" id="fnref54">[54]</a></sup>.</p>
+<p>More recent data shows GDP from mining at approximately <strong>$31.27 million USD in Q1 2025</strong>, a tiny fraction of El Salvador's <strong>$35.36 billion GDP</strong><sup class="footnote-ref"><a href="#fn55" id="fnref55">[55]</a></sup><sup class="footnote-ref"><a href="#fn56" id="fnref56">[56]</a></sup>.</p>
+<h3 id="economic-data-table-51">Economic Data Table</h3>
+<table><thead><tr><th>Period/Year</th><th>Indicator</th><th>Value</th></tr></thead><tbody><tr><td>1912</td></tr></tbody></table> Mining % of total exports | 15%<sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a></sup> |
+| 2010-2015 | Mining contribution to GDP | 0.3%<sup class="footnote-ref"><a href="#fn54" id="fnref54">[54]</a></sup> |
+| Q1 2025 | GDP from mining | $31.27 million USD<sup class="footnote-ref"><a href="#fn55" id="fnref55">[55]</a></sup> |
+| 2024 | Total GDP | $35.36 billion USD<sup class="footnote-ref"><a href="#fn56" id="fnref56">[56]</a></sup> |
+| 2024 | Total exports | $5.60 billion USD<sup class="footnote-ref"><a href="#fn57" id="fnref57">[57]</a></sup> |
+<h3 id="historical-context-52">Historical Context</h3>
+<p>Historically, mining's economic prominence peaked in the early 20th century when mineral exports reached <strong>15% of total exports in 1912</strong><sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a></sup>. However, this never translated into widespread prosperity. The wealth generated by mining primarily benefited foreign companies and political elites, while mining communities remained impoverished and dealt with environmental devastation.</p>
+<h3 id="bukeles-claims-53">Bukele's Claims</h3>
+<ul><li><strong>50 million ounces (1,400 metric tons) of gold</strong></li><li>Worth approximately <strong>$131.565 billion</strong></li><li>About <strong>380% of El Salvador's GDP</strong><sup class="footnote-ref"><a href="#fn58" id="fnref58">[58]</a></sup><sup class="footnote-ref"><a href="#fn59" id="fnref59">[59]</a></sup></li></ul>
+<h3 id="expert-rebuttal-54">Expert Rebuttal</h3>
+<ul><li>Just 4% of El Salvador's territory would contain more gold than all of Mexico (2,333.5 times larger with estimated reserves of 1,400 metric tons)</li><li>It would represent approximately <strong>60% of all gold ever extracted from the planet throughout history</strong></li></ul>
+<p>The report concludes these claims are <strong>geologically implausible</strong> and inconsistent with historical production data showing El Salvador's most productive mine (San Sebastián) produced only <strong>35.33 metric tons between 1904 and 1953</strong><sup class="footnote-ref"><a href="#fn11" id="fnref11">[11]</a></sup><sup class="footnote-ref"><a href="#fn58" id="fnref58">[58]</a></sup>.</p>
+<ul><li>Mining contributed only 0.3% of GDP from 2010-2015</li><li>Peak economic significance was 15% of exports in 1912</li><li>Bukele claims 50M oz (1,400 tons) gold worth $131B exist</li><li>Experts dispute Bukele's figures as geologically implausible</li><li>Historical evidence: San Sebastián produced only 35 tons in 50 years</li></ul>
+<hr>
+<h2 id="11-the-2024-mining-ban-reversal-55">11. The 2024 Mining Ban Reversal</h2>
+<p>On <strong>December 23, 2024</strong>, El Salvador's congress voted to overturn the 2017 mining ban, allowing metals mining to resume after seven years<sup class="footnote-ref"><a href="#fn60" id="fnref60">[60]</a></sup><sup class="footnote-ref"><a href="#fn61" id="fnref61">[61]</a></sup><sup class="footnote-ref"><a href="#fn62" id="fnref62">[62]</a></sup>.</p>
+<h3 id="the-vote-56">The Vote</h3>
+<ul><li><strong>All 57 of President Nayib Bukele's allies</strong> in the 60-seat legislature voted for the measure</li><li>Passed just days before Christmas</li><li>Minimal debate: proposed December 21, passed within 48 hours<sup class="footnote-ref"><a href="#fn63" id="fnref63">[63]</a></sup><sup class="footnote-ref"><a href="#fn60" id="fnref60">[60]</a></sup></li></ul>
+<h3 id="prelude-to-reversal-57">Prelude to Reversal</h3>
+<p>The reversal came after years of signals from the Bukele administration:</p>
+<p><strong>2021</strong>: El Salvador joined the <strong>Intergovernmental Forum on Mining</strong><sup class="footnote-ref"><a href="#fn64" id="fnref64">[64]</a></sup></p>
+<ul><li>Antonio Pacheco</li><li>Miguel Gómez</li><li>Alejandro and Pedro Laínez</li><li>Saúl Rivas</li></ul>
+<p>They were accused of crimes allegedly committed during the civil war 34 years earlier, spent <strong>22 months in prison</strong>, and were released in November 2024 due to lack of evidence. However, the Bukele-controlled Public Prosecutor's Office appealed the decision<sup class="footnote-ref"><a href="#fn65" id="fnref65">[65]</a></sup><sup class="footnote-ref"><a href="#fn66" id="fnref66">[66]</a></sup><sup class="footnote-ref"><a href="#fn67" id="fnref67">[67]</a></sup>.</p>
+<h3 id="bukeles-announcement-58">Bukele's Announcement</h3>
+<p>On <strong>November 27, 2024</strong>, Bukele announced on X (formerly Twitter): <blockquote> "We are the ONLY country in the world with total prohibition of metals mining. Absurd!"</blockquote></p>
+<ul><li>Claiming mining wealth is a "God-given" resource</li><li>Stating it can be exploited "responsibly"</li><li>Arguing that 99% of rivers are already contaminated, so mining revenue could fund cleanup efforts<sup class="footnote-ref"><a href="#fn68" id="fnref68">[68]</a></sup><sup class="footnote-ref"><a href="#fn69" id="fnref69">[69]</a></sup></li></ul>
+<h3 id="new-legislation-59">New Legislation</h3>
+<ul><li>Grants the Salvadoran government <strong>sole authority</strong> over mining activities</li><li>Prohibits the use of <strong>mercury in gold mining</strong></li><li>Purportedly requires environmental safeguards</li></ul>
+<p>However, critics argue the law was passed <strong>without environmental oversight or community consultation</strong> and lacks enforceable protections<sup class="footnote-ref"><a href="#fn61" id="fnref61">[61]</a></sup><sup class="footnote-ref"><a href="#fn70" id="fnref70">[70]</a></sup><sup class="footnote-ref"><a href="#fn71" id="fnref71">[71]</a></sup>.</p>
+<h3 id="opposition-60">Opposition</h3>
+<p>Environmentalists have promised fierce resistance:</p>
+<ul><li>Over <strong>300 organizations, academics, researchers, and legal experts from 44 countries</strong> signed letters calling on Bukele to reject mining projects<sup class="footnote-ref"><a href="#fn72" id="fnref72">[72]</a></sup></li><li>The <strong>Catholic Church</strong> launched a petition campaign asking parishioners to sign against mining<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup><sup class="footnote-ref"><a href="#fn71" id="fnref71">[71]</a></sup></li><li>However, in Bukele's authoritarian system with controlled courts and congress, legal challenges face significant obstacles<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup><sup class="footnote-ref"><a href="#fn67" id="fnref67">[67]</a></sup></li></ul>
+<h3 id="activist-responses-61">Activist Responses</h3>
+<p><strong>Vidalina Morales</strong>, the face of the anti-mining movement: <blockquote> "We have been warning since 2021 that mining interests were preying upon El Salvador, and this was confirmed when they jailed five of our environmental leaders back in January 2023."<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup></blockquote></p>
+<p><strong>Luis González</strong> of the Salvadoran Ecological Unit: <blockquote> "Although there has been a political shift, I believe people still have clarity that mining is bad. We can still pull together nationwide support to reject this measure."<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup></blockquote></p>
+<ul><li>December 23, 2024: Congress voted 57-0 to overturn mining ban</li><li>January 2023: Five environmental activists arrested and imprisoned for 22 months</li><li>New law gives government exclusive control but lacks enforceable environmental protections</li><li>300+ organizations from 44 countries oppose the reversal</li><li>Catholic Church and environmental groups promise continued resistance</li></ul>
+<hr>
+<h2 id="12-current-debates-and-future-outlook-62">12. Current Debates and Future Outlook</h2>
+<p>The mining ban reversal has sparked intense debate about El Salvador's environmental future, economic development model, and democratic governance.</p>
+<h3 id="environmental-protection-vs-economic-development-63">Environmental Protection vs. Economic Development</h3>
+<p><strong>Bukele's Argument</strong>: El Salvador's rivers are already 99% contaminated, so mining revenues could fund cleanup efforts. He frames mining as "responsible extractivism" using modern technology<sup class="footnote-ref"><a href="#fn69" id="fnref69">[69]</a></sup>.</p>
+<p><strong>Environmental Response</strong>: Environmental biologist <strong>Cidia Cortes</strong> warns: "The Lempa River could disappear as we know it."<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup></p>
+<p>Researchers note that <strong>cleaning soil contaminated with cyanide costs nearly $200,000 per ton</strong>, and acid drainage would cost millions in perpetuity<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup>.</p>
+<h3 id="water-security-crisis-64">Water Security Crisis</h3>
+<p>With <strong>90% of surface water already polluted</strong> and the Lempa River supplying <strong>70% of San Salvador's drinking water</strong>, any additional contamination poses catastrophic risks<sup class="footnote-ref"><a href="#fn26" id="fnref26">[26]</a></sup><sup class="footnote-ref"><a href="#fn24" id="fnref24">[24]</a></sup>.</p>
+<p>El Salvador is the <strong>most densely populated country in the Americas</strong> with limited water per capita - Salvadorans have access to <strong>40 times less water than Canadians</strong><sup class="footnote-ref"><a href="#fn28" id="fnref28">[28]</a></sup><sup class="footnote-ref"><a href="#fn29" id="fnref29">[29]</a></sup>.</p>
+<p><strong>Luis González</strong> warns: <blockquote> "People who already receive contaminated water will have even more polluted water. Heavy metals will reach everything, from tap water to crops."<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup></blockquote></p>
+<h3 id="economic-viability-questions-65">Economic Viability Questions</h3>
+<p>Experts dispute Bukele's claims about gold reserves. The Heinrich Böll Foundation analysis suggests the figures are inflated by orders of magnitude<sup class="footnote-ref"><a href="#fn11" id="fnref11">[11]</a></sup><sup class="footnote-ref"><a href="#fn58" id="fnref58">[58]</a></sup>.</p>
+<p>Even if reserves exist, historical evidence shows mining benefits primarily flow to foreign corporations while environmental costs burden local communities. Past mining contributed minimally to GDP (0.3% in 2010-2015) while creating lasting environmental liabilities<sup class="footnote-ref"><a href="#fn54" id="fnref54">[54]</a></sup>.</p>
+<h3 id="legal-and-democratic-concerns-66">Legal and Democratic Concerns</h3>
+<p><strong>Luis Parada</strong>, who defended El Salvador in the ICSID cases, warns: <blockquote> "Since the mining ban is reversed, the country could be lining up to receive lawsuits from defeated mining corporations, as they would claim what they think is theirs."<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup></blockquote></p>
+<p>With Bukele controlling the courts, legislature, and prosecutor's office after dismissing supreme court judges in 2021, legal challenges to mining face authoritarian obstacles<sup class="footnote-ref"><a href="#fn73" id="fnref73">[73]</a></sup><sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup>.</p>
+<h3 id="migration-and-social-impact-67">Migration and Social Impact</h3>
+<p>González fears environmental degradation will aggravate Central America's migration crisis: <blockquote> "Mining generates a huge social and environmental impact. Many will risk being poisoned [and] living sick or having to flee their communities because of the heavy metals used by this industry."<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup></blockquote></p>
+<h3 id="debt-for-nature-conversion-68">Debt-for-Nature Conversion</h3>
+<p>In <strong>October 2024</strong>, El Salvador completed the <strong>world's largest debt conversion for river conservation</strong>, securing <strong>$200 million for the Rio Lempa Conservation and Restoration Program</strong> over 20 years<sup class="footnote-ref"><a href="#fn74" id="fnref74">[74]</a></sup>.</p>
+<p>However, researcher <strong>Andres McKinley</strong> notes this would provide only <strong>$9 million yearly</strong> - "nowhere close to compensating the damage done by mining."<sup class="footnote-ref"><a href="#fn22" id="fnref22">[22]</a></sup></p>
+<h3 id="future-scenarios-69">Future Scenarios</h3>
+<p><strong>Optimistic Scenario</strong>: Sustained grassroots resistance, supported by international pressure and the Catholic Church, could force a re-reversal of the mining ban or prevent implementation of mining projects.</p>
+<p><strong>Pessimistic Scenario</strong>: Bukele's authoritarian control allows mining to proceed, causing irreversible environmental damage, water contamination, public health crises, and triggering mass migration.</p>
+<p><strong>Most Likely Scenario</strong>: A prolonged struggle between the government pushing mining and civil society resistance, with environmental degradation proceeding while legal and political battles continue.</p>
+<ul><li>Central tension: environmental protection vs. economic development in water-stressed nation</li><li>Risk of reopened lawsuits from mining corporations against El Salvador</li><li>Democratic deficit: Bukele controls courts, legislature, prosecutor after 2021 purge</li><li>Potential migration crisis if mining creates environmental refugees</li><li>$200M Lempa River conservation fund insufficient to offset mining damage</li></ul>
+<hr>
+<h2 id="timeline-of-key-events-70">Timeline of Key Events</h2>
+<p><strong>Pre-1500</strong>: Indigenous Pipil people practice limited metalworking</p>
+<p><strong>1520s</strong>: Spanish conquest begins; colonial mining exploitation starts</p>
+<p><strong>1904</strong>: San Sebastián Gold Mine opens,</p>
+<nav class="toc"><h2>Table of Contents</h2><ul><li class="toc-level-1"><a href="#the-history-of-mining-in-el-salvador-0">The History of Mining in El Salvador</a></li>  <li class="toc-level-2"><a href="#from-pre-colonial-origins-to-the-2024-ban-reversal-1">From Pre-Colonial Origins to the 2024 Ban Reversal</a></li>  <li class="toc-level-2"><a href="#executive-summary-2">Executive Summary</a></li>  <li class="toc-level-2"><a href="#table-of-contents-3">Table of Contents</a></li>  <li class="toc-level-2"><a href="#1-pre-colonial-and-indigenous-mining-4">1. Pre-Colonial and Indigenous Mining</a></li>  <li class="toc-level-2"><a href="#2-spanish-colonial-mining-1500s-1821-5">2. Spanish Colonial Mining (1500s-1821)</a></li>  <li class="toc-level-2"><a href="#3-early-20th-century-mining-boom-1904-1920-6">3. Early 20th Century Mining Boom (1904-1920)</a></li>    <li class="toc-level-3"><a href="#economic-impact-7">Economic Impact</a></li>    <li class="toc-level-3"><a href="#key-operations-8">Key Operations</a></li>    <li class="toc-level-3"><a href="#production-data-9">Production Data</a></li>    <li class="toc-level-3"><a href="#environmental-damage-and-community-resistance-10">Environmental Damage and Community Resistance</a></li>    <li class="toc-level-3"><a href="#industrial-disasters-11">Industrial Disasters</a></li>  <li class="toc-level-2"><a href="#4-mid-20th-century-operations-1948-1980-12">4. Mid-20th Century Operations (1948-1980)</a></li>    <li class="toc-level-3"><a href="#el-dorado-mine-1948-1953-13">El Dorado Mine (1948-1953)</a></li>    <li class="toc-level-3"><a href="#peak-period-1969-1980-14">Peak Period (1969-1980)</a></li>    <li class="toc-level-3"><a href="#commerce-group-industrialization-1970s-15">Commerce Group Industrialization (1970s)</a></li>    <li class="toc-level-3"><a href="#santa-elena-mine-16">Santa Elena Mine</a></li>    <li class="toc-level-3"><a href="#civil-war-halt-1980-1992-17">Civil War Halt (1980-1992)</a></li>  <li class="toc-level-2"><a href="#5-post-civil-war-mining-revival-1992-2008-18">5. Post-Civil War Mining Revival (1992-2008)</a></li>    <li class="toc-level-3"><a href="#policy-changes-19">Policy Changes</a></li>    <li class="toc-level-3"><a href="#company-operations-20">Company Operations</a></li>    <li class="toc-level-3"><a href="#new-exploration-projects-21">New Exploration Projects</a></li>    <li class="toc-level-3"><a href="#de-facto-moratorium-22">De Facto Moratorium</a></li>  <li class="toc-level-2"><a href="#6-environmental-and-social-impacts-23">6. Environmental and Social Impacts</a></li>    <li class="toc-level-3"><a href="#water-contamination-24">Water Contamination</a></li>      <li class="toc-level-4"><a href="#san-sebastin-river-contamination-levels-25">San Sebastián River Contamination Levels</a></li>    <li class="toc-level-3"><a href="#national-water-crisis-26">National Water Crisis</a></li>    <li class="toc-level-3"><a href="#vulnerability-context-27">Vulnerability Context</a></li>    <li class="toc-level-3"><a href="#health-and-social-impacts-28">Health and Social Impacts</a></li>    <li class="toc-level-3"><a href="#economic-burden-on-communities-29">Economic Burden on Communities</a></li>  <li class="toc-level-2"><a href="#7-grassroots-resistance-movement-2005-2017-30">7. Grassroots Resistance Movement (2005-2017)</a></li>    <li class="toc-level-3"><a href="#formation-of-mesa-nacional-2005-31">Formation of Mesa Nacional (2005)</a></li>    <li class="toc-level-3"><a href="#week-against-mining-campaign-2006-32">Week Against Mining Campaign (2006)</a></li>    <li class="toc-level-3"><a href="#catholic-church-leadership-2007-33">Catholic Church Leadership (2007)</a></li>    <li class="toc-level-3"><a href="#role-of-community-radio-34">Role of Community Radio</a></li>    <li class="toc-level-3"><a href="#the-murders-of-2009-a-campaign-of-terror-35">The Murders of 2009: A Campaign of Terror</a></li>      <li class="toc-level-4"><a href="#the-four-martyrs-36">The Four Martyrs</a></li>    <li class="toc-level-3"><a href="#official-response-and-community-belief-37">Official Response and Community Belief</a></li>    <li class="toc-level-3"><a href="#continued-mobilization-38">Continued Mobilization</a></li>  <li class="toc-level-2"><a href="#8-international-legal-battles-2009-2016-39">8. International Legal Battles (2009-2016)</a></li>    <li class="toc-level-3"><a href="#commerce-group-case-2009-2011-40">Commerce Group Case (2009-2011)</a></li>    <li class="toc-level-3"><a href="#pacific-rimoceanagold-case-2009-2016-41">Pacific Rim/OceanaGold Case (2009-2016)</a></li>      <li class="toc-level-4"><a href="#the-victory-42">The Victory</a></li>    <li class="toc-level-3"><a href="#international-solidarity-43">International Solidarity</a></li>  <li class="toc-level-2"><a href="#9-the-2017-mining-ban-a-global-first-44">9. The 2017 Mining Ban: A Global First</a></li>    <li class="toc-level-3"><a href="#the-vote-45">The Vote</a></li>    <li class="toc-level-3"><a href="#grassroots-achievement-46">Grassroots Achievement</a></li>    <li class="toc-level-3"><a href="#global-significance-47">Global Significance</a></li>    <li class="toc-level-3"><a href="#rationale-48">Rationale</a></li>  <li class="toc-level-2"><a href="#10-economic-significance-of-mining-49">10. Economic Significance of Mining</a></li>    <li class="toc-level-3"><a href="#gdp-contribution-50">GDP Contribution</a></li>    <li class="toc-level-3"><a href="#economic-data-table-51">Economic Data Table</a></li>    <li class="toc-level-3"><a href="#historical-context-52">Historical Context</a></li>    <li class="toc-level-3"><a href="#bukeles-claims-53">Bukele's Claims</a></li>    <li class="toc-level-3"><a href="#expert-rebuttal-54">Expert Rebuttal</a></li>  <li class="toc-level-2"><a href="#11-the-2024-mining-ban-reversal-55">11. The 2024 Mining Ban Reversal</a></li>    <li class="toc-level-3"><a href="#the-vote-56">The Vote</a></li>    <li class="toc-level-3"><a href="#prelude-to-reversal-57">Prelude to Reversal</a></li>    <li class="toc-level-3"><a href="#bukeles-announcement-58">Bukele's Announcement</a></li>    <li class="toc-level-3"><a href="#new-legislation-59">New Legislation</a></li>    <li class="toc-level-3"><a href="#opposition-60">Opposition</a></li>    <li class="toc-level-3"><a href="#activist-responses-61">Activist Responses</a></li>  <li class="toc-level-2"><a href="#12-current-debates-and-future-outlook-62">12. Current Debates and Future Outlook</a></li>    <li class="toc-level-3"><a href="#environmental-protection-vs-economic-development-63">Environmental Protection vs. Economic Development</a></li>    <li class="toc-level-3"><a href="#water-security-crisis-64">Water Security Crisis</a></li>    <li class="toc-level-3"><a href="#economic-viability-questions-65">Economic Viability Questions</a></li>    <li class="toc-level-3"><a href="#legal-and-democratic-concerns-66">Legal and Democratic Concerns</a></li>    <li class="toc-level-3"><a href="#migration-and-social-impact-67">Migration and Social Impact</a></li>    <li class="toc-level-3"><a href="#debt-for-nature-conversion-68">Debt-for-Nature Conversion</a></li>    <li class="toc-level-3"><a href="#future-scenarios-69">Future Scenarios</a></li>  <li class="toc-level-2"><a href="#timeline-of-key-events-70">Timeline of Key Events</a></li></ul></nav>
+
+</body>
+</html>

@@ -1,0 +1,58 @@
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;%TITLE%&lt;/title&gt;
+  &lt;style&gt;
+    :root { --bg: white; --fg: black; --link: #0066cc; --table-border: #ddd; --table-alt: #f8f9fa; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #1a1a1a; --fg: white; --link: #4da6ff; --table-border: #444; --table-alt: #2a2a2a; } }
+    @media (max-width: 768px) { body { padding: 1rem; } nav { position: sticky; top: 0; height: fit-content; } main { margin-left: 0; } }
+    body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.7; margin: 0; padding: 2rem; max-width: 900px; margin: auto; background: var(--bg); color: var(--fg); }
+    nav { float: left; width: 280px; padding-right: 2rem; }
+    nav ul { list-style: none; padding: 0; }
+    nav a { color: var(--fg); text-decoration: none; display: block; padding: .5rem 0; border-left: 2px solid transparent; }
+    nav a:hover, nav a.active { border-left-color: var(--link); }
+    main { margin-left: 300px; }
+    h1, h2, h3 { scroll-margin-top: 3rem; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .95em; }
+    th, td { border: 1px solid var(--table-border); padding: .75rem; text-align: left; }
+    th { background: var(--table-alt); }
+    tr:nth-child(even) { background: var(--table-alt); }
+    tr:hover { background: rgba(0,102,204,.1); }
+    sup { font-size: .7em; vertical-align: super; }
+    #footnotes { margin-top: 3rem; border-top: 1px solid var(--table-border); padding-top: 2rem; font-size: .9em; }
+    .dark-toggle { position: fixed; top: 1rem; right: 1rem; background: var(--bg); border: 1px solid var(--table-border); padding: .5rem; cursor: pointer; }
+    @media print { nav { display: none; } main { margin-left: 0; } }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;button class=&quot;dark-toggle&quot; onclick=&quot;document.documentElement.classList.toggle('dark')&quot;&gt;🌙 Dark&lt;/button&gt;
+  &lt;button id=&quot;menu-toggle&quot; class=&quot;menu-btn&quot;&gt;☰&lt;/button&gt;
+&lt;nav id=&quot;toc&quot;&gt;&lt;/nav&gt;
+&lt;style&gt;.menu-btn{display:none;position:fixed;top:1rem;left:1rem;z-index:1000;background:var(--bg);border:1px solid var(--border);padding:.5rem;border-radius:4px}@media(max-width:768px){.menu-btn{display:block};#toc{position:fixed;top:0;left:-280px;width:280px;height:100vh;overflow:auto;transition:left .3s};#toc.open{left:0}}&lt;/style&gt;
+&lt;script&gt;document.getElementById('menu-toggle').onclick=()=&gt;document.getElementById('toc').classList.toggle('open');&lt;/script&gt;
+  &lt;main id=&quot;content&quot;&gt;%CONTENT%&lt;/main&gt;
+  &lt;div id=&quot;footnotes&quot;&gt;&lt;/div&gt;
+  &lt;script&gt;
+    // TOC gen
+    const headings = Array.from(document.querySelectorAll('h1,h2,h3')).map(h =&gt; ({ el: h, text: h.textContent.trim(), level: +h.nodeName[1] })).filter(h =&gt; h.text);
+    const toc = document.getElementById('toc');
+    let ul = document.createElement('ul');
+    headings.forEach(h =&gt; {
+      h.el.id = h.el.id || 's' + Math.random().toString(36).slice(2);
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#' + h.el.id;
+      a.textContent = h.text;
+      li.appendChild(a);
+      if (h.level &gt; 1) { /* nest */ }
+      ul.appendChild(li);
+    });
+    toc.appendChild(ul);
+    // Footnotes
+    const sups = document.querySelectorAll('sup');
+    // ... popup logic
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
