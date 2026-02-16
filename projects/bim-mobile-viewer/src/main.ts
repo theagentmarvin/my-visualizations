@@ -90,13 +90,43 @@ async function setupComponents() {
   
   // Get fragments manager
   fragments = components.get(OBC.FragmentsManager);
-  
+
   // Initialize fragments worker
   await fragments.init("https://thatopen.github.io/engine_fragment/resources/worker.mjs");
-  
+
+  // FIX 1: Add model to scene when loaded
+  fragments.list.onItemSet.add(({ value: model }) => {
+    model.useCamera(world.camera.three);
+    world.scene.three.add(model.object);  // ← CRITICAL!
+    fragments.core.update(true);
+  });
+
+  // FIX 2: Update fragments on camera move
+  world.camera.controls.addEventListener("update", () => fragments.core.update());
+
+  // FIX 3: Handle camera changes
+  world.onCameraChanged.add((camera) => {
+    for (const [, model] of fragments.list) {
+      model.useCamera(camera.three);
+    }
+    fragments.core.update(true);
+  });
+
+  // FIX 4: Fix z-fighting
+  fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
+    if (!("isLodMaterial" in material && material.isLodMaterial)) {
+      material.polygonOffset = true;
+      material.polygonOffsetUnits = 1;
+      material.polygonOffsetFactor = Math.random();
+    }
+  });
+
+  // FIX 5: Set initial camera position
+  await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
+
   // Handle window resize
   window.addEventListener("resize", onWindowResize);
-  
+
   console.log("✅ Components and world initialized");
 }
 
