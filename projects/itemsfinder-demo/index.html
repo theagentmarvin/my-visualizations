@@ -4,7 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ItemsFinder Demo - That Open Engine</title>
+  
+  <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
+  
+  <!-- Import Maps for ES Modules - Strict type="module" usage -->
   <script type="importmap">
   {
     "imports": {
@@ -17,379 +21,905 @@
     }
   }
   </script>
+  
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    #container { width: 100%; height: 100%; position: relative; }
-    .stats-container { position: absolute; top: 0; left: 0; z-index: 10; }
-    bim-panel { position: absolute; top: 1rem; right: 1rem; z-index: 100; max-width: 20rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
-    .phone-menu-toggler { position: absolute; bottom: 1rem; right: 1rem; z-index: 101; display: none; }
-    @media (max-width: 768px) {
-      bim-panel { position: fixed; top: auto; bottom: 0; left: 0; right: 0; max-width: 100%; max-height: 60vh; border-radius: 1rem 1rem 0 0; transform: translateY(100%); transition: transform 0.3s ease; }
-      bim-panel.options-menu-visible { transform: translateY(0); }
-      .phone-menu-toggler { display: block; }
-      #diagnosticsPanel { max-height: 35vh !important; width: calc(100% - 2rem) !important; left: 1rem !important; }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-    .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(32, 41, 50, 0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: white; transition: opacity 0.5s ease; }
-    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
-    .loading-spinner { width: 48px; height: 48px; border: 4px solid rgba(255, 255, 255, 0.3); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-text { font-size: 1rem; opacity: 0.8; }
-    /* DIAGNOSTICS PANEL - ALWAYS VISIBLE */
-    #diagnosticsPanel { position: fixed; bottom: 1rem; left: 1rem; z-index: 150; width: 480px; max-height: 320px; background: rgba(15, 23, 42, 0.93); border: 1px solid rgba(100, 116, 139, 0.4); border-radius: 10px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5); font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace; font-size: 12px; display: flex; flex-direction: column; overflow: hidden; transition: all 0.3s ease; }
-    #diagnosticsPanel.collapsed { max-height: 42px; }
-    #diagnosticsPanel.error-state { border-color: rgba(239, 68, 68, 0.7); box-shadow: 0 12px 30px rgba(239, 68, 68, 0.25); }
-    #diagnosticsPanel.success-state { border-color: rgba(34, 197, 94, 0.6); }
-    #diagnosticsHeader { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(51, 65, 85, 0.85); border-bottom: 1px solid rgba(100, 116, 139, 0.3); cursor: pointer; user-select: none; transition: background 0.2s; }
-    #diagnosticsPanel.error-state #diagnosticsHeader { background: rgba(185, 28, 28, 0.9); }
-    #diagnosticsPanel.success-state #diagnosticsHeader { background: rgba(21, 128, 61, 0.85); }
-    #diagnosticsHeader:hover { background: rgba(71, 85, 105, 0.95); }
-    #diagnosticsPanel.error-state #diagnosticsHeader:hover { background: rgba(220, 38, 38, 0.95); }
-    #diagnosticsTitle { font-weight: 600; color: #f1f5f9; display: flex; align-items: center; gap: 8px; font-size: 13px; }
-    #diagnosticsStatus { font-size: 10px; padding: 3px 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.15); font-weight: 600; text-transform: uppercase; }
-    #diagnosticsControls { display: flex; gap: 6px; }
-    #diagnosticsControls button { background: rgba(255, 255, 255, 0.1); border: none; color: #cbd5e1; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; font-family: inherit; transition: all 0.2s; }
-    #diagnosticsControls button:hover { background: rgba(255, 255, 255, 0.25); color: #fff; }
-    #diagnosticsContent { flex: 1; overflow-y: auto; padding: 10px 14px; color: #e2e8f0; line-height: 1.6; max-height: 270px; }
-    #diagnosticsPanel.collapsed #diagnosticsContent { display: none; }
-    .diag-entry { margin-bottom: 5px; padding: 3px 0; border-bottom: 1px solid rgba(100, 116, 139, 0.1); word-break: break-word; }
-    .diag-entry:last-child { border-bottom: none; }
-    .diag-time { color: #64748b; font-size: 10px; margin-right: 6px; }
-    .diag-level-info { color: #94a3b8; }
-    .diag-level-success { color: #4ade80; font-weight: 500; }
-    .diag-level-warn { color: #fbbf24; }
-    .diag-level-error { color: #f87171; font-weight: 600; }
-    .diag-level-critical { color: #fff; background: rgba(239, 68, 68, 0.35); padding: 3px 6px; border-radius: 4px; display: inline-block; }
-    .diag-prefix { color: #60a5fa; font-weight: 600; }
-    #collapseIcon { transition: transform 0.3s; font-size: 10px; display: inline-block; }
-    #diagnosticsPanel.collapsed #collapseIcon { transform: rotate(-90deg); }
-    #errorOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.98); z-index: 1000; display: none; flex-direction: column; padding: 2.5rem; overflow: auto; }
-    #errorOverlay.visible { display: flex; }
-    #errorOverlay h2 { color: #f87171; margin-bottom: 1.5rem; font-size: 1.75rem; display: flex; align-items: center; gap: 12px; }
-    #errorContent { background: rgba(30, 41, 59, 0.95); border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 10px; padding: 1.5rem; color: #e2e8f0; font-family: 'SF Mono', monospace; font-size: 13px; line-height: 1.7; white-space: pre-wrap; overflow: auto; max-height: 60vh; }
-    #errorCloseBtn { margin-top: 1.5rem; padding: 12px 24px; background: rgba(239, 68, 68, 0.85); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; align-self: flex-start; transition: all 0.2s; }
-    #errorCloseBtn:hover { background: rgba(239, 68, 68, 1); }
+    
+    #container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    
+    /* Stats.js positioning */
+    .stats-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
+    }
+    
+    /* Panel styling */
+    bim-panel {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      max-width: 20rem;
+      max-height: calc(100vh - 2rem);
+      overflow-y: auto;
+    }
+    
+    /* Phone menu toggler button */
+    .phone-menu-toggler {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 101;
+      display: none;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      bim-panel {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-width: 100%;
+        max-height: 60vh;
+        border-radius: 1rem 1rem 0 0;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+      }
+      
+      bim-panel.options-menu-visible {
+        transform: translateY(0);
+      }
+      
+      .phone-menu-toggler {
+        display: block;
+      }
+      
+      /* Mobile: diagnostics panel adjustments */
+      #diagnosticsPanel {
+        max-width: calc(100vw - 2rem);
+        max-height: 200px;
+        font-size: 10px;
+      }
+    }
+    
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(32, 41, 50, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      color: white;
+      transition: opacity 0.5s ease;
+    }
+    
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      font-size: 1rem;
+      opacity: 0.8;
+    }
+
+    /* Diagnostics Panel - ALWAYS VISIBLE */
+    #diagnosticsPanel {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 150;
+      background: rgba(20, 20, 25, 0.92);
+      backdrop-filter: blur(4px);
+      color: #ffffff;
+      padding: 0;
+      border-radius: 8px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 11px;
+      max-width: 520px;
+      max-height: 350px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+    }
+
+    #diagnosticsPanel.collapsed {
+      max-height: 32px;
+      overflow: hidden;
+    }
+
+    #diagnosticsPanel .diag-header {
+      font-weight: bold;
+      padding: 8px 12px;
+      background: rgba(59, 130, 246, 0.25);
+      color: #60a5fa;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #diagnosticsPanel .diag-header:hover {
+      background: rgba(59, 130, 246, 0.35);
+    }
+
+    #diagnosticsPanel .diag-toggle {
+      font-size: 10px;
+      color: #888;
+      transition: transform 0.2s ease;
+    }
+
+    #diagnosticsPanel.collapsed .diag-toggle {
+      transform: rotate(-90deg);
+    }
+
+    #diagnosticsContent {
+      padding: 8px 12px;
+      overflow-y: auto;
+      max-height: 310px;
+      line-height: 1.4;
+    }
+
+    #diagnosticsPanel.collapsed #diagnosticsContent {
+      display: none;
+    }
+
+    #diagnosticsPanel .diag-entry {
+      margin: 2px 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    #diagnosticsPanel .diag-timestamp {
+      color: #6b7280;
+      font-size: 10px;
+    }
+
+    #diagnosticsPanel .diag-success {
+      color: #4ade80;
+    }
+
+    #diagnosticsPanel .diag-error {
+      color: #f87171;
+    }
+
+    #diagnosticsPanel .diag-warning {
+      color: #fbbf24;
+    }
+
+    #diagnosticsPanel .diag-info {
+      color: #60a5fa;
+    }
+
+    /* Fatal Error Overlay - Full Screen */
+    #fatalErrorOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(80, 20, 20, 0.98);
+      z-index: 10000;
+      display: none;
+      flex-direction: column;
+      padding: 2rem;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    }
+
+    #fatalErrorOverlay.visible {
+      display: flex;
+    }
+
+    #fatalErrorOverlay h1 {
+      color: #fca5a5;
+      margin-bottom: 1rem;
+      font-size: 2rem;
+    }
+
+    #fatalErrorOverlay .error-section {
+      margin-bottom: 1.5rem;
+    }
+
+    #fatalErrorOverlay .error-label {
+      color: #f87171;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    #fatalErrorOverlay .error-message {
+      color: #fff;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 4px solid #ef4444;
+      font-size: 1.1rem;
+    }
+
+    #fatalErrorOverlay .last-step {
+      color: #fdba74;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 4px solid #f97316;
+    }
+
+    #fatalErrorOverlay .diagnostic-log {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.5);
+      color: #d1d5db;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-y: auto;
+      font-size: 11px;
+      line-height: 1.5;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #fatalErrorOverlay .diagnostic-log .log-entry {
+      margin: 2px 0;
+    }
+
+    #fatalErrorOverlay .diagnostic-log .log-success {
+      color: #4ade80;
+    }
+
+    #fatalErrorOverlay .diagnostic-log .log-error {
+      color: #f87171;
+    }
+
+    #fatalErrorOverlay .diagnostic-log .log-warning {
+      color: #fbbf24;
+    }
+
+    #fatalErrorOverlay .reload-hint {
+      margin-top: 1rem;
+      color: #9ca3af;
+      font-size: 0.85rem;
+    }
   </style>
 </head>
 <body>
   <div id="container"></div>
+  
+  <!-- Diagnostics Panel - ALWAYS VISIBLE -->
+  <div id="diagnosticsPanel">
+    <div class="diag-header" onclick="toggleDiagnostics()">
+      <span>🔧 BIM Diagnostics</span>
+      <span class="diag-toggle">▼</span>
+    </div>
+    <div id="diagnosticsContent"></div>
+  </div>
+
+  <!-- Fatal Error Overlay -->
+  <div id="fatalErrorOverlay">
+    <h1>🏗️ INITIALIZATION FAILED</h1>
+    <div class="error-section">
+      <div class="error-label">Error</div>
+      <div class="error-message" id="fatalErrorMessage"></div>
+    </div>
+    <div class="error-section">
+      <div class="error-label">Last Successful Step</div>
+      <div class="last-step" id="fatalLastStep"></div>
+    </div>
+    <div class="error-section" style="flex: 1; display: flex; flex-direction: column;">
+      <div class="error-label">Diagnostic Log</div>
+      <div class="diagnostic-log" id="fatalDiagnosticLog"></div>
+    </div>
+    <div class="reload-hint">
+      💡 Try reloading the page. If the error persists, check the browser console for more details.
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner"></div>
     <div class="loading-text">Loading BIM models...</div>
   </div>
-  <div class="stats-container" id="statsContainer"></div>
-  <div id="diagnosticsPanel">
-    <div id="diagnosticsHeader">
-      <div id="diagnosticsTitle">
-        <span id="collapseIcon">▼</span>
-        <span>🔧 Diagnostics</span>
-        <span id="diagnosticsStatus">INIT</span>
-      </div>
-      <div id="diagnosticsControls">
-        <button id="btnClear">Clear</button>
-        <button id="btnCollapse">−</button>
-      </div>
-    </div>
-    <div id="diagnosticsContent"></div>
-  </div>
-  <div id="errorOverlay">
-    <h2>❌ Critical Error</h2>
-    <div id="errorContent"></div>
-    <button id="errorCloseBtn">Close & Show Diagnostics</button>
-  </div>
 
-  <!-- EARLY DEBUG SCRIPT - runs immediately after HTML parsing -->
+  <!-- Stats container -->
+  <div class="stats-container" id="statsContainer"></div>
+
+  <!-- EARLY DEBUG SCRIPT - runs immediately after HTML parsing, before module script -->
   <script>
     (function() {
-      const debugDiv = document.getElementById('diagnosticsContent');
+      const debugDiv = document.getElementById('debugLog');
       if (debugDiv) {
-        debugDiv.innerHTML = '<div class="diag-entry"><span class="diag-time">' + new Date().toLocaleTimeString() + '</span><span class="diag-level-success">JS1</span> <span class="diag-prefix">[EARLY]</span> HTML parsed OK</div>';
+        debugDiv.innerHTML = '<div style="color:#4ade80;font-weight:bold;">[' + new Date().toLocaleTimeString() + '] JS1: HTML parsed OK</div>';
       }
       console.log('JS1 loaded - HTML parsed OK');
     })();
   </script>
 
   <script type="module">
-    // === FIRST LINE: Setup appendLog function ===
-    const debugDiv = document.getElementById('diagnosticsContent');
+    // ============================================
+    // EARLY LOGGING SETUP - FIRST LINE OF MODULE
+    // ============================================
+    const debugDiv = document.getElementById('debugLog');
     const appendLog = (msg) => {
       if (!debugDiv) {
-        console.log('[EARLY LOG] ' + msg);
+        console.log('[EARLY-LOG] ' + msg);
         return;
       }
-      const entry = document.createElement('div');
-      entry.className = 'diag-entry';
-      entry.innerHTML = '<span class="diag-time">' + new Date().toLocaleTimeString() + '</span><span class="diag-level-info">INFO</span> <span class="diag-prefix">[EARLY]</span> ' + msg;
-      debugDiv.appendChild(entry);
+      const timestamp = new Date().toLocaleTimeString();
+      debugDiv.innerHTML += `<div style="margin:1px 0;"><span style="color:#6b7280;">[${timestamp}]</span> <span style="color:#60a5fa;">JS2:</span> ${msg}</div>`;
       debugDiv.scrollTop = debugDiv.scrollHeight;
     };
-    appendLog('JS2: Module script started');
 
-    // === GLOBAL ERROR HANDLER ===
+    // Log immediately on module start
+    appendLog('Module script started');
+
+    // ============================================
+    // GLOBAL ERROR HANDLERS - Catch ALL errors
+    // ============================================
     window.addEventListener('error', (e) => {
-      appendLog('GLOBAL ERROR: ' + e.message + ' at ' + (e.filename || '?') + ':' + (e.lineno || '?'));
+      appendLog(`<span style="color:#f87171;font-weight:bold;">GLOBAL ERROR: ${e.message} at ${e.filename}:${e.lineno}</span>`);
       console.error('Global error:', e);
     });
     window.addEventListener('unhandledrejection', (e) => {
-      appendLog('UNHANDLED PROMISE: ' + (e.reason?.message || e.reason || 'Unknown'));
+      appendLog(`<span style="color:#f87171;font-weight:bold;">UNHANDLED PROMISE: ${e.reason?.message || e.reason || 'Unknown'}</span>`);
       console.error('Unhandled rejection:', e);
     });
     appendLog('Global error handlers registered');
 
-    const Diagnostics = {
-      logEntries: [], content: document.getElementById('diagnosticsContent'), panel: document.getElementById('diagnosticsPanel'),
-      status: document.getElementById('diagnosticsStatus'), errorOverlay: document.getElementById('errorOverlay'),
-      errorContent: document.getElementById('errorContent'), hasError: false, isCollapsed: false,
-      init() {
-        document.getElementById('diagnosticsHeader').addEventListener('click', (e) => { if (!e.target.closest('#diagnosticsControls')) this.toggle(); });
-        document.getElementById('btnClear').addEventListener('click', () => this.clear());
-        document.getElementById('btnCollapse').addEventListener('click', () => this.toggle());
-        document.getElementById('errorCloseBtn').addEventListener('click', () => this.hideErrorOverlay());
-        this.interceptConsole(); this.setupErrorHandlers(); this.info('Diagnostics initialized', 'SYSTEM');
-      },
-      interceptConsole() {
-        const orig = { log: console.log, info: console.info, warn: console.warn, error: console.error };
-        console.log = (...a) => { this.addEntry('info', a.join(' ')); orig.log.apply(console, a); };
-        console.info = (...a) => { this.addEntry('info', a.join(' ')); orig.info.apply(console, a); };
-        console.warn = (...a) => { this.addEntry('warn', a.join(' ')); orig.warn.apply(console, a); };
-        console.error = (...a) => { const m = a.join(' '); this.addEntry('error', m); this.setErrorState(); orig.error.apply(console, a); };
-      },
-      setupErrorHandlers() {
-        // Note: window error handlers already set up above in early script
-      },
-      addEntry(level, message, prefix = '') {
-        const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
-        const entry = { time, level, message, prefix }; this.logEntries.push(entry); if (this.logEntries.length > 150) this.logEntries.shift(); this.renderEntry(entry);
-      },
-      renderEntry(entry) {
-        const div = document.createElement('div'); div.className = 'diag-entry';
-        const prefixHtml = entry.prefix ? '<span class="diag-prefix">[' + entry.prefix + ']</span> ' : '';
-        div.innerHTML = '<span class="diag-time">' + entry.time + '</span><span class="diag-level-' + entry.level + '">' + entry.level.toUpperCase() + '</span> ' + prefixHtml + this.escapeHtml(entry.message);
-        this.content.appendChild(div); this.content.scrollTop = this.content.scrollHeight;
-      },
-      escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; },
-      setErrorState() { this.hasError = true; this.panel.classList.add('error-state'); this.panel.classList.remove('success-state'); this.status.textContent = 'ERROR'; this.status.style.background = 'rgba(239, 68, 68, 0.6)'; this.panel.classList.remove('collapsed'); document.getElementById('btnCollapse').textContent = '−'; this.isCollapsed = false; },
-      setSuccessState() { if (!this.hasError) { this.panel.classList.add('success-state'); this.status.textContent = 'READY'; this.status.style.background = 'rgba(34, 197, 94, 0.5)'; } },
-      info(m, p = '') { this.addEntry('info', m, p); }, success(m, p = '') { this.addEntry('success', m, p); if (!this.hasError) this.setSuccessState(); }, warn(m, p = '') { this.addEntry('warn', m, p); }, error(m, p = '') { this.addEntry('error', m, p); this.setErrorState(); }, critical(m, p = '') { this.addEntry('critical', m, p); this.setErrorState(); },
-      toggle() { this.panel.classList.toggle('collapsed'); this.isCollapsed = !this.isCollapsed; document.getElementById('btnCollapse').textContent = this.isCollapsed ? '+' : '−'; },
-      clear() { this.logEntries = []; this.content.innerHTML = ''; },
-      showErrorOverlay(c) { this.errorContent.textContent = c; this.errorOverlay.classList.add('visible'); },
-      hideErrorOverlay() { this.errorOverlay.classList.remove('visible'); this.panel.classList.remove('collapsed'); this.isCollapsed = false; document.getElementById('btnCollapse').textContent = '−'; }
-    };
-    Diagnostics.init();
-
+    // ============================================
+    // DIAGNOSTICS SYSTEM - ALWAYS ACTIVE
+    // ============================================
+    
+    const diagnostics = [];
+    const diagContent = document.getElementById('diagnosticsContent');
+    const diagPanel = document.getElementById('diagnosticsPanel');
+    
+    // Check for force error modes via query param
     const urlParams = new URLSearchParams(window.location.search);
-    const forceErrorMode = urlParams.get('forceError');
-    if (forceErrorMode) Diagnostics.warn('Force error: ' + forceErrorMode, 'URL');
+    
+    // Toggle diagnostics panel collapse
+    window.toggleDiagnostics = function() {
+      diagPanel.classList.toggle('collapsed');
+    };
+    
+    // Format timestamp
+    const getTimestamp = () => {
+      const now = new Date();
+      return now.toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+      }) + '.' + String(now.getMilliseconds()).padStart(3, '0');
+    };
+    
+    // Get entry color class based on message content
+    const getEntryClass = (msg) => {
+      if (msg.includes('✅') || msg.includes('success')) return 'diag-success';
+      if (msg.includes('❌') || msg.includes('❗') || msg.includes('ERROR') || msg.includes('FAILED')) return 'diag-error';
+      if (msg.includes('⚠️') || msg.includes('WARNING') || msg.includes('Force')) return 'diag-warning';
+      if (msg.includes('🔧') || msg.includes('→') || msg.includes('Step')) return 'diag-info';
+      return '';
+    };
+    
+    // Main log function - ALWAYS logs to panel AND console
+    const log = (msg) => {
+      appendLog(msg);
+      const timestamp = getTimestamp();
+      const fullMsg = `[${timestamp}] ${msg}`;
+      diagnostics.push(fullMsg);
+      // console.log replaced by appendLog
+      
+      // Always update diagnostics panel (no longer conditional on debug mode)
+      if (diagContent) {
+        const entry = document.createElement('div');
+        entry.className = 'diag-entry ' + getEntryClass(msg);
+        entry.innerHTML = `<span class="diag-timestamp">${timestamp}</span> ${escapeHtml(msg)}`;
+        diagContent.appendChild(entry);
+        diagContent.scrollTop = diagContent.scrollHeight;
+      }
+    };
+    
+    // Escape HTML for safe display
+    const escapeHtml = (text) => {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+    
+    // Show fatal error overlay
+    const showFatalError = (error, lastStep) => {
+      const overlay = document.getElementById('fatalErrorOverlay');
+      const errorMsg = document.getElementById('fatalErrorMessage');
+      const lastStepEl = document.getElementById('fatalLastStep');
+      const logEl = document.getElementById('fatalDiagnosticLog');
+      
+      errorMsg.textContent = error.message || error;
+      lastStepEl.textContent = lastStep || 'None';
+      
+      // Build diagnostic log HTML
+      logEl.innerHTML = diagnostics.map(d => {
+        const isError = d.includes('❌') || d.includes('ERROR') || d.includes('FAILED');
+        const isSuccess = d.includes('✅') || d.includes('success');
+        const isWarning = d.includes('⚠️') || d.includes('WARNING');
+        let className = 'log-entry';
+        if (isError) className += ' log-error';
+        else if (isSuccess) className += ' log-success';
+        else if (isWarning) className += ' log-warning';
+        return `<div class="${className}">${escapeHtml(d)}</div>`;
+      }).join('');
+      
+      overlay.classList.add('visible');
+      
+      // Also hide loading overlay
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    };
+
+    // Start logging
+    log("🚀 Starting ItemsFinder Demo initialization...");
+    log(`📍 URL: ${window.location.href}`);
+    log(`📐 Screen: ${window.innerWidth}x${window.innerHeight}`);
+    log(`🌐 User Agent: ${navigator.userAgent.split(' ').pop()}`);
+
+    const container = document.getElementById('container');
 
     try {
-      Diagnostics.info('Starting ItemsFinder Demo...', 'APP');
-      if (forceErrorMode === 'import') throw new Error('Forced import error');
+      // ============================================
+      // STEP 1: Import Modules
+      // ============================================
+      log("Step 1/18: Importing ES modules...");
+      
+      // Import each module individually with error tracking
+      let THREE, OBC, BUI, FRAGS, Stats;
+      
+      try {
+        appendLog('Fetching three.js...');
+        THREE = await import('three');
+        appendLog('three.js import OK');
+        log("  ✓ three.js imported");
+      } catch (e) {
+        appendLog('three.js import FAILED: ' + e.message);
+        throw new Error(`Failed to import three.js: ${e.message}`);
+      }
 
-      appendLog('About to import Three.js...');
-      Diagnostics.info('Importing Three.js...', 'IMPORT');
-      const THREE = await import('three');
-      appendLog('Three.js imported OK');
-      Diagnostics.success('Three.js loaded', 'IMPORT');
+      try {
+        appendLog('Fetching @thatopen/components...');
+        OBC = await import('@thatopen/components');
+        appendLog('@thatopen/components import OK');
+        log("  ✓ @thatopen/components imported");
+      } catch (e) {
+        appendLog('@thatopen/components import FAILED: ' + e.message);
+        throw new Error(`Failed to import @thatopen/components: ${e.message}`);
+      }
 
-      appendLog('About to import That Open Components...');
-      Diagnostics.info('Importing That Open Components...', 'IMPORT');
-      const OBC = await import('@thatopen/components');
-      appendLog('That Open Components imported OK');
-      Diagnostics.success('OBC loaded', 'IMPORT');
+      try {
+        appendLog('Fetching @thatopen/ui...');
+        BUI = await import('@thatopen/ui');
+        appendLog('@thatopen/ui import OK');
+        log("  ✓ @thatopen/ui imported");
+      } catch (e) {
+        appendLog('@thatopen/ui import FAILED: ' + e.message);
+        throw new Error(`Failed to import @thatopen/ui: ${e.message}`);
+      }
 
-      appendLog('About to import That Open UI...');
-      Diagnostics.info('Importing That Open UI...', 'IMPORT');
-      const BUI = await import('@thatopen/ui');
-      appendLog('That Open UI imported OK');
-      Diagnostics.success('UI loaded', 'IMPORT');
+      try {
+        appendLog('Fetching @thatopen/fragments...');
+        FRAGS = await import('@thatopen/fragments');
+        appendLog('@thatopen/fragments import OK');
+        log("  ✓ @thatopen/fragments imported");
+      } catch (e) {
+        appendLog('@thatopen/fragments import FAILED: ' + e.message);
+        throw new Error(`Failed to import @thatopen/fragments: ${e.message}`);
+      }
 
-      appendLog('About to import Fragments...');
-      Diagnostics.info('Importing Fragments...', 'IMPORT');
-      const FRAGS = await import('@thatopen/fragments');
-      appendLog('Fragments imported OK');
-      Diagnostics.success('Fragments loaded', 'IMPORT');
+      try {
+        appendLog('Fetching stats.js...');
+        Stats = (await import('stats.js')).default;
+        appendLog('stats.js import OK');
+        log("  ✓ stats.js imported");
+      } catch (e) {
+        appendLog('stats.js import FAILED: ' + e.message);
+        throw new Error(`Failed to import stats.js: ${e.message}`);
+      }
+      
+      log("✅ Step 1: All modules imported successfully");
 
-      appendLog('About to import Stats.js...');
-      Diagnostics.info('Importing Stats.js...', 'IMPORT');
-      const Stats = (await import('stats.js')).default;
-      appendLog('Stats.js imported OK');
-      Diagnostics.success('Stats.js loaded', 'IMPORT');
-
-      if (forceErrorMode === 'obc') { Diagnostics.error('Simulating OBC duplicate', 'FORCE'); throw new Error('OBC already declared'); }
-
-      appendLog('Initializing BUI Manager...');
-      Diagnostics.info('Initializing BUI Manager...', 'UI');
+      // ============================================
+      // STEP 2: Initialize BUI Manager
+      // ============================================
+      log("Step 2/18: Initializing BUI Manager...");
       BUI.Manager.init();
-      appendLog('BUI Manager initialized OK');
-      Diagnostics.success('BUI initialized', 'UI');
+      log("✅ Step 2: BUI Manager initialized");
 
-      const container = document.getElementById('container');
-      appendLog('Creating Components...');
-      Diagnostics.info('Creating Components...', 'OBC');
-      if (forceErrorMode === 'components') throw new Error('Forced components error');
+      // ============================================
+      // STEP 3: Create Components
+      // ============================================
+      log("Step 3/18: Creating OBC Components instance...");
       const components = new OBC.Components();
-      appendLog('Components created OK');
-      Diagnostics.success('Components created', 'OBC');
+      log("✅ Step 3: Components instance created");
 
-      appendLog('Creating world...');
-      Diagnostics.info('Creating world...', 'WORLD');
+      // ============================================
+      // STEP 4: Create World
+      // ============================================
+      log("Step 4/18: Creating World...");
       const worlds = components.get(OBC.Worlds);
-      const world = worlds.create();
-      appendLog('World created OK');
-      Diagnostics.success('World created', 'WORLD');
+      const world = worlds.create<
+        OBC.SimpleScene,
+        OBC.OrthoPerspectiveCamera,
+        OBC.SimpleRenderer
+      >();
+      log("✅ Step 4: World created");
 
-      appendLog('Setting up scene...');
-      Diagnostics.info('Setting up scene...', 'SCENE');
+      // ============================================
+      // STEP 5: Setup Scene
+      // ============================================
+      log("Step 5/18: Setting up Scene...");
       world.scene = new OBC.SimpleScene(components);
       world.scene.setup();
       world.scene.three.background = null;
-      appendLog('Scene setup OK');
-      Diagnostics.success('Scene ready', 'SCENE');
+      log("✅ Step 5: Scene configured");
 
-      appendLog('Setting up renderer...');
-      Diagnostics.info('Setting up renderer...', 'RENDER');
+      // ============================================
+      // STEP 6: Setup Renderer
+      // ============================================
+      log("Step 6/18: Setting up Renderer...");
       world.renderer = new OBC.SimpleRenderer(components, container);
-      appendLog('Renderer setup OK');
-      Diagnostics.success('Renderer ready', 'RENDER');
+      log("✅ Step 6: Renderer configured");
 
-      appendLog('Setting up camera...');
-      Diagnostics.info('Setting up camera...', 'CAMERA');
+      // ============================================
+      // STEP 7: Setup Camera
+      // ============================================
+      log("Step 7/18: Setting up Camera...");
       world.camera = new OBC.OrthoPerspectiveCamera(components);
+      appendLog('Setting camera position...');
       await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
-      appendLog('Camera positioned OK');
-      Diagnostics.success('Camera positioned', 'CAMERA');
+      appendLog('Camera position set OK');
+      log("✅ Step 7: Camera positioned");
 
-      appendLog('Initializing components...');
-      Diagnostics.info('Initializing components...', 'OBC');
+      // ============================================
+      // STEP 8: Initialize Components
+      // ============================================
+      log("Step 8/18: Initializing all components...");
       components.init();
-      appendLog('Components initialized OK');
-      Diagnostics.success('Components initialized', 'OBC');
+      log("✅ Step 8: Components initialized");
 
-      appendLog('Setting up Stats.js...');
-      Diagnostics.info('Setting up Stats.js...', 'PERF');
+      // ============================================
+      // STEP 9: Setup Stats.js
+      // ============================================
+      log("Step 9/18: Setting up Stats.js...");
       const stats = new Stats();
       stats.showPanel(2);
       document.getElementById('statsContainer').appendChild(stats.dom);
       stats.dom.style.left = '0px';
+      stats.dom.style.zIndex = 'unset';
       world.renderer.onBeforeUpdate.add(() => stats.begin());
       world.renderer.onAfterUpdate.add(() => stats.end());
-      appendLog('Stats.js setup OK');
-      Diagnostics.success('Stats ready', 'PERF');
+      log("✅ Step 9: Stats.js configured");
 
-      appendLog('Setting up FragmentsManager...');
-      Diagnostics.info('Setting up FragmentsManager...', 'FRAGS');
-      if (forceErrorMode === 'worker') throw new Error('Forced worker error');
-      const workerUrl = 'https://thatopen.github.io/engine_fragment/resources/worker.mjs';
+      // ============================================
+      // STEP 10: Setup FragmentsManager with Worker
+      // ============================================
+      log("Step 10/18: Setting up FragmentsManager with Worker...");
+      
+      // Check for forced worker error
+      if (urlParams.get('forceError') === 'worker') {
+        log("⚠️ FORCE ERROR MODE: Simulating worker initialization failure");
+        throw new Error("Forced worker initialization error for testing");
+      }
+      
+      const githubUrl = 'https://thatopen.github.io/engine_fragment/resources/worker.mjs';
+      log(`  → Fetching worker from: ${githubUrl}`);
+      appendLog('Fetching worker...');
 
-      appendLog('Fetching worker from: ' + workerUrl);
-      Diagnostics.info('Fetching worker...', 'FRAGS');
-      const fetched = await fetch(workerUrl);
-      if (!fetched.ok) throw new Error('HTTP ' + fetched.status);
-      appendLog('Worker fetch OK - status: ' + fetched.status);
+      const fetchedUrl = await fetch(githubUrl);
+      if (!fetchedUrl.ok) {
+        appendLog('Worker fetch FAILED: HTTP ' + fetchedUrl.status);
+        throw new Error(`Failed to fetch worker: HTTP ${fetchedUrl.status}`);
+      }
+      appendLog('Worker fetch OK - status: ' + fetchedUrl.status);
 
       appendLog('Creating worker blob...');
-      const blob = await fetched.blob();
-      const url = URL.createObjectURL(new File([blob], 'worker.mjs', { type: 'text/javascript' }));
-      appendLog('Worker blob created OK');
-      Diagnostics.success('Worker blob OK', 'FRAGS');
+      const workerBlob = await fetchedUrl.blob();
+      appendLog('Worker blob OK - size: ' + (workerBlob.size / 1024).toFixed(2) + 'KB');
+
+      const workerFile = new File([workerBlob], 'worker.mjs', {
+        type: 'text/javascript',
+      });
+      const workerUrl = URL.createObjectURL(workerFile);
+      const fragments = components.get(OBC.FragmentsManager);
 
       appendLog('Initializing FragmentsManager with worker...');
-      const fragments = components.get(OBC.FragmentsManager);
-      fragments.init(url);
+      fragments.init(workerUrl);
       appendLog('FragmentsManager initialized OK');
-      Diagnostics.success('FragmentsManager ready', 'FRAGS');
+      log("✅ Step 10: FragmentsManager initialized with worker");
 
+      // ============================================
+      // STEP 11: Fragment Update Handlers
+      // ============================================
+      log("Step 11/18: Setting up fragment update handlers...");
       world.camera.controls.addEventListener('update', () => fragments.core.update());
-      world.onCameraChanged.add((cam) => { for (const [, m] of fragments.list) m.useCamera(cam.three); fragments.core.update(true); });
-      fragments.list.onItemSet.add(({ value: m }) => { Diagnostics.success('Model: ' + (m.uuid?.slice(0,8) || 'unknown'), 'MODEL'); m.useCamera(world.camera.three); world.scene.three.add(m.object); fragments.core.update(true); });
-      fragments.core.models.materials.list.onItemSet.add(({ value: mat }) => { if (!mat.isLodMaterial) { mat.polygonOffset = true; mat.polygonOffsetUnits = 1; mat.polygonOffsetFactor = Math.random(); } });
-      Diagnostics.success('Fragment handlers attached', 'FRAGS');
 
-      appendLog('Setting up ItemsFinder...');
-      Diagnostics.info('Setting up ItemsFinder...', 'FINDER');
-      const finder = components.get(OBC.ItemsFinder);
-      finder.create('Walls & Slabs', [{ categories: [/WALL/, /SLAB/] }]);
-      finder.create('Masonry Walls', [{ categories: [/WALL/], attributes: { queries: [{ name: /Name/, value: /Masonry/ }] } }]);
-      finder.create('First Level Columns', [{ categories: [/COLUMN/], relation: { name: 'ContainedInStructure', query: { categories: [/BUILDINGSTOREY/], attributes: { queries: [{ name: /Name/, value: /Entry/ }] } } } }]);
-      appendLog('ItemsFinder queries created OK');
-      Diagnostics.success('ItemsFinder queries created', 'FINDER');
-
-      const getResult = async (name) => { const q = finder.list.get(name); return q ? await q.test() : {}; };
-
-      appendLog('Creating UI panel...');
-      Diagnostics.info('Creating UI panel...', 'UI');
-      const queriesList = BUI.Component.create(() => {
-        const onCreated = (e) => { if (!e) return; const t = e; t.loadFunction = async () => { const d = []; for (const [n] of finder.list) d.push({ data: { Name: n, Actions: '' } }); return d; }; t.loadData(true); };
-        return BUI.html\`<bim-table \${BUI.ref(onCreated)}></bim-table>\`;
+      world.onCameraChanged.add((camera) => {
+        for (const [, model] of fragments.list) {
+          model.useCamera(camera.three);
+        }
+        fragments.core.update(true);
       });
+      log("✅ Step 11: Fragment update handlers attached");
+
+      // ============================================
+      // STEP 12: Auto-add Models to Scene
+      // ============================================
+      log("Step 12/18: Setting up auto-add models handler...");
+      fragments.list.onItemSet.add(({ value: model }) => {
+        model.useCamera(world.camera.three);
+        world.scene.three.add(model.object);
+        fragments.core.update(true);
+      });
+      log("✅ Step 12: Auto-add models handler attached");
+
+      // ============================================
+      // STEP 13: Z-fighting Fix
+      // ============================================
+      log("Step 13/18: Setting up z-fighting fix...");
+      fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
+        if (!('isLodMaterial' in material && material.isLodMaterial)) {
+          material.polygonOffset = true;
+          material.polygonOffsetUnits = 1;
+          material.polygonOffsetFactor = Math.random();
+        }
+      });
+      log("✅ Step 13: Z-fighting fix applied");
+
+      // ============================================
+      // STEP 14: Setup ItemsFinder
+      // ============================================
+      log("Step 14/18: Setting up ItemsFinder...");
+      const finder = components.get(OBC.ItemsFinder);
+
+      log("  → Creating query: Walls & Slabs");
+      finder.create('Walls & Slabs', [{ categories: [/WALL/, /SLAB/] }]);
+
+      log("  → Creating query: Masonry Walls");
+      finder.create('Masonry Walls', [
+        {
+          categories: [/WALL/],
+          attributes: { queries: [{ name: /Name/, value: /Masonry/ }] },
+        },
+      ]);
+
+      log("  → Creating query: First Level Columns");
+      const entryLevel = {
+        categories: [/BUILDINGSTOREY/],
+        attributes: { queries: [{ name: /Name/, value: /Entry/ }] },
+      };
+      finder.create('First Level Columns', [
+        {
+          categories: [/COLUMN/],
+          relation: { name: 'ContainedInStructure', query: entryLevel },
+        },
+      ]);
+      log("✅ Step 14: ItemsFinder queries created");
+
+      // ============================================
+      // STEP 15: Setup UI Panel
+      // ============================================
+      log("Step 15/18: Setting up UI Panel...");
+      
+      const getResult = async (name) => {
+        const finderQuery = finder.list.get(name);
+        if (!finderQuery) return {};
+        const result = await finderQuery.test();
+        return result;
+      };
+
+      const queriesListTemplate = () => {
+        const onCreated = (e) => {
+          if (!e) return;
+          const table = e;
+
+          table.loadFunction = async () => {
+            const data = [];
+            for (const [name] of finder.list) {
+              data.push({ data: { Name: name, Actions: '' } });
+            }
+            return data;
+          };
+
+          table.loadData(true);
+        };
+
+        return BUI.html`
+          <bim-table ${BUI.ref(onCreated)}></bim-table>
+        `;
+      };
+
+      const queriesList = BUI.Component.create(queriesListTemplate);
       queriesList.style.maxHeight = '25rem';
       queriesList.columns = ['Name', { name: 'Actions', width: 'auto' }];
       queriesList.noIndentation = true;
       queriesList.headersHidden = true;
       queriesList.dataTransform = {
-        Actions: (_, row) => {
-          const { Name } = row; if (!Name) return _;
-          const onClick = async ({ target }) => { Diagnostics.info('Query: ' + Name, 'QUERY'); target.loading = true; try { const map = await getResult(Name); await components.get(OBC.Hider).isolate(map); Diagnostics.success('Query done: ' + Name, 'QUERY'); } catch (e) { Diagnostics.error('Query failed: ' + e.message, 'QUERY'); } target.loading = false; };
-          return BUI.html\`<bim-button icon="solar:cursor-bold" @click=\${onClick}></bim-button>\`;
-        }
+        Actions: (_, rowData) => {
+          const { Name } = rowData;
+          if (!Name) return _;
+
+          const hider = components.get(OBC.Hider);
+          const onClick = async ({ target }) => {
+            target.loading = true;
+            const modelIdMap = await getResult(Name);
+            await hider.isolate(modelIdMap);
+            target.loading = false;
+          };
+
+          return BUI.html`<bim-button icon="solar:cursor-bold" @click=${onClick}></bim-button>`;
+        },
       };
 
       const panel = BUI.Component.create(() => {
-        const onReset = async ({ target }) => { Diagnostics.info('Resetting visibility...', 'HIDER'); target.loading = true; await components.get(OBC.Hider).set(true); target.loading = false; Diagnostics.success('Visibility reset', 'HIDER'); };
-        return BUI.html\`<bim-panel active label="Items Finder Tutorial" class="options-menu"><bim-panel-section style="min-width:14rem" label="General"><bim-button label="Reset Visibility" @click=\${onReset}></bim-button></bim-panel-section><bim-panel-section label="Queries">\${queriesList}</bim-panel-section></bim-panel>\`;
+        const onResetVisibility = async ({ target }) => {
+          target.loading = true;
+          const hider = components.get(OBC.Hider);
+          await hider.set(true);
+          target.loading = false;
+        };
+
+        return BUI.html`
+          <bim-panel active label="Items Finder Tutorial" class="options-menu">
+            <bim-panel-section style="min-width: 14rem" label="General">
+              <bim-button label="Reset Visibility" @click=${onResetVisibility}></bim-button>
+            </bim-panel-section>
+            <bim-panel-section label="Queries">
+              ${queriesList}
+            </bim-panel-section>
+          </bim-panel>
+        `;
       });
+
       document.body.appendChild(panel);
+      log("✅ Step 15: UI Panel created");
 
-      const button = BUI.Component.create(() => BUI.html\`<bim-button class="phone-menu-toggler" icon="solar:settings-bold" @click="\${() => panel.classList.toggle('options-menu-visible')}"></bim-button>\`);
+      // ============================================
+      // STEP 16: Phone Menu Toggler
+      // ============================================
+      log("Step 16/18: Creating phone menu toggler...");
+      const button = BUI.Component.create(() => {
+        return BUI.html`
+          <bim-button class="phone-menu-toggler" icon="solar:settings-bold"
+            @click="${() => {
+              panel.classList.toggle('options-menu-visible');
+            }}">
+          </bim-button>
+        `;
+      });
+
       document.body.appendChild(button);
-      appendLog('UI panel created OK');
-      Diagnostics.success('UI ready', 'UI');
+      log("✅ Step 16: Phone menu toggler created");
 
-      appendLog('Starting fragment models load...');
-      Diagnostics.info('Loading fragment models...', 'LOAD');
-      if (forceErrorMode === 'load') throw new Error('Forced load error');
-      const paths = [
+      // ============================================
+      // STEP 17: Load Fragment Models
+      // ============================================
+      log("Step 17/18: Loading fragment models...");
+      
+      const fragPaths = [
         'https://thatopen.github.io/engine_components/resources/frags/school_arq.frag',
-        'https://thatopen.github.io/engine_components/resources/frags/school_str.frag'
+        'https://thatopen.github.io/engine_components/resources/frags/school_str.frag',
       ];
-      if (forceErrorMode === '1') { Diagnostics.warn('Force error: invalid URL', 'FORCE'); paths[0] = 'https://invalid.frag'; }
 
-      await Promise.all(paths.map(async (p) => {
-        const id = p.split('/').pop()?.split('.').shift();
-        appendLog('Fetching model: ' + id + '...');
-        Diagnostics.info('Loading: ' + id + '...', 'LOAD');
+      // Test forced error mode - add ?forceError=1 to trigger
+      if (urlParams.get('forceError') === '1') {
+        log("⚠️ FORCE ERROR MODE ENABLED - Will use invalid URL");
+        fragPaths[0] = 'https://invalid-url-that-will-fail.frag';
+      }
 
-        appendLog('Starting fetch for ' + id + '...');
-        const res = await fetch(p);
-        if (!res.ok) throw new Error('HTTP ' + res.status + ' for ' + id);
-        appendLog('Fetch OK for ' + id + ' - status: ' + res.status);
+      try {
+        appendLog('Starting model loading for ' + fragPaths.length + ' models...');
+        await Promise.all(
+          fragPaths.map(async (path, index) => {
+            const modelName = path.split('/').pop();
+            const modelId = modelName?.split('.').shift();
+            log(`  → [${index + 1}/${fragPaths.length}] Fetching: ${modelName}...`);
+            appendLog(`Fetching ${modelId}...`);
 
-        appendLog('Getting ArrayBuffer for ' + id + '...');
-        const buf = await res.arrayBuffer();
-        appendLog('ArrayBuffer OK for ' + id + ' - size: ' + (buf.byteLength/1024/1024).toFixed(2) + 'MB');
-        Diagnostics.success(id + ': ' + (buf.byteLength/1024/1024).toFixed(2) + 'MB', 'LOAD');
+            if (!modelId) {
+              appendLog('ERROR: Could not extract modelId from path: ' + path);
+              throw new Error(`Could not extract modelId from path: ${path}`);
+            }
 
-        appendLog('Loading ' + id + ' into fragments...');
-        const result = await fragments.core.load(buf, { modelId: id });
-        appendLog('Fragment load OK for ' + id);
-        return result;
-      }));
+            appendLog(`Starting fetch for ${modelId}...`);
+            const file = await fetch(path);
+            if (!file.ok) {
+              appendLog(`${modelId} fetch FAILED: HTTP ${file.status}`);
+              throw new Error(`HTTP ${file.status}: Failed to fetch ${path}`);
+            }
+            appendLog(`${modelId} fetch OK - status: ${file.status}`);
 
-      appendLog('All models loaded successfully!');
-      Diagnostics.success('All models loaded!', 'LOAD');
+            appendLog(`Getting ArrayBuffer for ${modelId}...`);
+            const buffer = await file.arrayBuffer();
+            const sizeMB = (buffer.byteLength / 1024 / 1024).toFixed(2);
+            appendLog(`ArrayBuffer OK for ${modelId} - size: ${sizeMB}MB`);
+            log(`  → Loading ${modelId} into fragments (${sizeMB}MB)...`);
+
+            appendLog(`Loading ${modelId} into fragments.core...`);
+            const result = await fragments.core.load(buffer, { modelId });
+            appendLog(`Fragment load OK for ${modelId}`);
+            return result;
+          }),
+        );
+        appendLog('All models loaded successfully!');
+        log("✅ Step 17: All models loaded successfully");
+      } catch (modelError) {
+        appendLog('Model loading FAILED: ' + modelError.message);
+        log(`❌ Model loading failed: ${modelError.message}`);
+        throw modelError;
+      }
+      
+      // ============================================
+      // STEP 18: Finalize
+      // ============================================
+      log("Step 18/18: Hiding loading overlay and finalizing...");
       document.getElementById('loadingOverlay').classList.add('hidden');
-      Diagnostics.setSuccessState();
+      
+      log("✅✅✅ ALL STEPS COMPLETED SUCCESSFULLY! ✅✅✅");
+      log("🏢 ItemsFinder Demo is ready to use");
 
-    } catch (err) {
-      appendLog('CRITICAL ERROR: ' + err.message);
-      Diagnostics.critical('Init failed: ' + err.message, 'FATAL');
-      if (err.stack) Diagnostics.error('Stack:\n' + err.stack, 'FATAL');
-      Diagnostics.showErrorOverlay('Initialization Error:\n\n' + err.message + '\n\n' + (err.stack || ''));
-      document.querySelector('.loading-text').textContent = 'Error loading. Check diagnostics.';
-      document.querySelector('.loading-spinner').style.borderColor = 'rgba(239, 68, 68, 0.3)';
-      document.querySelector('.loading-spinner').style.borderTopColor = '#ef4444';
+    } catch (error) {
+      // Get the last successful step
+      const lastStep = diagnostics.filter(d => d.includes('✅')).pop() || 'None';
+      
+      // Log the error
+      log(`❌❌❌ INITIALIZATION FAILED: ${error.message || error}`);
+      log(`❗ Error occurred at: ${error.stack?.split('\n')[0] || 'Unknown location'}`);
+      
+      // Show fatal error overlay
+      showFatalError(error, lastStep);
+      
+      // Also log to console
+      appendLog('Full diagnostics: ' + diagnostics.join('; '));
+      appendLog('Error stack: ' + (error.stack || 'No stack available'));
     }
   </script>
+<div id='debugLog' style='position:fixed;bottom:0;left:0;width:100%;height:30vh;background:black;color:lime;font-family:monospace;font-size:12px;overflow:auto;z-index:9999;padding:10px;box-sizing:border-box;opacity:0.95;'>
+  Debug starting...
+</div>
 </body>
 </html>
+<!-- Timeout analysis: 2026-02-17T11:00:16-03:00 -->
