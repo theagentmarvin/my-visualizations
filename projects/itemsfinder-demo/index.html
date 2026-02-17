@@ -130,11 +130,90 @@
       font-size: 1rem;
       opacity: 0.8;
     }
+
+    /* Diagnostics Panel */
+    #diagnosticsPanel {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 150;
+      background: rgba(0, 0, 0, 0.85);
+      color: #00ff00;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 12px;
+      max-width: 500px;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+      border: 1px solid #333;
+    }
+
+    #diagnosticsPanel.visible {
+      display: block;
+    }
+
+    #diagnosticsPanel .diag-header {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      color: #3b82f6;
+      border-bottom: 1px solid #333;
+      padding-bottom: 0.25rem;
+    }
+
+    #diagnosticsPanel .diag-entry {
+      margin: 2px 0;
+      white-space: pre-wrap;
+    }
+
+    #diagnosticsPanel .diag-success {
+      color: #00ff00;
+    }
+
+    #diagnosticsPanel .diag-error {
+      color: #ff4444;
+    }
+
+    /* Error Display */
+    .error-display {
+      background: #1a1a1a;
+      color: #ff4444;
+      padding: 20px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+      white-space: pre-wrap;
+      overflow: auto;
+      height: 100%;
+    }
+
+    .error-display h2 {
+      color: #ff6666;
+      margin-bottom: 1rem;
+    }
+
+    .error-display .last-step {
+      color: #ffaa00;
+      margin: 1rem 0;
+    }
+
+    .error-display .full-log {
+      color: #888;
+      margin-top: 1rem;
+      border-top: 1px solid #444;
+      padding-top: 1rem;
+    }
   </style>
 </head>
 <body>
   <div id="container"></div>
   
+  <!-- Diagnostics Panel (toggleable with ?debug=1) -->
+  <div id="diagnosticsPanel">
+    <div class="diag-header">🔧 BIM Diagnostics</div>
+    <div id="diagnosticsContent"></div>
+  </div>
+
   <!-- Loading Overlay -->
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner"></div>
@@ -145,238 +224,341 @@
   <div class="stats-container" id="statsContainer"></div>
 
   <script type="module">
-    import * as THREE from 'three';
-    import * as OBC from '@thatopen/components';
-    import * as BUI from '@thatopen/ui';
-    import * as FRAGS from '@thatopen/fragments';
-    import Stats from 'stats.js';
+    // ============================================
+    // SELF-DIAGNOSTIC ERROR WRAPPER
+    // ============================================
+    
+    const diagnostics = [];
+    const diagContent = document.getElementById('diagnosticsContent');
+    
+    // Check for debug mode via query param
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDebugMode = urlParams.get('debug') === '1';
+    
+    // Show diagnostics panel if debug mode is enabled
+    if (isDebugMode) {
+      document.getElementById('diagnosticsPanel').classList.add('visible');
+    }
+    
+    const log = (msg) => {
+      diagnostics.push(msg);
+      console.log(`[BIM-DIAG] ${msg}`);
+      
+      // Also update diagnostics panel if visible
+      if (isDebugMode && diagContent) {
+        const entry = document.createElement('div');
+        entry.className = 'diag-entry' + (msg.includes('✅') ? ' diag-success' : '');
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        diagContent.appendChild(entry);
+        diagContent.scrollTop = diagContent.scrollHeight;
+      }
+    };
 
-    // Initialize BUI Manager
-    BUI.Manager.init();
-
-    // Get container
     const container = document.getElementById('container');
 
-    // Create components instance
-    const components = new OBC.Components();
+    try {
+      log("1. Importing modules...");
+      const THREE = await import('three');
+      const OBC = await import('@thatopen/components');
+      const BUI = await import('@thatopen/ui');
+      const FRAGS = await import('@thatopen/fragments');
+      const Stats = (await import('stats.js')).default;
+      log("✅ Modules imported successfully");
 
-    // Create world with OrthoPerspectiveCamera
-    const worlds = components.get(OBC.Worlds);
-    const world = worlds.create<
-      OBC.SimpleScene,
-      OBC.OrthoPerspectiveCamera,
-      OBC.SimpleRenderer
-    >();
+      log("2. Initializing BUI Manager...");
+      BUI.Manager.init();
+      log("✅ BUI Manager initialized");
 
-    // Set up world
-    world.scene = new OBC.SimpleScene(components);
-    world.scene.setup();
-    world.scene.three.background = null;
+      log("3. Creating Components instance...");
+      const components = new OBC.Components();
+      log("✅ Components instance created");
 
-    world.renderer = new OBC.SimpleRenderer(components, container);
-    world.camera = new OBC.OrthoPerspectiveCamera(components);
+      log("4. Creating World...");
+      const worlds = components.get(OBC.Worlds);
+      const world = worlds.create<
+        OBC.SimpleScene,
+        OBC.OrthoPerspectiveCamera,
+        OBC.SimpleRenderer
+      >();
+      log("✅ World created");
 
-    // Set camera lookAt: 78,20,-2.2 to 26,-4,25
-    await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
+      log("5. Setting up Scene...");
+      world.scene = new OBC.SimpleScene(components);
+      world.scene.setup();
+      world.scene.three.background = null;
+      log("✅ Scene configured");
 
-    components.init();
+      log("6. Setting up Renderer...");
+      world.renderer = new OBC.SimpleRenderer(components, container);
+      log("✅ Renderer configured");
 
-    // Set up Stats.js (panel 2: FPS/Memory)
-    const stats = new Stats();
-    stats.showPanel(2);
-    document.getElementById('statsContainer').appendChild(stats.dom);
-    stats.dom.style.left = '0px';
-    stats.dom.style.zIndex = 'unset';
-    world.renderer.onBeforeUpdate.add(() => stats.begin());
-    world.renderer.onAfterUpdate.add(() => stats.end());
+      log("7. Setting up Camera...");
+      world.camera = new OBC.OrthoPerspectiveCamera(components);
+      await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
+      log("✅ Camera positioned");
 
-    // Set up FragmentsManager
-    const githubUrl = 'https://thatopen.github.io/engine_fragment/resources/worker.mjs';
-    const fetchedUrl = await fetch(githubUrl);
-    const workerBlob = await fetchedUrl.blob();
-    const workerFile = new File([workerBlob], 'worker.mjs', {
-      type: 'text/javascript',
-    });
-    const workerUrl = URL.createObjectURL(workerFile);
-    const fragments = components.get(OBC.FragmentsManager);
-    fragments.init(workerUrl);
+      log("8. Initializing components...");
+      components.init();
+      log("✅ Components initialized");
 
-    // Update fragments on camera change
-    world.camera.controls.addEventListener('update', () => fragments.core.update());
+      log("9. Setting up Stats.js...");
+      const stats = new Stats();
+      stats.showPanel(2);
+      document.getElementById('statsContainer').appendChild(stats.dom);
+      stats.dom.style.left = '0px';
+      stats.dom.style.zIndex = 'unset';
+      world.renderer.onBeforeUpdate.add(() => stats.begin());
+      world.renderer.onAfterUpdate.add(() => stats.end());
+      log("✅ Stats.js configured");
 
-    world.onCameraChanged.add((camera) => {
-      for (const [, model] of fragments.list) {
-        model.useCamera(camera.three);
-      }
-      fragments.core.update(true);
-    });
+      log("10. Setting up FragmentsManager with Worker...");
+      const githubUrl = 'https://thatopen.github.io/engine_fragment/resources/worker.mjs';
+      log("10a. Fetching worker from: " + githubUrl);
+      const fetchedUrl = await fetch(githubUrl);
+      const workerBlob = await fetchedUrl.blob();
+      const workerFile = new File([workerBlob], 'worker.mjs', {
+        type: 'text/javascript',
+      });
+      const workerUrl = URL.createObjectURL(workerFile);
+      const fragments = components.get(OBC.FragmentsManager);
+      fragments.init(workerUrl);
+      log("✅ FragmentsManager initialized with worker");
 
-    // Auto-add loaded models to scene
-    fragments.list.onItemSet.add(({ value: model }) => {
-      model.useCamera(world.camera.three);
-      world.scene.three.add(model.object);
-      fragments.core.update(true);
-    });
+      log("11. Setting up fragment update handlers...");
+      world.camera.controls.addEventListener('update', () => fragments.core.update());
 
-    // Remove z-fighting
-    fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
-      if (!('isLodMaterial' in material && material.isLodMaterial)) {
-        material.polygonOffset = true;
-        material.polygonOffsetUnits = 1;
-        material.polygonOffsetFactor = Math.random();
-      }
-    });
+      world.onCameraChanged.add((camera) => {
+        for (const [, model] of fragments.list) {
+          model.useCamera(camera.three);
+        }
+        fragments.core.update(true);
+      });
+      log("✅ Fragment update handlers attached");
 
-    // Set up ItemsFinder
-    const finder = components.get(OBC.ItemsFinder);
+      log("12. Setting up auto-add models to scene...");
+      fragments.list.onItemSet.add(({ value: model }) => {
+        model.useCamera(world.camera.three);
+        world.scene.three.add(model.object);
+        fragments.core.update(true);
+      });
+      log("✅ Auto-add models handler attached");
 
-    // Query 1: Walls & Slabs
-    finder.create('Walls & Slabs', [{ categories: [/WALL/, /SLAB/] }]);
+      log("13. Setting up z-fighting fix...");
+      fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
+        if (!('isLodMaterial' in material && material.isLodMaterial)) {
+          material.polygonOffset = true;
+          material.polygonOffsetUnits = 1;
+          material.polygonOffsetFactor = Math.random();
+        }
+      });
+      log("✅ Z-fighting fix applied");
 
-    // Query 2: Masonry Walls
-    finder.create('Masonry Walls', [
-      {
-        categories: [/WALL/],
-        attributes: { queries: [{ name: /Name/, value: /Masonry/ }] },
-      },
-    ]);
+      log("14. Setting up ItemsFinder...");
+      const finder = components.get(OBC.ItemsFinder);
 
-    // Query 3: First Level Columns
-    const entryLevel = {
-      categories: [/BUILDINGSTOREY/],
-      attributes: { queries: [{ name: /Name/, value: /Entry/ }] },
-    };
+      log("14a. Creating query: Walls & Slabs...");
+      finder.create('Walls & Slabs', [{ categories: [/WALL/, /SLAB/] }]);
 
-    finder.create('First Level Columns', [
-      {
-        categories: [/COLUMN/],
-        relation: { name: 'ContainedInStructure', query: entryLevel },
-      },
-    ]);
+      log("14b. Creating query: Masonry Walls...");
+      finder.create('Masonry Walls', [
+        {
+          categories: [/WALL/],
+          attributes: { queries: [{ name: /Name/, value: /Masonry/ }] },
+        },
+      ]);
 
-    // Helper function to get query results
-    const getResult = async (name) => {
-      const finderQuery = finder.list.get(name);
-      if (!finderQuery) return {};
-      const result = await finderQuery.test();
-      return result;
-    };
+      log("14c. Creating query: First Level Columns...");
+      const entryLevel = {
+        categories: [/BUILDINGSTOREY/],
+        attributes: { queries: [{ name: /Name/, value: /Entry/ }] },
+      };
+      finder.create('First Level Columns', [
+        {
+          categories: [/COLUMN/],
+          relation: { name: 'ContainedInStructure', query: entryLevel },
+        },
+      ]);
+      log("✅ ItemsFinder queries created");
 
-    // Create UI Panel
-    type QueriesListTableData = {
-      Name: string;
-      Actions: string;
-    };
-
-    const queriesListTemplate = () => {
-      const onCreated = (e) => {
-        if (!e) return;
-        const table = e;
-
-        table.loadFunction = async () => {
-          const data = [];
-
-          for (const [name] of finder.list) {
-            data.push({
-              data: { Name: name, Actions: '' },
-            });
-          }
-
-          return data;
-        };
-
-        table.loadData(true);
+      log("15. Setting up UI Panel...");
+      const getResult = async (name) => {
+        const finderQuery = finder.list.get(name);
+        if (!finderQuery) return {};
+        const result = await finderQuery.test();
+        return result;
       };
 
-      return BUI.html`
-        <bim-table ${BUI.ref(onCreated)}></bim-table>
-      `;
-    };
+      const queriesListTemplate = () => {
+        const onCreated = (e) => {
+          if (!e) return;
+          const table = e;
 
-    const queriesList = BUI.Component.create(queriesListTemplate);
+          table.loadFunction = async () => {
+            const data = [];
 
-    queriesList.style.maxHeight = '25rem';
-    queriesList.columns = ['Name', { name: 'Actions', width: 'auto' }];
-    queriesList.noIndentation = true;
-    queriesList.headersHidden = true;
-    queriesList.dataTransform = {
-      Actions: (_, rowData) => {
-        const { Name } = rowData;
-        if (!Name) return _;
+            for (const [name] of finder.list) {
+              data.push({
+                data: { Name: name, Actions: '' },
+              });
+            }
 
-        const hider = components.get(OBC.Hider);
-        const onClick = async ({ target }) => {
+            return data;
+          };
+
+          table.loadData(true);
+        };
+
+        return BUI.html`
+          <bim-table ${BUI.ref(onCreated)}></bim-table>
+        `;
+      };
+
+      const queriesList = BUI.Component.create(queriesListTemplate);
+
+      queriesList.style.maxHeight = '25rem';
+      queriesList.columns = ['Name', { name: 'Actions', width: 'auto' }];
+      queriesList.noIndentation = true;
+      queriesList.headersHidden = true;
+      queriesList.dataTransform = {
+        Actions: (_, rowData) => {
+          const { Name } = rowData;
+          if (!Name) return _;
+
+          const hider = components.get(OBC.Hider);
+          const onClick = async ({ target }) => {
+            target.loading = true;
+            const modelIdMap = await getResult(Name);
+            await hider.isolate(modelIdMap);
+            target.loading = false;
+          };
+
+          return BUI.html`<bim-button icon="solar:cursor-bold" @click=${onClick}></bim-button>`;
+        },
+      };
+
+      const panel = BUI.Component.create(() => {
+        const onResetVisibility = async ({ target }) => {
           target.loading = true;
-          const modelIdMap = await getResult(Name);
-          await hider.isolate(modelIdMap);
+          const hider = components.get(OBC.Hider);
+          await hider.set(true);
           target.loading = false;
         };
 
-        return BUI.html`<bim-button icon="solar:cursor-bold" @click=${onClick}></bim-button>`;
-      },
-    };
+        return BUI.html`
+          <bim-panel active label="Items Finder Tutorial" class="options-menu">
+            <bim-panel-section style="min-width: 14rem" label="General">
+              <bim-button label="Reset Visibility" @click=${onResetVisibility}></bim-button>
+            </bim-panel-section>
+            <bim-panel-section label="Queries">
+              ${queriesList}
+            </bim-panel-section>
+          </bim-panel>
+        `;
+      });
 
-    const panel = BUI.Component.create(() => {
-      const onResetVisibility = async ({ target }) => {
-        target.loading = true;
-        const hider = components.get(OBC.Hider);
-        await hider.set(true);
-        target.loading = false;
-      };
+      document.body.appendChild(panel);
+      log("✅ UI Panel created");
 
-      return BUI.html`
-        <bim-panel active label="Items Finder Tutorial" class="options-menu">
-          <bim-panel-section style="min-width: 14rem" label="General">
-            <bim-button label="Reset Visibility" @click=${onResetVisibility}></bim-button>
-          </bim-panel-section>
-          <bim-panel-section label="Queries">
-            ${queriesList}
-          </bim-panel-section>
-        </bim-panel>
-      `;
-    });
+      log("16. Creating phone menu toggler...");
+      const button = BUI.Component.create(() => {
+        return BUI.html`
+          <bim-button class="phone-menu-toggler" icon="solar:settings-bold"
+            @click="${() => {
+              if (panel.classList.contains('options-menu-visible')) {
+                panel.classList.remove('options-menu-visible');
+              } else {
+                panel.classList.add('options-menu-visible');
+              }
+            }}">
+          </bim-button>
+        `;
+      });
 
-    document.body.appendChild(panel);
+      document.body.appendChild(button);
+      log("✅ Phone menu toggler created");
 
-    // Phone menu toggler button
-    const button = BUI.Component.create(() => {
-      return BUI.html`
-        <bim-button class="phone-menu-toggler" icon="solar:settings-bold"
-          @click="${() => {
-            if (panel.classList.contains('options-menu-visible')) {
-              panel.classList.remove('options-menu-visible');
-            } else {
-              panel.classList.add('options-menu-visible');
+      log("17. Loading fragment models...");
+      const fragPaths = [
+        'https://thatopen.github.io/engine_components/resources/frags/school_arq.frag',
+        'https://thatopen.github.io/engine_components/resources/frags/school_str.frag',
+      ];
+
+      // Test forced error mode - add ?forceError=1 to trigger
+      const forceError = urlParams.get('forceError');
+      if (forceError === '1') {
+        log("⚠️ FORCE ERROR MODE ENABLED - Will use invalid URL");
+        fragPaths[0] = 'https://invalid-url-that-will-fail.frag';
+      }
+      if (forceError === 'worker') {
+        log("⚠️ FORCE ERROR MODE ENABLED - Will use invalid worker URL");
+        throw new Error("Forced worker initialization error for testing");
+      }
+
+      try {
+        await Promise.all(
+          fragPaths.map(async (path, index) => {
+            log(`17${String.fromCharCode(97 + index)}. Fetching: ${path.split('/').pop()}...`);
+            const modelId = path.split('/').pop()?.split('.').shift();
+            if (!modelId) {
+              throw new Error(`Could not extract modelId from path: ${path}`);
             }
-          }}">
-        </bim-button>
-      `;
-    });
-
-    document.body.appendChild(button);
-
-    // Load fragment models
-    const fragPaths = [
-      'https://thatopen.github.io/engine_components/resources/frags/school_arq.frag',
-      'https://thatopen.github.io/engine_components/resources/frags/school_str.frag',
-    ];
-
-    try {
-      await Promise.all(
-        fragPaths.map(async (path) => {
-          const modelId = path.split('/').pop()?.split('.').shift();
-          if (!modelId) return null;
-          const file = await fetch(path);
-          const buffer = await file.arrayBuffer();
-          return fragments.core.load(buffer, { modelId });
-        }),
-      );
+            const file = await fetch(path);
+            if (!file.ok) {
+              throw new Error(`HTTP ${file.status}: Failed to fetch ${path}`);
+            }
+            const buffer = await file.arrayBuffer();
+            log(`17${String.fromCharCode(97 + index)}. Loading ${modelId} into fragments...`);
+            return fragments.core.load(buffer, { modelId });
+          }),
+        );
+        log("✅ All models loaded successfully");
+      } catch (modelError) {
+        log(`❌ Model loading failed: ${modelError.message}`);
+        throw modelError;
+      }
       
-      // Hide loading overlay when done
+      log("18. Hiding loading overlay...");
       document.getElementById('loadingOverlay').classList.add('hidden');
+      
+      log("✅✅✅ All steps completed successfully!");
+
     } catch (error) {
-      console.error('Error loading models:', error);
-      document.querySelector('.loading-text').textContent = 'Error loading models. Please refresh.';
+      log(`❌❌❌ INITIALIZATION FAILED: ${error.message || error}`);
+      
+      // Update loading overlay to show error
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      const lastStep = diagnostics[diagnostics.length - 2] || 'None';
+      
+      container.innerHTML = `
+        <div class="error-display">
+          <h2>🏗️ INITIALIZATION FAILED</h2>
+          <div class="last-step">
+            <strong>Last successful step:</strong> ${lastStep}
+          </div>
+          <div>
+            <strong>Error:</strong> ${error.message || error}
+          </div>
+          <div class="full-log">
+            <strong>Full diagnostic log:</strong>
+            ${diagnostics.map(d => `\n  ${d}`).join('')}
+          </div>
+        </div>
+      `;
+      
+      // Hide the loading overlay since we replaced the container content
+      if (loadingOverlay) {
+        loadingOverlay.classList.add('hidden');
+      }
+      
+      // Also show error in diagnostics panel
+      if (isDebugMode && diagContent) {
+        const errorEntry = document.createElement('div');
+        errorEntry.className = 'diag-entry diag-error';
+        errorEntry.textContent = `\n❌ FATAL: ${error.message || error}`;
+        diagContent.appendChild(errorEntry);
+      }
+      
+      console.error('[BIM-DIAG] Full diagnostics:', diagnostics);
     }
   </script>
 </body>
