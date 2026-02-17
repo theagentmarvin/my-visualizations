@@ -137,17 +137,17 @@
     }
   </style>
   
-  <!-- Import Map for ESM modules -->
+  <!-- Import Map for ESM modules - Using jsDelivr instead of unpkg for better CORS support -->
   <script type="importmap">
   {
     "imports": {
-      "@thatopen/components": "https://unpkg.com/@thatopen/components@2.4.4/dist/index.mjs",
-      "@thatopen/ui": "https://unpkg.com/@thatopen/ui@2.4.4/dist/index.js",
-      "@thatopen/fragments": "https://unpkg.com/@thatopen/fragments@2.1.6/dist/index.mjs",
-      "stats.js": "https://unpkg.com/stats.js@0.17.0/build/stats.min.js",
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-      "web-ifc": "https://unpkg.com/web-ifc@0.0.48/web-ifc-api.js"
+      "@thatopen/components": "https://cdn.jsdelivr.net/npm/@thatopen/components@latest/dist/index.mjs",
+      "@thatopen/ui": "https://cdn.jsdelivr.net/npm/@thatopen/ui@latest/dist/index.mjs",
+      "@thatopen/fragments": "https://cdn.jsdelivr.net/npm/@thatopen/fragments@latest/dist/index.mjs",
+      "stats.js": "https://cdn.jsdelivr.net/npm/stats.js@0.17.0/build/stats.min.js",
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "lit": "https://cdn.jsdelivr.net/npm/lit@3.1.0/index.js",
+      "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3.1.0/lit-html.js"
     }
   }
   </script>
@@ -216,14 +216,15 @@
     };
     
     // ============================================
-    // ITEMSFINDER TUTORIAL - EXACT RECREATION
+    // ITEMSFINDER TUTORIAL - CORS-FIXED VERSION
     // ============================================
     
     async function initTutorial() {
       try {
-        appendLog('=== INITIALIZING ITEMSFINDER TUTORIAL ===', 'step');
+        appendLog('=== INITIALIZING ITEMSFINDER TUTORIAL (CORS-FIXED) ===', 'step');
+        appendLog('Using jsDelivr CDN + local worker/assets for iOS Safari compatibility', 'info');
         
-        appendLog('STEP: Importing libraries...', 'step');
+        appendLog('STEP: Importing libraries from jsDelivr...', 'step');
         appendLog('Importing @thatopen/components...', 'info');
         const OBC = await import('@thatopen/components');
         appendLog('@thatopen/components imported successfully', 'success');
@@ -277,13 +278,15 @@
         components.init();
         appendLog('Components initialized', 'success');
         
-        appendLog('STEP: Setting up Fragments...', 'step');
-        const githubUrl = "https://thatopen.github.io/engine_fragment/resources/worker.mjs";
-        appendLog(`Fetching worker from: ${githubUrl}`, 'info');
+        appendLog('STEP: Setting up Fragments with LOCAL worker (CORS fix)...', 'step');
         
-        appendLog('BEFORE: fetch(githubUrl)', 'info');
-        const fetchedUrl = await fetch(githubUrl);
-        appendLog('AFTER: fetch(githubUrl) - converting to blob', 'success');
+        // CORS FIX: Use local worker instead of external URL
+        const localWorkerUrl = "./assets/worker.mjs";
+        appendLog(`Fetching LOCAL worker from: ${localWorkerUrl}`, 'info');
+        
+        appendLog('BEFORE: fetch(localWorkerUrl)', 'info');
+        const fetchedUrl = await fetch(localWorkerUrl);
+        appendLog('AFTER: fetch(localWorkerUrl) - converting to blob', 'success');
         
         appendLog('BEFORE: fetchedUrl.blob()', 'info');
         const workerBlob = await fetchedUrl.blob();
@@ -299,7 +302,7 @@
         const fragments = components.get(OBC.FragmentsManager);
         appendLog('FragmentsManager retrieved', 'success');
         
-        appendLog('Initializing FragmentsManager with worker...', 'info');
+        appendLog('Initializing FragmentsManager with local worker...', 'info');
         fragments.init(workerUrl);
         appendLog('FragmentsManager initialized', 'success');
         
@@ -336,13 +339,15 @@
         });
         appendLog('Materials listener added for z-fighting fix', 'success');
         
-        appendLog('STEP: Loading Fragments Models...', 'step');
+        appendLog('STEP: Loading Fragments Models from LOCAL assets (CORS fix)...', 'step');
+        
+        // CORS FIX: Use local fragment files instead of external URLs
         const fragPaths = [
-          "https://thatopen.github.io/engine_components/resources/frags/school_arq.frag",
-          "https://thatopen.github.io/engine_components/resources/frags/school_str.frag",
+          "./assets/school_arq.frag",
+          "./assets/school_str.frag",
         ];
         
-        appendLog(`Loading ${fragPaths.length} fragment models:`, 'info');
+        appendLog(`Loading ${fragPaths.length} fragment models from LOCAL assets:`, 'info');
         fragPaths.forEach(path => appendLog(`  - ${path}`, 'info'));
         
         appendLog('BEFORE: Promise.all for fragment loading...', 'info');
@@ -537,6 +542,7 @@
         document.getElementById('loading').classList.add('hidden');
         
         appendLog('=== ITEMSFINDER TUTORIAL INITIALIZED SUCCESSFULLY ===', 'success');
+        appendLog('CORS FIX APPLIED: Using local worker + assets, jsDelivr CDN', 'success');
         appendLog('Available queries:', 'info');
         for (const [name] of finder.list) {
           appendLog(`  - ${name}`, 'info');
@@ -549,13 +555,14 @@
           <div style="color: #ff4444; text-align: center;">
             <h2>Error Loading Tutorial</h2>
             <p>${error.message}</p>
+            <p style="font-size: 12px; margin-top: 10px;">Check debug log for details</p>
           </div>
         `;
       }
     }
     
     // Start the tutorial
-    appendLog('Page loaded. Starting initialization...', 'step');
+    appendLog('Page loaded. Starting initialization (CORS-FIXED version)...', 'step');
     initTutorial();
   </script>
 </body>
