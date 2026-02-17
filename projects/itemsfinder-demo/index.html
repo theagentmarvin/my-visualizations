@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>ItemsFinder Tutorial - That Open Engine</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    }
+    
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+    }
+    
+    /* Top 70vh - 3D Container */
+    #container {
+      height: 70vh;
+      width: 100%;
+      position: relative;
+      background: #1a1a1a;
+    }
+    
+    /* Bottom 30vh - Debug Log */
+    #debugLog {
+      height: 30vh;
+      width: 100%;
+      background: #0d0d0d;
+      color: #00ff88;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      padding: 10px;
+      overflow-y: auto;
+      border-top: 2px solid #333;
+    }
+    
+    #debugLog .log-entry {
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    
+    #debugLog .log-entry.info { color: #00ff88; }
+    #debugLog .log-entry.warn { color: #ffaa00; }
+    #debugLog .log-entry.error { color: #ff4444; }
+    #debugLog .log-entry.step { color: #44aaff; }
+    #debugLog .log-entry.success { color: #44ff44; }
+    
+    #debugLog .timestamp {
+      color: #666;
+      margin-right: 8px;
+    }
+    
+    /* Loading overlay */
+    #loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      z-index: 1000;
+    }
+    
+    #loading.hidden {
+      display: none;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #333;
+      border-top: 4px solid #00ff88;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      #container {
+        height: 60vh;
+      }
+      #debugLog {
+        height: 40vh;
+        font-size: 10px;
+      }
+    }
+    
+    /* UI Panel styles from That Open */
+    .options-menu {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 100;
+    }
+    
+    .phone-menu-toggler {
+      position: absolute;
+      bottom: calc(30vh + 10px);
+      right: 10px;
+      z-index: 100;
+      display: none;
+    }
+    
+    @media (max-width: 768px) {
+      .phone-menu-toggler {
+        display: block;
+      }
+      .options-menu {
+        display: none;
+      }
+      .options-menu.options-menu-visible {
+        display: block;
+      }
+    }
+  </style>
+  
+  <!-- Import Map for ESM modules - Using jsDelivr instead of unpkg for better CORS support -->
+  <script type="importmap">
+  {
+    "imports": {
+      "@thatopen/components": "https://cdn.jsdelivr.net/npm/@thatopen/components@latest/dist/index.mjs",
+      "@thatopen/ui": "https://cdn.jsdelivr.net/npm/@thatopen/ui@latest/dist/index.mjs",
+      "@thatopen/fragments": "https://cdn.jsdelivr.net/npm/@thatopen/fragments@2.1.6/dist/index.mjs",
+      "stats.js": "https://cdn.jsdelivr.net/npm/stats.js@0.17.0/build/stats.min.js",
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "lit": "https://cdn.jsdelivr.net/npm/lit@3.1.0/index.js",
+      "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3.1.0/lit-html.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <!-- 3D Container -->
+    <div id="container">
+      <div id="loading">
+        <div class="spinner"></div>
+        <div>Loading ItemsFinder Tutorial...</div>
+      </div>
+    </div>
+    
+    <!-- Debug Log -->
+    <div id="debugLog"></div>
+  </div>
+
+  <script type="module">
+    // ============================================
+    // VERBOSE LOGGING SYSTEM
+    // ============================================
+    const debugLog = document.getElementById('debugLog');
+    
+    function appendLog(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        fractionalSecondDigits: 3
+      });
+      
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.innerHTML = `<span class="timestamp">[${timestamp}]</span>${message}`;
+      debugLog.appendChild(entry);
+      debugLog.scrollTop = debugLog.scrollHeight;
+      
+      // Also log to console
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+    
+    // Global error listener
+    window.addEventListener('error', (e) => {
+      appendLog(`GLOBAL ERROR: ${e.message} at ${e.filename}:${e.lineno}`, 'error');
+    });
+    
+    window.addEventListener('unhandledrejection', (e) => {
+      appendLog(`UNHANDLED PROMISE REJECTION: ${e.reason}`, 'error');
+    });
+    
+    // Wrap fetch for logging
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const url = args[0];
+      appendLog(`FETCH START: ${url}`, 'step');
+      try {
+        const response = await originalFetch(...args);
+        appendLog(`FETCH SUCCESS: ${url} (${response.status})`, 'success');
+        return response;
+      } catch (error) {
+        appendLog(`FETCH ERROR: ${url} - ${error.message}`, 'error');
+        throw error;
+      }
+    };
+    
+    // ============================================
+    // ITEMSFINDER TUTORIAL - CORS-FIXED VERSION
+    // ============================================
+    
+    async function initTutorial() {
+      try {
+        appendLog('=== INITIALIZING ITEMSFINDER TUTORIAL (ARCHITECT V3) ===', 'step');
+        appendLog('Using jsDelivr CDN + auto-init fragments (no worker fetch/init)', 'info');
+        
+        appendLog('STEP: Importing libraries from jsDelivr...', 'step');
+        appendLog('Importing @thatopen/components...', 'info');
+        const OBC = await import('@thatopen/components');
+        appendLog('@thatopen/components imported successfully', 'success');
+        
+        appendLog('Importing @thatopen/fragments...', 'info');
+        const FRAGS = await import('@thatopen/fragments');
+        appendLog('@thatopen/fragments imported successfully', 'success');
+        
+        appendLog('Importing @thatopen/ui...', 'info');
+        const BUI = await import('@thatopen/ui');
+        appendLog('@thatopen/ui imported successfully', 'success');
+        
+        appendLog('Importing stats.js...', 'info');
+        const Stats = (await import('stats.js')).default;
+        appendLog('stats.js imported successfully', 'success');
+        
+        appendLog('STEP: Setting up Simple Scene...', 'step');
+        appendLog('Creating Components instance...', 'info');
+        const components = new OBC.Components();
+        appendLog('Components instance created', 'success');
+        
+        appendLog('Getting Worlds component...', 'info');
+        const worlds = components.get(OBC.Worlds);
+        appendLog('Worlds component retrieved', 'success');
+        
+        appendLog('Creating world with SimpleScene, OrthoPerspectiveCamera, SimpleRenderer...', 'info');
+        const world = worlds.create();
+        appendLog('World created', 'success');
+        
+        appendLog('Setting up SimpleScene...', 'info');
+        world.scene = new OBC.SimpleScene(components);
+        world.scene.setup();
+        world.scene.three.background = null;
+        appendLog('SimpleScene setup complete', 'success');
+        
+        appendLog('Setting up SimpleRenderer...', 'info');
+        const container = document.getElementById("container");
+        world.renderer = new OBC.SimpleRenderer(components, container);
+        appendLog('SimpleRenderer setup complete', 'success');
+        
+        appendLog('Setting up OrthoPerspectiveCamera...', 'info');
+        world.camera = new OBC.OrthoPerspectiveCamera(components);
+        appendLog('OrthoPerspectiveCamera setup complete', 'success');
+        
+        appendLog('Setting camera position with setLookAt...', 'info');
+        appendLog('BEFORE: await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25)', 'info');
+        await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
+        appendLog('AFTER: Camera position set', 'success');
+        
+        appendLog('Initializing components...', 'info');
+        components.init();
+        appendLog('Components initialized', 'success');
+        
+        appendLog('STEP: Setting up Fragments (Architect v3 - auto-init)...', 'step');
+        
+        appendLog('Getting FragmentsManager...', 'info');
+        const fragments = components.get(OBC.FragmentsManager);
+        appendLog('FragmentsManager retrieved - auto-init on first load', 'success');
+        
+        appendLog('Adding camera controls update listener...', 'info');
+        world.camera.controls.addEventListener("update", () => fragments.core.update());
+        appendLog('Camera controls listener added', 'success');
+        
+        appendLog('Adding onCameraChanged listener...', 'info');
+        world.onCameraChanged.add((camera) => {
+          appendLog('Camera changed event fired', 'info');
+          for (const [, model] of fragments.list) {
+            model.useCamera(camera.three);
+          }
+          fragments.core.update(true);
+        });
+        appendLog('onCameraChanged listener added', 'success');
+        
+        appendLog('Adding fragments.list.onItemSet listener...', 'info');
+        fragments.list.onItemSet.add(({ value: model }) => {
+          appendLog(`Model loaded into fragments list`, 'success');
+          model.useCamera(world.camera.three);
+          world.scene.three.add(model.object);
+          fragments.core.update(true);
+        });
+        appendLog('fragments.list.onItemSet listener added', 'success');
+        
+        appendLog('Adding materials.onItemSet listener (z-fighting fix)...', 'info');
+        fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
+          if (!("isLodMaterial" in material && material.isLodMaterial)) {
+            material.polygonOffset = true;
+            material.polygonOffsetUnits = 1;
+            material.polygonOffsetFactor = Math.random();
+          }
+        });
+        appendLog('Materials listener added for z-fighting fix', 'success');
+        
+        appendLog('STEP: Loading Fragments Models from LOCAL assets (CORS fix)...', 'step');
+        
+        // CORS FIX: Use local fragment files instead of external URLs
+        const fragPaths = [
+          "./assets/school_arq.frag",
+          "./assets/school_str.frag",
+        ];
+        
+        appendLog(`Loading ${fragPaths.length} fragment models from LOCAL assets:`, 'info');
+        fragPaths.forEach(path => appendLog(`  - ${path}`, 'info'));
+        
+        appendLog('BEFORE: Promise.all for fragment loading...', 'info');
+        await Promise.all(
+          fragPaths.map(async (path) => {
+            const modelId = path.split("/").pop()?.split(".").shift();
+            if (!modelId) return null;
+            appendLog(`Loading model: ${modelId}...`, 'info');
+            
+            appendLog(`BEFORE: fetch(${path})`, 'info');
+            const file = await fetch(path);
+            appendLog(`AFTER: fetch(${path}) - got response`, 'success');
+            
+            appendLog(`BEFORE: file.arrayBuffer() for ${modelId}`, 'info');
+            const buffer = await file.arrayBuffer();
+            appendLog(`AFTER: file.arrayBuffer() for ${modelId} - ${(buffer.byteLength / 1024 / 1024).toFixed(2)} MB`, 'success');
+            
+            appendLog(`BEFORE: fragments.core.load() for ${modelId}`, 'info');
+            const result = await fragments.core.load(buffer, { modelId });
+            appendLog(`AFTER: fragments.core.load() for ${modelId} - SUCCESS`, 'success');
+            return result;
+          }),
+        );
+        appendLog('AFTER: All fragments loaded successfully', 'success');
+        
+        appendLog('STEP: Using the Items Finder Component...', 'step');
+        appendLog('Getting ItemsFinder component...', 'info');
+        const finder = components.get(OBC.ItemsFinder);
+        appendLog('ItemsFinder component retrieved', 'success');
+        
+        appendLog('Creating query: "Walls & Slabs" [categories: /WALL/, /SLAB/]...', 'info');
+        finder.create("Walls & Slabs", [{ categories: [/WALL/, /SLAB/] }]);
+        appendLog('Query "Walls & Slabs" created', 'success');
+        
+        appendLog('Creating query: "Masonry Walls" [categories: /WALL/, attributes: { name: /Name/, value: /Masonry/ }]...', 'info');
+        finder.create("Masonry Walls", [
+          {
+            categories: [/WALL/],
+            attributes: { queries: [{ name: /Name/, value: /Masonry/ }] },
+          },
+        ]);
+        appendLog('Query "Masonry Walls" created', 'success');
+        
+        appendLog('Creating entryLevel query for BuildingStorey with Name containing "Entry"...', 'info');
+        const entryLevel = {
+          categories: [/BUILDINGSTOREY/],
+          attributes: { queries: [{ name: /Name/, value: /Entry/ }] },
+        };
+        appendLog('entryLevel query defined', 'success');
+        
+        appendLog('Creating query: "First Level Columns" [categories: /COLUMN/, relation: ContainedInStructure -> entryLevel]...', 'info');
+        finder.create("First Level Columns", [
+          {
+            categories: [/COLUMN/],
+            relation: { name: "ContainedInStructure", query: entryLevel },
+          },
+        ]);
+        appendLog('Query "First Level Columns" created', 'success');
+        
+        appendLog('Defining getResult helper function...', 'info');
+        const getResult = async (name) => {
+          appendLog(`getResult("${name}") called`, 'info');
+          const finderQuery = finder.list.get(name);
+          if (!finderQuery) {
+            appendLog(`Query "${name}" not found!`, 'warn');
+            return {};
+          }
+          appendLog(`BEFORE: finderQuery.test() for "${name}"`, 'info');
+          const result = await finderQuery.test();
+          appendLog(`AFTER: finderQuery.test() for "${name}"`, 'success');
+          return result;
+        };
+        appendLog('getResult helper function defined', 'success');
+        
+        appendLog('STEP: Adding UI...', 'step');
+        appendLog('Initializing BUI.Manager...', 'info');
+        BUI.Manager.init();
+        appendLog('BUI.Manager initialized', 'success');
+        
+        appendLog('Creating queries list table...', 'info');
+        const queriesListTemplate = () => {
+          const onCreated = (e) => {
+            if (!e) return;
+            const table = e;
+            
+            table.loadFunction = async () => {
+              appendLog('Loading queries list data...', 'info');
+              const data = [];
+              
+              for (const [name] of finder.list) {
+                data.push({
+                  data: { Name: name, Actions: "" },
+                });
+              }
+              
+              appendLog(`Loaded ${data.length} queries`, 'success');
+              return data;
+            };
+            
+            table.loadData(true);
+          };
+          
+          return BUI.html`
+            <bim-table ${BUI.ref(onCreated)}></bim-table>
+          `;
+        };
+        
+        const queriesList = BUI.Component.create(queriesListTemplate);
+        
+        queriesList.style.maxHeight = "25rem";
+        queriesList.columns = ["Name", { name: "Actions", width: "auto" }];
+        queriesList.noIndentation = true;
+        queriesList.headersHidden = true;
+        queriesList.dataTransform = {
+          Actions: (_, rowData) => {
+            const { Name } = rowData;
+            if (!Name) return _;
+            
+            const hider = components.get(OBC.Hider);
+            const onClick = async ({ target }) => {
+              appendLog(`Isolate button clicked for "${Name}"`, 'info');
+              target.loading = true;
+              appendLog(`BEFORE: getResult("${Name}")`, 'info');
+              const modelIdMap = await getResult(Name);
+              appendLog(`AFTER: getResult("${Name}") - isolating...`, 'success');
+              await hider.isolate(modelIdMap);
+              appendLog(`Isolation complete for "${Name}"`, 'success');
+              target.loading = false;
+            };
+            
+            return BUI.html`<bim-button icon="solar:cursor-bold" @click=${onClick}></bim-button>`;
+          },
+        };
+        
+        const panel = BUI.Component.create(() => {
+          const onResetVisibility = async ({ target }) => {
+            appendLog('Reset Visibility button clicked', 'info');
+            target.loading = true;
+            const hider = components.get(OBC.Hider);
+            appendLog('BEFORE: hider.set(true)', 'info');
+            await hider.set(true);
+            appendLog('AFTER: hider.set(true) - all visible', 'success');
+            target.loading = false;
+          };
+          
+          return BUI.html`
+            <bim-panel active label="Items Finder Tutorial" class="options-menu">
+              <bim-panel-section style="min-width: 14rem" label="General">
+                <bim-button label="Reset Visibility" @click=${onResetVisibility}></bim-button>
+              </bim-panel-section>
+              <bim-panel-section label="Queries">
+                ${queriesList}
+              </bim-panel-section>
+            </bim-panel>
+          `;
+        });
+        
+        document.body.append(panel);
+        appendLog('Main panel appended to body', 'success');
+        
+        const button = BUI.Component.create(() => {
+          return BUI.html`
+              <bim-button class="phone-menu-toggler" icon="solar:settings-bold"
+                @click="${() => {
+                  appendLog('Phone menu toggle clicked', 'info');
+                  if (panel.classList.contains("options-menu-visible")) {
+                    panel.classList.remove("options-menu-visible");
+                    appendLog('Menu hidden', 'info');
+                  } else {
+                    panel.classList.add("options-menu-visible");
+                    appendLog('Menu visible', 'info');
+                  }
+                }}">
+              </bim-button>
+            `;
+        });
+        
+        document.body.append(button);
+        appendLog('Phone menu toggle button appended to body', 'success');
+        
+        appendLog('STEP: Setting up Stats.js (performance monitoring)...', 'step');
+        const stats = new Stats();
+        stats.showPanel(2);
+        document.body.append(stats.dom);
+        stats.dom.style.left = "0px";
+        stats.dom.style.zIndex = "unset";
+        world.renderer.onBeforeUpdate.add(() => stats.begin());
+        world.renderer.onAfterUpdate.add(() => stats.end());
+        appendLog('Stats.js initialized and added to render loop', 'success');
+        
+        // Hide loading overlay
+        document.getElementById('loading').classList.add('hidden');
+        
+        appendLog('=== ITEMSFINDER TUTORIAL INITIALIZED SUCCESSFULLY ===', 'success');
+        appendLog('ARCHITECT V3: Fragments auto-init via core.load()', 'success');
+        appendLog('Available queries:', 'info');
+        for (const [name] of finder.list) {
+          appendLog(`  - ${name}`, 'info');
+        }
+        
+      } catch (error) {
+        appendLog(`CRITICAL ERROR: ${error.message}`, 'error');
+        appendLog(`Stack: ${error.stack}`, 'error');
+        document.getElementById('loading').innerHTML = `
+          <div style="color: #ff4444; text-align: center;">
+            <h2>Error Loading Tutorial</h2>
+            <p>${error.message}</p>
+            <p style="font-size: 12px; margin-top: 10px;">Check debug log for details</p>
+          </div>
+        `;
+      }
+    }
+    
+    // Start the tutorial
+    appendLog('Page loaded. Starting initialization (Architect v3)...', 'step');
+    initTutorial();
+  </script>
+</body>
+</html>
