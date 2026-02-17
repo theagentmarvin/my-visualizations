@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>ItemsFinder Tutorial - That Open Engine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ItemsFinder Tutorial - ThatOpen Components</title>
   <style>
     * {
       margin: 0;
@@ -13,19 +13,10 @@
     
     html, body {
       height: 100%;
-      width: 100%;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     }
     
-    #app {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      width: 100vw;
-    }
-    
-    /* Top 70vh - 3D Container */
     #container {
       height: 70vh;
       width: 100%;
@@ -33,529 +24,552 @@
       background: #1a1a1a;
     }
     
-    /* Bottom 30vh - Debug Log */
-    #debugLog {
+    #debug-log {
       height: 30vh;
       width: 100%;
       background: #0d0d0d;
-      color: #00ff88;
-      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      color: #00ff41;
+      font-family: 'Courier New', 'Monaco', monospace;
       font-size: 12px;
-      padding: 10px;
       overflow-y: auto;
+      padding: 10px;
       border-top: 2px solid #333;
     }
     
-    #debugLog .log-entry {
-      margin-bottom: 4px;
+    #debug-log::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    #debug-log::-webkit-scrollbar-track {
+      background: #1a1a1a;
+    }
+    
+    #debug-log::-webkit-scrollbar-thumb {
+      background: #444;
+      border-radius: 4px;
+    }
+    
+    .log-entry {
+      margin: 2px 0;
       line-height: 1.4;
     }
     
-    #debugLog .log-entry.info { color: #00ff88; }
-    #debugLog .log-entry.warn { color: #ffaa00; }
-    #debugLog .log-entry.error { color: #ff4444; }
-    #debugLog .log-entry.step { color: #44aaff; }
-    #debugLog .log-entry.success { color: #44ff44; }
-    
-    #debugLog .timestamp {
-      color: #666;
-      margin-right: 8px;
+    .log-timestamp {
+      color: #888;
     }
     
-    /* Loading overlay */
-    #loading {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      z-index: 1000;
-    }
+    .log-info { color: #00ff41; }
+    .log-await { color: #ffd700; }
+    .log-success { color: #00ff41; }
+    .log-error { color: #ff4444; }
     
-    #loading.hidden {
-      display: none;
-    }
-    
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid #333;
-      border-top: 4px solid #00ff88;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 20px;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    /* Mobile responsive */
-    @media (max-width: 768px) {
-      #container {
-        height: 60vh;
-      }
-      #debugLog {
-        height: 40vh;
-        font-size: 10px;
-      }
-    }
-    
-    /* UI Panel styles from That Open */
+    /* UI Panel Styles */
     .options-menu {
       position: absolute;
       top: 10px;
       right: 10px;
       z-index: 100;
+      max-height: calc(70vh - 20px);
+      overflow-y: auto;
     }
     
     .phone-menu-toggler {
-      position: absolute;
-      bottom: calc(30vh + 10px);
-      right: 10px;
-      z-index: 100;
+      position: fixed;
+      bottom: calc(30vh + 20px);
+      right: 20px;
+      z-index: 999;
       display: none;
     }
     
+    /* Stats.js positioning */
+    .stats-panel {
+      position: absolute !important;
+      top: 10px !important;
+      left: 10px !important;
+    }
+    
+    /* Mobile Styles */
     @media (max-width: 768px) {
+      .options-menu {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 85%;
+        max-width: 320px;
+        height: 100%;
+        max-height: 100vh;
+        transition: right 0.3s ease-in-out;
+        background: rgba(30, 30, 30, 0.98);
+        z-index: 1000;
+        padding: 10px;
+        overflow-y: auto;
+      }
+      
+      .options-menu-visible {
+        right: 0;
+      }
+      
       .phone-menu-toggler {
         display: block;
       }
-      .options-menu {
-        display: none;
+      
+      #debug-log {
+        font-size: 10px;
+        padding: 6px;
       }
-      .options-menu.options-menu-visible {
-        display: block;
+      
+      #container {
+        height: 65vh;
       }
+      
+      #debug-log {
+        height: 35vh;
+      }
+      
+      .phone-menu-toggler {
+        bottom: calc(35vh + 15px);
+      }
+    }
+    
+    /* BIM UI Styles */
+    bim-panel {
+      background: rgba(30, 30, 30, 0.95);
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    
+    bim-button {
+      cursor: pointer;
     }
   </style>
   
-  <!-- Import Map for ESM modules -->
+  <!-- Import Map with EXACT versions -->
   <script type="importmap">
   {
     "imports": {
-      "@thatopen/components": "https://unpkg.com/@thatopen/components@2.4.4/dist/index.mjs",
-      "@thatopen/ui": "https://unpkg.com/@thatopen/ui@2.4.4/dist/index.js",
-      "@thatopen/fragments": "https://unpkg.com/@thatopen/fragments@2.1.6/dist/index.mjs",
-      "stats.js": "https://unpkg.com/stats.js@0.17.0/build/stats.min.js",
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+      "stats.js": "https://esm.sh/stats.js@0.17.0",
+      "@thatopen/fragments": "https://cdn.jsdelivr.net/npm/@thatopen/fragments@2.1.6/dist/index.mjs",
+      "@thatopen/components": "https://cdn.jsdelivr.net/npm/@thatopen/components@2.4.4/dist/index.mjs",
+      "@thatopen/ui": "https://cdn.jsdelivr.net/npm/@thatopen/ui@2.4.4/dist/index.js",
+      "web-ifc": "https://cdn.jsdelivr.net/npm/web-ifc@0.0.74/web-ifc-api.js"
     }
   }
   </script>
 </head>
 <body>
-  <div id="app">
-    <!-- 3D Container -->
-    <div id="container">
-      <div id="loading">
-        <div class="spinner"></div>
-        <div>Loading ItemsFinder Tutorial...</div>
-      </div>
-    </div>
-    
-    <!-- Debug Log -->
-    <div id="debugLog"></div>
-  </div>
+  <div id="container"></div>
+  <pre id="debug-log"></pre>
 
   <script type="module">
     // ============================================
     // VERBOSE LOGGING SYSTEM
     // ============================================
-    const debugLog = document.getElementById('debugLog');
+    const logElement = document.getElementById('debug-log');
     
-    function appendLog(message, type = 'info') {
-      const timestamp = new Date().toLocaleTimeString('en-US', { 
-        hour12: false, 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit',
-        fractionalSecondDigits: 3
-      });
+    const appendLog = (message, type = 'info') => {
+      const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+      const prefix = type === 'error' ? '❌' : 
+                     type === 'success' ? '✅' : 
+                     type === 'await' ? '⏳' : 'ℹ️';
+      const className = `log-${type}`;
       
       const entry = document.createElement('div');
-      entry.className = `log-entry ${type}`;
-      entry.innerHTML = `<span class="timestamp">[${timestamp}]</span>${message}`;
-      debugLog.appendChild(entry);
-      debugLog.scrollTop = debugLog.scrollHeight;
+      entry.className = 'log-entry';
+      entry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> <span class="${className}">${prefix} ${message}</span>`;
       
-      // Also log to console
+      logElement.appendChild(entry);
+      logElement.scrollTop = logElement.scrollHeight;
+      
+      // Also log to console for debugging
       console.log(`[${type.toUpperCase()}] ${message}`);
-    }
+    };
     
-    // Global error listener
+    // Global error handlers
     window.addEventListener('error', (e) => {
-      appendLog(`GLOBAL ERROR: ${e.message} at ${e.filename}:${e.lineno}`, 'error');
+      appendLog(`Global error: ${e.message} at ${e.filename}:${e.lineno}`, 'error');
     });
     
     window.addEventListener('unhandledrejection', (e) => {
-      appendLog(`UNHANDLED PROMISE REJECTION: ${e.reason}`, 'error');
+      appendLog(`Unhandled promise: ${e.reason}`, 'error');
     });
     
-    // Wrap fetch for logging
-    const originalFetch = window.fetch;
-    window.fetch = async (...args) => {
-      const url = args[0];
-      appendLog(`FETCH START: ${url}`, 'step');
+    appendLog('========================================', 'info');
+    appendLog('ItemsFinder Demo - Starting initialization', 'info');
+    appendLog('========================================', 'info');
+
+    // ============================================
+    // MAIN APPLICATION
+    // ============================================
+    try {
+      appendLog('Importing libraries...', 'await');
+      
+      // Import modules - FIX: Avoid OBC namespace collision by importing directly
+      const [FRAGS, StatsModule, BUI, ComponentsModule] = await Promise.all([
+        import("@thatopen/fragments"),
+        import("stats.js"),
+        import("@thatopen/ui"),
+        import("@thatopen/components")
+      ]);
+      
+      const Stats = StatsModule.default;
+      const OBC = ComponentsModule;
+      
+      appendLog('✅ All libraries imported successfully', 'success');
+      
+      // ============================================
+      // SETUP COMPONENTS
+      // ============================================
+      appendLog('Initializing ThatOpen Components...', 'await');
+      const components = new OBC.Components();
+      appendLog('✅ Components instance created', 'success');
+      
+      const worlds = components.get(OBC.Worlds);
+      appendLog('✅ Worlds component obtained', 'success');
+      
+      const world = worlds.create();
+      appendLog('✅ World created', 'success');
+      
+      // ============================================
+      // SETUP SCENE
+      // ============================================
+      appendLog('Setting up scene...', 'await');
+      world.scene = new OBC.SimpleScene(components);
+      world.scene.setup();
+      world.scene.three.background = null;
+      appendLog('✅ Scene configured', 'success');
+      
+      // ============================================
+      // SETUP RENDERER
+      // ============================================
+      appendLog('Setting up renderer...', 'await');
+      const container = document.getElementById("container");
+      world.renderer = new OBC.SimpleRenderer(components, container);
+      appendLog('✅ Renderer initialized', 'success');
+      
+      // ============================================
+      // SETUP CAMERA
+      // ============================================
+      appendLog('Setting up camera...', 'await');
+      world.camera = new OBC.OrthoPerspectiveCamera(components);
+      appendLog('✅ Camera created', 'success');
+      
+      // FIX: Ensure controls are fully initialized before setting lookAt
+      appendLog('Configuring camera controls...', 'await');
+      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for controls init
+      await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
+      appendLog('✅ Camera controls initialized', 'success');
+      
+      // ============================================
+      // INITIALIZE COMPONENTS
+      // ============================================
+      appendLog('Initializing components...', 'await');
+      components.init();
+      appendLog('✅ Components initialized', 'success');
+      
+      // ============================================
+      // SETUP FRAGMENTS MANAGER
+      // ============================================
+      appendLog('Setting up FragmentsManager...', 'await');
+      const fragments = components.get(OBC.FragmentsManager);
+      appendLog('✅ FragmentsManager obtained', 'success');
+      
+      // ============================================
+      // FETCH WORKER (with fallback)
+      // ============================================
+      appendLog('Fetching worker.mjs from GitHub...', 'await');
+      let workerUrl;
       try {
-        const response = await originalFetch(...args);
-        appendLog(`FETCH SUCCESS: ${url} (${response.status})`, 'success');
-        return response;
-      } catch (error) {
-        appendLog(`FETCH ERROR: ${url} - ${error.message}`, 'error');
-        throw error;
+        const workerResponse = await fetch('https://thatopen.github.io/engine_fragment/resources/worker.mjs');
+        if (!workerResponse.ok) throw new Error(`Worker fetch failed: ${workerResponse.status}`);
+        
+        const workerBlob = await workerResponse.blob();
+        const workerFile = new File([workerBlob], "worker.mjs", { type: "text/javascript" });
+        workerUrl = URL.createObjectURL(workerFile);
+        
+        // Store for potential offline use
+        const workerText = await workerBlob.text();
+        localStorage.setItem('thatopen-worker', workerText);
+        
+        appendLog('✅ Worker loaded and cached', 'success');
+      } catch (workerError) {
+        appendLog(`Worker fetch error: ${workerError.message}`, 'error');
+        // Try localStorage fallback
+        const cachedWorker = localStorage.getItem('thatopen-worker');
+        if (cachedWorker) {
+          const workerBlob = new Blob([cachedWorker], { type: "text/javascript" });
+          workerUrl = URL.createObjectURL(workerBlob);
+          appendLog('✅ Using cached worker from localStorage', 'success');
+        } else {
+          throw new Error('Worker unavailable - no cached version found');
+        }
       }
-    };
-    
-    // ============================================
-    // ITEMSFINDER TUTORIAL - EXACT RECREATION
-    // ============================================
-    
-    async function initTutorial() {
-      try {
-        appendLog('=== INITIALIZING ITEMSFINDER TUTORIAL ===', 'step');
-        
-        appendLog('STEP: Importing libraries...', 'step');
-        appendLog('Importing @thatopen/components...', 'info');
-        const OBC = await import('@thatopen/components');
-        appendLog('@thatopen/components imported successfully', 'success');
-        
-        appendLog('Importing @thatopen/fragments...', 'info');
-        const FRAGS = await import('@thatopen/fragments');
-        appendLog('@thatopen/fragments imported successfully', 'success');
-        
-        appendLog('Importing @thatopen/ui...', 'info');
-        const BUI = await import('@thatopen/ui');
-        appendLog('@thatopen/ui imported successfully', 'success');
-        
-        appendLog('Importing stats.js...', 'info');
-        const Stats = (await import('stats.js')).default;
-        appendLog('stats.js imported successfully', 'success');
-        
-        appendLog('STEP: Setting up Simple Scene...', 'step');
-        appendLog('Creating Components instance...', 'info');
-        const components = new OBC.Components();
-        appendLog('Components instance created', 'success');
-        
-        appendLog('Getting Worlds component...', 'info');
-        const worlds = components.get(OBC.Worlds);
-        appendLog('Worlds component retrieved', 'success');
-        
-        appendLog('Creating world with SimpleScene, OrthoPerspectiveCamera, SimpleRenderer...', 'info');
-        const world = worlds.create();
-        appendLog('World created', 'success');
-        
-        appendLog('Setting up SimpleScene...', 'info');
-        world.scene = new OBC.SimpleScene(components);
-        world.scene.setup();
-        world.scene.three.background = null;
-        appendLog('SimpleScene setup complete', 'success');
-        
-        appendLog('Setting up SimpleRenderer...', 'info');
-        const container = document.getElementById("container");
-        world.renderer = new OBC.SimpleRenderer(components, container);
-        appendLog('SimpleRenderer setup complete', 'success');
-        
-        appendLog('Setting up OrthoPerspectiveCamera...', 'info');
-        world.camera = new OBC.OrthoPerspectiveCamera(components);
-        appendLog('OrthoPerspectiveCamera setup complete', 'success');
-        
-        appendLog('Setting camera position with setLookAt...', 'info');
-        appendLog('BEFORE: await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25)', 'info');
-        await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
-        appendLog('AFTER: Camera position set', 'success');
-        
-        appendLog('Initializing components...', 'info');
-        components.init();
-        appendLog('Components initialized', 'success');
-        
-        appendLog('STEP: Setting up Fragments...', 'step');
-        const githubUrl = "https://thatopen.github.io/engine_fragment/resources/worker.mjs";
-        appendLog(`Fetching worker from: ${githubUrl}`, 'info');
-        
-        appendLog('BEFORE: fetch(githubUrl)', 'info');
-        const fetchedUrl = await fetch(githubUrl);
-        appendLog('AFTER: fetch(githubUrl) - converting to blob', 'success');
-        
-        appendLog('BEFORE: fetchedUrl.blob()', 'info');
-        const workerBlob = await fetchedUrl.blob();
-        appendLog('AFTER: fetchedUrl.blob()', 'success');
-        
-        const workerFile = new File([workerBlob], "worker.mjs", {
-          type: "text/javascript",
-        });
-        const workerUrl = URL.createObjectURL(workerFile);
-        appendLog(`Worker URL created: ${workerUrl.substring(0, 50)}...`, 'success');
-        
-        appendLog('Getting FragmentsManager...', 'info');
-        const fragments = components.get(OBC.FragmentsManager);
-        appendLog('FragmentsManager retrieved', 'success');
-        
-        appendLog('Initializing FragmentsManager with worker...', 'info');
-        fragments.init(workerUrl);
-        appendLog('FragmentsManager initialized', 'success');
-        
-        appendLog('Adding camera controls update listener...', 'info');
-        world.camera.controls.addEventListener("update", () => fragments.core.update());
-        appendLog('Camera controls listener added', 'success');
-        
-        appendLog('Adding onCameraChanged listener...', 'info');
-        world.onCameraChanged.add((camera) => {
-          appendLog('Camera changed event fired', 'info');
-          for (const [, model] of fragments.list) {
-            model.useCamera(camera.three);
-          }
-          fragments.core.update(true);
-        });
-        appendLog('onCameraChanged listener added', 'success');
-        
-        appendLog('Adding fragments.list.onItemSet listener...', 'info');
-        fragments.list.onItemSet.add(({ value: model }) => {
-          appendLog(`Model loaded into fragments list`, 'success');
-          model.useCamera(world.camera.three);
-          world.scene.three.add(model.object);
-          fragments.core.update(true);
-        });
-        appendLog('fragments.list.onItemSet listener added', 'success');
-        
-        appendLog('Adding materials.onItemSet listener (z-fighting fix)...', 'info');
-        fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
-          if (!("isLodMaterial" in material && material.isLodMaterial)) {
-            material.polygonOffset = true;
-            material.polygonOffsetUnits = 1;
-            material.polygonOffsetFactor = Math.random();
-          }
-        });
-        appendLog('Materials listener added for z-fighting fix', 'success');
-        
-        appendLog('STEP: Loading Fragments Models...', 'step');
-        const fragPaths = [
-          "https://thatopen.github.io/engine_components/resources/frags/school_arq.frag",
-          "https://thatopen.github.io/engine_components/resources/frags/school_str.frag",
-        ];
-        
-        appendLog(`Loading ${fragPaths.length} fragment models:`, 'info');
-        fragPaths.forEach(path => appendLog(`  - ${path}`, 'info'));
-        
-        appendLog('BEFORE: Promise.all for fragment loading...', 'info');
-        await Promise.all(
-          fragPaths.map(async (path) => {
-            const modelId = path.split("/").pop()?.split(".").shift();
-            if (!modelId) return null;
-            appendLog(`Loading model: ${modelId}...`, 'info');
-            
-            appendLog(`BEFORE: fetch(${path})`, 'info');
+      
+      // Initialize fragments with worker
+      appendLog('Initializing fragments with worker...', 'await');
+      fragments.init(workerUrl);
+      appendLog('✅ Fragments initialized', 'success');
+      
+      // ============================================
+      // SETUP CONTROLS UPDATE
+      // ============================================
+      appendLog('Setting up controls update handler...', 'await');
+      world.camera.controls.addEventListener("update", () => {
+        fragments.core.update();
+      });
+      appendLog('✅ Controls update handler attached', 'success');
+      
+      // ============================================
+      // SETUP CAMERA CHANGE HANDLER
+      // ============================================
+      world.onCameraChanged.add((camera) => {
+        for (const [, model] of fragments.list) {
+          model.useCamera(camera.three);
+        }
+        fragments.core.update(true);
+      });
+      
+      // ============================================
+      // SETUP FRAGMENT LOADING HANDLER
+      // ============================================
+      fragments.list.onItemSet.add(({ value: model }) => {
+        model.useCamera(world.camera.three);
+        world.scene.three.add(model.object);
+        fragments.core.update(true);
+        appendLog(`Model added to scene: ${model.modelId || 'unknown'}`, 'success');
+      });
+      
+      // ============================================
+      // Z-FIGHTING FIX
+      // ============================================
+      appendLog('Setting up z-fighting fix...', 'await');
+      fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
+        if (!("isLodMaterial" in material && material.isLodMaterial)) {
+          material.polygonOffset = true;
+          material.polygonOffsetUnits = 1;
+          material.polygonOffsetFactor = Math.random();
+        }
+      });
+      appendLog('✅ Z-fighting fix applied', 'success');
+      
+      // ============================================
+      // LOAD FRAGMENT MODELS
+      // ============================================
+      const fragPaths = [
+        "https://thatopen.github.io/engine_components/resources/frags/school_arq.frag",
+        "https://thatopen.github.io/engine_components/resources/frags/school_str.frag",
+      ];
+      
+      appendLog(`Loading ${fragPaths.length} fragment models...`, 'await');
+      
+      await Promise.all(
+        fragPaths.map(async (path) => {
+          const modelId = path.split("/").pop()?.split(".").shift();
+          appendLog(`Fetching ${modelId}.frag...`, 'await');
+          
+          try {
             const file = await fetch(path);
-            appendLog(`AFTER: fetch(${path}) - got response`, 'success');
+            if (!file.ok) throw new Error(`HTTP ${file.status}`);
             
-            appendLog(`BEFORE: file.arrayBuffer() for ${modelId}`, 'info');
             const buffer = await file.arrayBuffer();
-            appendLog(`AFTER: file.arrayBuffer() for ${modelId} - ${(buffer.byteLength / 1024 / 1024).toFixed(2)} MB`, 'success');
+            const sizeMB = (buffer.byteLength / 1024 / 1024).toFixed(2);
+            appendLog(`${modelId}.frag loaded (${sizeMB} MB)`, 'success');
             
-            appendLog(`BEFORE: fragments.core.load() for ${modelId}`, 'info');
-            const result = await fragments.core.load(buffer, { modelId });
-            appendLog(`AFTER: fragments.core.load() for ${modelId} - SUCCESS`, 'success');
-            return result;
-          }),
-        );
-        appendLog('AFTER: All fragments loaded successfully', 'success');
-        
-        appendLog('STEP: Using the Items Finder Component...', 'step');
-        appendLog('Getting ItemsFinder component...', 'info');
-        const finder = components.get(OBC.ItemsFinder);
-        appendLog('ItemsFinder component retrieved', 'success');
-        
-        appendLog('Creating query: "Walls & Slabs" [categories: /WALL/, /SLAB/]...', 'info');
-        finder.create("Walls & Slabs", [{ categories: [/WALL/, /SLAB/] }]);
-        appendLog('Query "Walls & Slabs" created', 'success');
-        
-        appendLog('Creating query: "Masonry Walls" [categories: /WALL/, attributes: { name: /Name/, value: /Masonry/ }]...', 'info');
-        finder.create("Masonry Walls", [
-          {
-            categories: [/WALL/],
-            attributes: { queries: [{ name: /Name/, value: /Masonry/ }] },
-          },
-        ]);
-        appendLog('Query "Masonry Walls" created', 'success');
-        
-        appendLog('Creating entryLevel query for BuildingStorey with Name containing "Entry"...', 'info');
-        const entryLevel = {
-          categories: [/BUILDINGSTOREY/],
-          attributes: { queries: [{ name: /Name/, value: /Entry/ }] },
-        };
-        appendLog('entryLevel query defined', 'success');
-        
-        appendLog('Creating query: "First Level Columns" [categories: /COLUMN/, relation: ContainedInStructure -> entryLevel]...', 'info');
-        finder.create("First Level Columns", [
-          {
-            categories: [/COLUMN/],
-            relation: { name: "ContainedInStructure", query: entryLevel },
-          },
-        ]);
-        appendLog('Query "First Level Columns" created', 'success');
-        
-        appendLog('Defining getResult helper function...', 'info');
-        const getResult = async (name) => {
-          appendLog(`getResult("${name}") called`, 'info');
-          const finderQuery = finder.list.get(name);
-          if (!finderQuery) {
-            appendLog(`Query "${name}" not found!`, 'warn');
-            return {};
+            appendLog(`Processing ${modelId}...`, 'await');
+            await fragments.core.load(buffer, { modelId });
+            appendLog(`✅ ${modelId} added to scene`, 'success');
+          } catch (error) {
+            appendLog(`Error loading ${modelId}: ${error.message}`, 'error');
           }
-          appendLog(`BEFORE: finderQuery.test() for "${name}"`, 'info');
-          const result = await finderQuery.test();
-          appendLog(`AFTER: finderQuery.test() for "${name}"`, 'success');
-          return result;
-        };
-        appendLog('getResult helper function defined', 'success');
-        
-        appendLog('STEP: Adding UI...', 'step');
-        appendLog('Initializing BUI.Manager...', 'info');
-        BUI.Manager.init();
-        appendLog('BUI.Manager initialized', 'success');
-        
-        appendLog('Creating queries list table...', 'info');
-        const queriesListTemplate = () => {
-          const onCreated = (e) => {
-            if (!e) return;
-            const table = e;
-            
-            table.loadFunction = async () => {
-              appendLog('Loading queries list data...', 'info');
-              const data = [];
-              
-              for (const [name] of finder.list) {
-                data.push({
-                  data: { Name: name, Actions: "" },
-                });
-              }
-              
-              appendLog(`Loaded ${data.length} queries`, 'success');
-              return data;
-            };
-            
-            table.loadData(true);
+        })
+      );
+      
+      appendLog('✅ All models loaded', 'success');
+      
+      // ============================================
+      // SETUP ITEMS FINDER
+      // ============================================
+      appendLog('Setting up ItemsFinder...', 'await');
+      const finder = components.get(OBC.ItemsFinder);
+      appendLog('✅ ItemsFinder obtained', 'success');
+      
+      // Query 1: Categories (Walls & Slabs)
+      appendLog('Creating query: Walls & Slabs...', 'await');
+      finder.create("Walls & Slabs", [{ categories: [/WALL/, /SLAB/] }]);
+      appendLog('✅ Query created: Walls & Slabs', 'success');
+      
+      // Query 2: Attributes (Masonry Walls)
+      appendLog('Creating query: Masonry Walls...', 'await');
+      finder.create("Masonry Walls", [
+        {
+          categories: [/WALL/],
+          attributes: { queries: [{ name: /Name/, value: /Masonry/ }] },
+        },
+      ]);
+      appendLog('✅ Query created: Masonry Walls', 'success');
+      
+      // Query 3: Relations (First Level Columns)
+      appendLog('Creating query: First Level Columns...', 'await');
+      const entryLevel = {
+        categories: [/BUILDINGSTOREY/],
+        attributes: { queries: [{ name: /Name/, value: /Entry/ }] },
+      };
+      
+      finder.create("First Level Columns", [
+        {
+          categories: [/COLUMN/],
+          relation: { name: "ContainedInStructure", query: entryLevel },
+        },
+      ]);
+      appendLog('✅ Query created: First Level Columns', 'success');
+      
+      // Helper function for query results
+      const getResult = async (name) => {
+        const finderQuery = finder.list.get(name);
+        if (!finderQuery) return {};
+        const result = await finderQuery.test();
+        return result;
+      };
+      
+      // ============================================
+      // SETUP UI
+      // ============================================
+      appendLog('Initializing UI library...', 'await');
+      BUI.Manager.init();
+      appendLog('✅ UI library initialized', 'success');
+      
+      // Create queries table
+      const queriesListTemplate = () => {
+        const onCreated = (e) => {
+          if (!e) return;
+          const table = e;
+          
+          table.loadFunction = async () => {
+            const data = [];
+            for (const [name] of finder.list) {
+              data.push({
+                data: { Name: name, Actions: "" },
+              });
+            }
+            return data;
           };
           
-          return BUI.html`
-            <bim-table ${BUI.ref(onCreated)}></bim-table>
-          `;
+          table.loadData(true);
         };
         
-        const queriesList = BUI.Component.create(queriesListTemplate);
-        
-        queriesList.style.maxHeight = "25rem";
-        queriesList.columns = ["Name", { name: "Actions", width: "auto" }];
-        queriesList.noIndentation = true;
-        queriesList.headersHidden = true;
-        queriesList.dataTransform = {
-          Actions: (_, rowData) => {
-            const { Name } = rowData;
-            if (!Name) return _;
-            
-            const hider = components.get(OBC.Hider);
-            const onClick = async ({ target }) => {
-              appendLog(`Isolate button clicked for "${Name}"`, 'info');
-              target.loading = true;
-              appendLog(`BEFORE: getResult("${Name}")`, 'info');
-              const modelIdMap = await getResult(Name);
-              appendLog(`AFTER: getResult("${Name}") - isolating...`, 'success');
-              await hider.isolate(modelIdMap);
-              appendLog(`Isolation complete for "${Name}"`, 'success');
-              target.loading = false;
-            };
-            
-            return BUI.html`<bim-button icon="solar:cursor-bold" @click=${onClick}></bim-button>`;
-          },
-        };
-        
-        const panel = BUI.Component.create(() => {
-          const onResetVisibility = async ({ target }) => {
-            appendLog('Reset Visibility button clicked', 'info');
+        return BUI.html`
+          <bim-table ${BUI.ref(onCreated)}></bim-table>
+        `;
+      };
+      
+      const queriesList = BUI.Component.create(queriesListTemplate);
+      queriesList.style.maxHeight = "25rem";
+      queriesList.columns = ["Name", { name: "Actions", width: "auto" }];
+      queriesList.noIndentation = true;
+      queriesList.headersHidden = true;
+      queriesList.dataTransform = {
+        Actions: (_, rowData) => {
+          const { Name } = rowData;
+          if (!Name) return _;
+          
+          const hider = components.get(OBC.Hider);
+          const onClick = async ({ target }) => {
             target.loading = true;
-            const hider = components.get(OBC.Hider);
-            appendLog('BEFORE: hider.set(true)', 'info');
-            await hider.set(true);
-            appendLog('AFTER: hider.set(true) - all visible', 'success');
+            appendLog(`Running query: ${Name}...`, 'await');
+            try {
+              const modelIdMap = await getResult(Name);
+              await hider.isolate(modelIdMap);
+              appendLog(`✅ Query "${Name}" executed - items isolated`, 'success');
+            } catch (error) {
+              appendLog(`Query error: ${error.message}`, 'error');
+            }
             target.loading = false;
           };
           
-          return BUI.html`
-            <bim-panel active label="Items Finder Tutorial" class="options-menu">
-              <bim-panel-section style="min-width: 14rem" label="General">
-                <bim-button label="Reset Visibility" @click=${onResetVisibility}></bim-button>
-              </bim-panel-section>
-              <bim-panel-section label="Queries">
-                ${queriesList}
-              </bim-panel-section>
-            </bim-panel>
-          `;
-        });
+          return BUI.html`<bim-button icon="solar:cursor-bold" @click=${onClick}></bim-button>`;
+        },
+      };
+      
+      // Create main panel
+      const panel = BUI.Component.create(() => {
+        const onResetVisibility = async ({ target }) => {
+          target.loading = true;
+          appendLog('Resetting visibility...', 'await');
+          try {
+            const hider = components.get(OBC.Hider);
+            await hider.set(true);
+            appendLog('✅ Visibility reset - all items visible', 'success');
+          } catch (error) {
+            appendLog(`Reset error: ${error.message}`, 'error');
+          }
+          target.loading = false;
+        };
         
-        document.body.append(panel);
-        appendLog('Main panel appended to body', 'success');
-        
-        const button = BUI.Component.create(() => {
-          return BUI.html`
-              <bim-button class="phone-menu-toggler" icon="solar:settings-bold"
-                @click="${() => {
-                  appendLog('Phone menu toggle clicked', 'info');
-                  if (panel.classList.contains("options-menu-visible")) {
-                    panel.classList.remove("options-menu-visible");
-                    appendLog('Menu hidden', 'info');
-                  } else {
-                    panel.classList.add("options-menu-visible");
-                    appendLog('Menu visible', 'info');
-                  }
-                }}">
-              </bim-button>
-            `;
-        });
-        
-        document.body.append(button);
-        appendLog('Phone menu toggle button appended to body', 'success');
-        
-        appendLog('STEP: Setting up Stats.js (performance monitoring)...', 'step');
-        const stats = new Stats();
-        stats.showPanel(2);
-        document.body.append(stats.dom);
-        stats.dom.style.left = "0px";
-        stats.dom.style.zIndex = "unset";
-        world.renderer.onBeforeUpdate.add(() => stats.begin());
-        world.renderer.onAfterUpdate.add(() => stats.end());
-        appendLog('Stats.js initialized and added to render loop', 'success');
-        
-        // Hide loading overlay
-        document.getElementById('loading').classList.add('hidden');
-        
-        appendLog('=== ITEMSFINDER TUTORIAL INITIALIZED SUCCESSFULLY ===', 'success');
-        appendLog('Available queries:', 'info');
-        for (const [name] of finder.list) {
-          appendLog(`  - ${name}`, 'info');
-        }
-        
-      } catch (error) {
-        appendLog(`CRITICAL ERROR: ${error.message}`, 'error');
-        appendLog(`Stack: ${error.stack}`, 'error');
-        document.getElementById('loading').innerHTML = `
-          <div style="color: #ff4444; text-align: center;">
-            <h2>Error Loading Tutorial</h2>
-            <p>${error.message}</p>
-          </div>
+        return BUI.html`
+          <bim-panel active label="Items Finder Tutorial" class="options-menu">
+            <bim-panel-section style="min-width: 14rem" label="General">
+              <bim-button label="Reset Visibility" @click=${onResetVisibility}></bim-button>
+            </bim-panel-section>
+            <bim-panel-section label="Queries">
+              ${queriesList}
+            </bim-panel-section>
+          </bim-panel>
         `;
-      }
+      });
+      
+      document.body.append(panel);
+      appendLog('✅ Main panel created', 'success');
+      
+      // Mobile menu toggle button
+      const button = BUI.Component.create(() => {
+        return BUI.html`
+          <bim-button class="phone-menu-toggler" icon="solar:settings-bold"
+            @click="${() => {
+              if (panel.classList.contains("options-menu-visible")) {
+                panel.classList.remove("options-menu-visible");
+                appendLog('Menu hidden', 'info');
+              } else {
+                panel.classList.add("options-menu-visible");
+                appendLog('Menu shown', 'info');
+              }
+            }}">
+          </bim-button>
+        `;
+      });
+      
+      document.body.append(button);
+      appendLog('✅ Mobile menu toggle created', 'success');
+      
+      // ============================================
+      // STATS (Performance Monitor)
+      // ============================================
+      appendLog('Setting up performance monitor...', 'await');
+      const stats = new Stats();
+      stats.showPanel(2); // Memory panel
+      stats.dom.className = 'stats-panel';
+      document.body.append(stats.dom);
+      
+      world.renderer.onBeforeUpdate.add(() => stats.begin());
+      world.renderer.onAfterUpdate.add(() => stats.end());
+      appendLog('✅ Performance monitor active', 'success');
+      
+      // ============================================
+      // INITIALIZATION COMPLETE
+      // ============================================
+      appendLog('========================================', 'success');
+      appendLog('🎉 ItemsFinder Demo Ready!', 'success');
+      appendLog('========================================', 'success');
+      appendLog('Queries available:', 'info');
+      appendLog('  • Walls & Slabs - Click to isolate', 'info');
+      appendLog('  • Masonry Walls - Click to isolate', 'info');
+      appendLog('  • First Level Columns - Click to isolate', 'info');
+      appendLog('Use Reset Visibility to show all items', 'info');
+      
+    } catch (error) {
+      appendLog(`FATAL ERROR: ${error.message}`, 'error');
+      console.error('Full error:', error);
     }
-    
-    // Start the tutorial
-    appendLog('Page loaded. Starting initialization...', 'step');
-    initTutorial();
   </script>
 </body>
 </html>
