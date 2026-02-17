@@ -358,55 +358,20 @@
     <div class="loading-spinner"></div>
     <div class="loading-text">Loading BIM models...</div>
   </div>
-
+  
   <!-- Stats container -->
   <div class="stats-container" id="statsContainer"></div>
 
-  <!-- EARLY DEBUG SCRIPT - runs immediately after HTML parsing, before module script -->
-  <script>
-    (function() {
-      const debugDiv = document.getElementById('debugLog');
-      if (debugDiv) {
-        debugDiv.innerHTML = '<div style="color:#4ade80;font-weight:bold;">[' + new Date().toLocaleTimeString() + '] JS1: HTML parsed OK</div>';
-      }
-      console.log('JS1 loaded - HTML parsed OK');
-    })();
-  </script>
-
   <script type="module">
-    // ============================================
-    // EARLY LOGGING SETUP - FIRST LINE OF MODULE
-    // ============================================
-    const debugDiv = document.getElementById('debugLog');
-    const appendLog = (msg) => {
-      if (!debugDiv) {
-        console.log('[EARLY-LOG] ' + msg);
-        return;
-      }
-      const timestamp = new Date().toLocaleTimeString();
-      debugDiv.innerHTML += `<div style="margin:1px 0;"><span style="color:#6b7280;">[${timestamp}]</span> <span style="color:#60a5fa;">JS2:</span> ${msg}</div>`;
-      debugDiv.scrollTop = debugDiv.scrollHeight;
-    };
-
-    // Log immediately on module start
-    appendLog('Module script started');
-
-    // ============================================
-    // GLOBAL ERROR HANDLERS - Catch ALL errors
-    // ============================================
-    window.addEventListener('error', (e) => {
-      appendLog(`<span style="color:#f87171;font-weight:bold;">GLOBAL ERROR: ${e.message} at ${e.filename}:${e.lineno}</span>`);
-      console.error('Global error:', e);
-    });
-    window.addEventListener('unhandledrejection', (e) => {
-      appendLog(`<span style="color:#f87171;font-weight:bold;">UNHANDLED PROMISE: ${e.reason?.message || e.reason || 'Unknown'}</span>`);
-      console.error('Unhandled rejection:', e);
-    });
-    appendLog('Global error handlers registered');
-
     // ============================================
     // DIAGNOSTICS SYSTEM - ALWAYS ACTIVE
     // ============================================
+    const debugDiv = document.getElementById('debugLog');
+    const appendLog = (msg) => {
+      debugDiv.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+      debugDiv.scrollTop = debugDiv.scrollHeight;
+    };
+    // Use appendLog(msg) in all log calls
     
     const diagnostics = [];
     const diagContent = document.getElementById('diagnosticsContent');
@@ -511,52 +476,37 @@
       let THREE, OBC, BUI, FRAGS, Stats;
       
       try {
-        appendLog('Fetching three.js...');
         THREE = await import('three');
-        appendLog('three.js import OK');
         log("  ✓ three.js imported");
       } catch (e) {
-        appendLog('three.js import FAILED: ' + e.message);
         throw new Error(`Failed to import three.js: ${e.message}`);
       }
-
+      
       try {
-        appendLog('Fetching @thatopen/components...');
         OBC = await import('@thatopen/components');
-        appendLog('@thatopen/components import OK');
         log("  ✓ @thatopen/components imported");
       } catch (e) {
-        appendLog('@thatopen/components import FAILED: ' + e.message);
         throw new Error(`Failed to import @thatopen/components: ${e.message}`);
       }
-
+      
       try {
-        appendLog('Fetching @thatopen/ui...');
         BUI = await import('@thatopen/ui');
-        appendLog('@thatopen/ui import OK');
         log("  ✓ @thatopen/ui imported");
       } catch (e) {
-        appendLog('@thatopen/ui import FAILED: ' + e.message);
         throw new Error(`Failed to import @thatopen/ui: ${e.message}`);
       }
-
+      
       try {
-        appendLog('Fetching @thatopen/fragments...');
         FRAGS = await import('@thatopen/fragments');
-        appendLog('@thatopen/fragments import OK');
         log("  ✓ @thatopen/fragments imported");
       } catch (e) {
-        appendLog('@thatopen/fragments import FAILED: ' + e.message);
         throw new Error(`Failed to import @thatopen/fragments: ${e.message}`);
       }
-
+      
       try {
-        appendLog('Fetching stats.js...');
         Stats = (await import('stats.js')).default;
-        appendLog('stats.js import OK');
         log("  ✓ stats.js imported");
       } catch (e) {
-        appendLog('stats.js import FAILED: ' + e.message);
         throw new Error(`Failed to import stats.js: ${e.message}`);
       }
       
@@ -609,9 +559,7 @@
       // ============================================
       log("Step 7/18: Setting up Camera...");
       world.camera = new OBC.OrthoPerspectiveCamera(components);
-      appendLog('Setting camera position...');
       await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
-      appendLog('Camera position set OK');
       log("✅ Step 7: Camera positioned");
 
       // ============================================
@@ -647,28 +595,19 @@
       
       const githubUrl = 'https://thatopen.github.io/engine_fragment/resources/worker.mjs';
       log(`  → Fetching worker from: ${githubUrl}`);
-      appendLog('Fetching worker...');
-
+      
       const fetchedUrl = await fetch(githubUrl);
       if (!fetchedUrl.ok) {
-        appendLog('Worker fetch FAILED: HTTP ' + fetchedUrl.status);
         throw new Error(`Failed to fetch worker: HTTP ${fetchedUrl.status}`);
       }
-      appendLog('Worker fetch OK - status: ' + fetchedUrl.status);
-
-      appendLog('Creating worker blob...');
+      
       const workerBlob = await fetchedUrl.blob();
-      appendLog('Worker blob OK - size: ' + (workerBlob.size / 1024).toFixed(2) + 'KB');
-
       const workerFile = new File([workerBlob], 'worker.mjs', {
         type: 'text/javascript',
       });
       const workerUrl = URL.createObjectURL(workerFile);
       const fragments = components.get(OBC.FragmentsManager);
-
-      appendLog('Initializing FragmentsManager with worker...');
       fragments.init(workerUrl);
-      appendLog('FragmentsManager initialized OK');
       log("✅ Step 10: FragmentsManager initialized with worker");
 
       // ============================================
@@ -851,43 +790,28 @@
       }
 
       try {
-        appendLog('Starting model loading for ' + fragPaths.length + ' models...');
         await Promise.all(
           fragPaths.map(async (path, index) => {
             const modelName = path.split('/').pop();
-            const modelId = modelName?.split('.').shift();
             log(`  → [${index + 1}/${fragPaths.length}] Fetching: ${modelName}...`);
-            appendLog(`Fetching ${modelId}...`);
-
+            
+            const modelId = modelName?.split('.').shift();
             if (!modelId) {
-              appendLog('ERROR: Could not extract modelId from path: ' + path);
               throw new Error(`Could not extract modelId from path: ${path}`);
             }
-
-            appendLog(`Starting fetch for ${modelId}...`);
+            
             const file = await fetch(path);
             if (!file.ok) {
-              appendLog(`${modelId} fetch FAILED: HTTP ${file.status}`);
               throw new Error(`HTTP ${file.status}: Failed to fetch ${path}`);
             }
-            appendLog(`${modelId} fetch OK - status: ${file.status}`);
-
-            appendLog(`Getting ArrayBuffer for ${modelId}...`);
+            
             const buffer = await file.arrayBuffer();
-            const sizeMB = (buffer.byteLength / 1024 / 1024).toFixed(2);
-            appendLog(`ArrayBuffer OK for ${modelId} - size: ${sizeMB}MB`);
-            log(`  → Loading ${modelId} into fragments (${sizeMB}MB)...`);
-
-            appendLog(`Loading ${modelId} into fragments.core...`);
-            const result = await fragments.core.load(buffer, { modelId });
-            appendLog(`Fragment load OK for ${modelId}`);
-            return result;
+            log(`  → Loading ${modelId} into fragments...`);
+            return fragments.core.load(buffer, { modelId });
           }),
         );
-        appendLog('All models loaded successfully!');
         log("✅ Step 17: All models loaded successfully");
       } catch (modelError) {
-        appendLog('Model loading FAILED: ' + modelError.message);
         log(`❌ Model loading failed: ${modelError.message}`);
         throw modelError;
       }
