@@ -147,7 +147,8 @@
       "stats.js": "https://cdn.jsdelivr.net/npm/stats.js@0.17.0/build/stats.min.js",
       "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
       "lit": "https://cdn.jsdelivr.net/npm/lit@3.1.0/index.js",
-      "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3.1.0/lit-html.js"
+      "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3.1.0/lit-html.js",
+      "web-ifc": "./web-ifc-mock.js"
     }
   }
   </script>
@@ -223,6 +224,7 @@
       try {
         appendLog('=== INITIALIZING ITEMSFINDER TUTORIAL (ARCHITECT V3) ===', 'step');
         appendLog('Using jsDelivr CDN + auto-init fragments (no worker fetch/init)', 'info');
+        appendLog('WEB-IFC BYPASS: Using empty mock module (Fragments-only, no IFC)', 'step');
         
         appendLog('STEP: Importing libraries from jsDelivr...', 'step');
         appendLog('Importing @thatopen/components...', 'info');
