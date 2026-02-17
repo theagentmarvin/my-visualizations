@@ -513,7 +513,7 @@
       log("Step 1/18: Importing ES modules...");
       
       // Import each module individually with error tracking
-      let THREE, OBC, BUI, FRAGS, Stats;
+      let THREE, OBC_Components, BUI, FRAGS, Stats;
       
       try {
         appendLog('Fetching three.js...');
@@ -527,7 +527,7 @@
 
       try {
         appendLog('Fetching @thatopen/components...');
-        OBC = await import('@thatopen/components');
+        OBC_Components = await import('@thatopen/components');
         appendLog('@thatopen/components import OK');
         log("  ✓ @thatopen/components imported");
       } catch (e) {
@@ -578,18 +578,18 @@
       // STEP 3: Create Components
       // ============================================
       log("Step 3/18: Creating OBC Components instance...");
-      const components = new OBC.Components();
+      const components = new OBC_Components.Components();
       log("✅ Step 3: Components instance created");
 
       // ============================================
       // STEP 4: Create World
       // ============================================
       log("Step 4/18: Creating World...");
-      const worlds = components.get(OBC.Worlds);
+      const worlds = components.get(OBC_Components.Worlds);
       const world = worlds.create<
-        OBC.SimpleScene,
-        OBC.OrthoPerspectiveCamera,
-        OBC.SimpleRenderer
+        OBC_Components.SimpleScene,
+        OBC_Components.OrthoPerspectiveCamera,
+        OBC_Components.SimpleRenderer
       >();
       log("✅ Step 4: World created");
 
@@ -597,7 +597,7 @@
       // STEP 5: Setup Scene
       // ============================================
       log("Step 5/18: Setting up Scene...");
-      world.scene = new OBC.SimpleScene(components);
+      world.scene = new OBC_Components.SimpleScene(components);
       world.scene.setup();
       world.scene.three.background = null;
       log("✅ Step 5: Scene configured");
@@ -606,14 +606,14 @@
       // STEP 6: Setup Renderer
       // ============================================
       log("Step 6/18: Setting up Renderer...");
-      world.renderer = new OBC.SimpleRenderer(components, container);
+      world.renderer = new OBC_Components.SimpleRenderer(components, container);
       log("✅ Step 6: Renderer configured");
 
       // ============================================
       // STEP 7: Setup Camera
       // ============================================
       log("Step 7/18: Setting up Camera...");
-      world.camera = new OBC.OrthoPerspectiveCamera(components);
+      world.camera = new OBC_Components.OrthoPerspectiveCamera(components);
       appendLog('Setting camera position...');
       await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
       appendLog('Camera position set OK');
@@ -669,7 +669,7 @@
         type: 'text/javascript',
       });
       const workerUrl = URL.createObjectURL(workerFile);
-      const fragments = components.get(OBC.FragmentsManager);
+      const fragments = components.get(OBC_Components.FragmentsManager);
 
       appendLog('Initializing FragmentsManager with worker...');
       fragments.init(workerUrl);
@@ -718,7 +718,7 @@
       // STEP 14: Setup ItemsFinder
       // ============================================
       log("Step 14/18: Setting up ItemsFinder...");
-      const finder = components.get(OBC.ItemsFinder);
+      const finder = components.get(OBC_Components.ItemsFinder);
 
       log("  → Creating query: Walls & Slabs");
       finder.create('Walls & Slabs', [{ categories: [/WALL/, /SLAB/] }]);
@@ -787,7 +787,7 @@
           const { Name } = rowData;
           if (!Name) return _;
 
-          const hider = components.get(OBC.Hider);
+          const hider = components.get(OBC_Components.Hider);
           const onClick = async ({ target }) => {
             target.loading = true;
             const modelIdMap = await getResult(Name);
@@ -802,7 +802,7 @@
       const panel = BUI.Component.create(() => {
         const onResetVisibility = async ({ target }) => {
           target.loading = true;
-          const hider = components.get(OBC.Hider);
+          const hider = components.get(OBC_Components.Hider);
           await hider.set(true);
           target.loading = false;
         };
