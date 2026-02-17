@@ -221,8 +221,8 @@
     
     async function initTutorial() {
       try {
-        appendLog('=== INITIALIZING ITEMSFINDER TUTORIAL (CORS-FIXED) ===', 'step');
-        appendLog('Using jsDelivr CDN + local worker/assets for iOS Safari compatibility', 'info');
+        appendLog('=== INITIALIZING ITEMSFINDER TUTORIAL (ARCHITECT V3) ===', 'step');
+        appendLog('Using jsDelivr CDN + auto-init fragments (no worker fetch/init)', 'info');
         
         appendLog('STEP: Importing libraries from jsDelivr...', 'step');
         appendLog('Importing @thatopen/components...', 'info');
@@ -278,39 +278,11 @@
         components.init();
         appendLog('Components initialized', 'success');
         
-        appendLog('STEP: Setting up Fragments with LOCAL worker (CORS fix)...', 'step');
-        
-        // CORS FIX: Use local worker instead of external URL
-        const localWorkerUrl = "./assets/worker.mjs";
-        appendLog(`Fetching LOCAL worker from: ${localWorkerUrl}`, 'info');
-        
-        appendLog('BEFORE: fetch(localWorkerUrl)', 'info');
-        const fetchedUrl = await fetch(localWorkerUrl);
-        appendLog('AFTER: fetch(localWorkerUrl) - converting to blob', 'success');
-        
-        appendLog('BEFORE: fetchedUrl.blob()', 'info');
-        const workerBlob = await fetchedUrl.blob();
-        appendLog('AFTER: fetchedUrl.blob()', 'success');
-        
-        const workerFile = new File([workerBlob], "worker.mjs", {
-          type: "text/javascript",
-        });
-        const workerUrl = URL.createObjectURL(workerFile);
-        appendLog(`Worker URL created: ${workerUrl.substring(0, 50)}...`, 'success');
+        appendLog('STEP: Setting up Fragments (Architect v3 - auto-init)...', 'step');
         
         appendLog('Getting FragmentsManager...', 'info');
         const fragments = components.get(OBC.FragmentsManager);
-        appendLog('FragmentsManager retrieved', 'success');
-        
-        appendLog('Initializing FragmentsManager with local worker...', 'info');
-        // v2.0 fallback: some versions don't have init, load directly
-        if (fragments.init) {
-          fragments.init(workerUrl);
-          appendLog('FragmentsManager initialized via init()', 'success');
-        } else {
-          appendLog('init() not available (v2.0 mode), using direct load', 'warn');
-          // In v2.0, fragments work without explicit init
-        }
+        appendLog('FragmentsManager retrieved - auto-init on first load', 'success');
         
         appendLog('Adding camera controls update listener...', 'info');
         world.camera.controls.addEventListener("update", () => fragments.core.update());
@@ -548,7 +520,7 @@
         document.getElementById('loading').classList.add('hidden');
         
         appendLog('=== ITEMSFINDER TUTORIAL INITIALIZED SUCCESSFULLY ===', 'success');
-        appendLog('CORS FIX APPLIED: Using local worker + assets, jsDelivr CDN', 'success');
+        appendLog('ARCHITECT V3: Fragments auto-init via core.load()', 'success');
         appendLog('Available queries:', 'info');
         for (const [name] of finder.list) {
           appendLog(`  - ${name}`, 'info');
@@ -568,7 +540,7 @@
     }
     
     // Start the tutorial
-    appendLog('Page loaded. Starting initialization (CORS-FIXED version)...', 'step');
+    appendLog('Page loaded. Starting initialization (Architect v3)...', 'step');
     initTutorial();
   </script>
 </body>
