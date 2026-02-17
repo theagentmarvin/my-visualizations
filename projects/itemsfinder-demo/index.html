@@ -1,928 +1,801 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ItemsFinder Demo - That Open Engine</title>
-  
-  <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
-  
-  <!-- Import Maps for ES Modules - Strict type="module" usage -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-      "@thatopen/components": "https://unpkg.com/@thatopen/components@2.4.4/dist/index.mjs",
-      "@thatopen/fragments": "https://unpkg.com/@thatopen/fragments@2.1.6/dist/index.mjs",
-      "@thatopen/ui": "https://unpkg.com/@thatopen/ui@2.4.4/dist/index.js",
-      "stats.js": "https://unpkg.com/stats.js@0.17.0/build/stats.min.js"
-    }
-  }
-  </script>
-  
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    
-    #container {
-      width: 100%;
-      height: 100%;
-      position: relative;
-    }
-    
-    /* Stats.js positioning */
-    .stats-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 10;
-    }
-    
-    /* Panel styling */
-    bim-panel {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      z-index: 100;
-      max-width: 20rem;
-      max-height: calc(100vh - 2rem);
-      overflow-y: auto;
-    }
-    
-    /* Phone menu toggler button */
-    .phone-menu-toggler {
-      position: absolute;
-      bottom: 1rem;
-      right: 1rem;
-      z-index: 101;
-      display: none;
-    }
-    
-    /* Mobile responsive */
-    @media (max-width: 768px) {
-      bim-panel {
-        position: fixed;
-        top: auto;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        max-width: 100%;
-        max-height: 60vh;
-        border-radius: 1rem 1rem 0 0;
-        transform: translateY(100%);
-        transition: transform 0.3s ease;
-      }
-      
-      bim-panel.options-menu-visible {
-        transform: translateY(0);
-      }
-      
-      .phone-menu-toggler {
-        display: block;
-      }
-      
-      /* Mobile: diagnostics panel adjustments */
-      #diagnosticsPanel {
-        max-width: calc(100vw - 2rem);
-        max-height: 200px;
-        font-size: 10px;
-      }
-    }
-    
-    /* Loading overlay */
-    .loading-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(32, 41, 50, 0.9);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      color: white;
-      transition: opacity 0.5s ease;
-    }
-    
-    .loading-overlay.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    
-    .loading-spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #3b82f6;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 1rem;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .loading-text {
-      font-size: 1rem;
-      opacity: 0.8;
-    }
-
-    /* Diagnostics Panel - ALWAYS VISIBLE */
-    #diagnosticsPanel {
-      position: fixed;
-      bottom: 1rem;
-      left: 1rem;
-      z-index: 150;
-      background: rgba(20, 20, 25, 0.92);
-      backdrop-filter: blur(4px);
-      color: #ffffff;
-      padding: 0;
-      border-radius: 8px;
-      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-      font-size: 11px;
-      max-width: 520px;
-      max-height: 350px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-      display: flex;
-      flex-direction: column;
-      transition: max-height 0.3s ease, opacity 0.3s ease;
-    }
-
-    #diagnosticsPanel.collapsed {
-      max-height: 32px;
-      overflow: hidden;
-    }
-
-    #diagnosticsPanel .diag-header {
-      font-weight: bold;
-      padding: 8px 12px;
-      background: rgba(59, 130, 246, 0.25);
-      color: #60a5fa;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    #diagnosticsPanel .diag-header:hover {
-      background: rgba(59, 130, 246, 0.35);
-    }
-
-    #diagnosticsPanel .diag-toggle {
-      font-size: 10px;
-      color: #888;
-      transition: transform 0.2s ease;
-    }
-
-    #diagnosticsPanel.collapsed .diag-toggle {
-      transform: rotate(-90deg);
-    }
-
-    #diagnosticsContent {
-      padding: 8px 12px;
-      overflow-y: auto;
-      max-height: 310px;
-      line-height: 1.4;
-    }
-
-    #diagnosticsPanel.collapsed #diagnosticsContent {
-      display: none;
-    }
-
-    #diagnosticsPanel .diag-entry {
-      margin: 2px 0;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    #diagnosticsPanel .diag-timestamp {
-      color: #6b7280;
-      font-size: 10px;
-    }
-
-    #diagnosticsPanel .diag-success {
-      color: #4ade80;
-    }
-
-    #diagnosticsPanel .diag-error {
-      color: #f87171;
-    }
-
-    #diagnosticsPanel .diag-warning {
-      color: #fbbf24;
-    }
-
-    #diagnosticsPanel .diag-info {
-      color: #60a5fa;
-    }
-
-    /* Fatal Error Overlay - Full Screen */
-    #fatalErrorOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(80, 20, 20, 0.98);
-      z-index: 10000;
-      display: none;
-      flex-direction: column;
-      padding: 2rem;
-      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    }
-
-    #fatalErrorOverlay.visible {
-      display: flex;
-    }
-
-    #fatalErrorOverlay h1 {
-      color: #fca5a5;
-      margin-bottom: 1rem;
-      font-size: 2rem;
-    }
-
-    #fatalErrorOverlay .error-section {
-      margin-bottom: 1.5rem;
-    }
-
-    #fatalErrorOverlay .error-label {
-      color: #f87171;
-      font-weight: bold;
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    #fatalErrorOverlay .error-message {
-      color: #fff;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 1rem;
-      border-radius: 6px;
-      border-left: 4px solid #ef4444;
-      font-size: 1.1rem;
-    }
-
-    #fatalErrorOverlay .last-step {
-      color: #fdba74;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 1rem;
-      border-radius: 6px;
-      border-left: 4px solid #f97316;
-    }
-
-    #fatalErrorOverlay .diagnostic-log {
-      flex: 1;
-      background: rgba(0, 0, 0, 0.5);
-      color: #d1d5db;
-      padding: 1rem;
-      border-radius: 6px;
-      overflow-y: auto;
-      font-size: 11px;
-      line-height: 1.5;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    #fatalErrorOverlay .diagnostic-log .log-entry {
-      margin: 2px 0;
-    }
-
-    #fatalErrorOverlay .diagnostic-log .log-success {
-      color: #4ade80;
-    }
-
-    #fatalErrorOverlay .diagnostic-log .log-error {
-      color: #f87171;
-    }
-
-    #fatalErrorOverlay .diagnostic-log .log-warning {
-      color: #fbbf24;
-    }
-
-    #fatalErrorOverlay .reload-hint {
-      margin-top: 1rem;
-      color: #9ca3af;
-      font-size: 0.85rem;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ItemsFinder Demo - Split Screen + Max Logs</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        html, body {
+            height: 100%;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            overflow: hidden;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header with progress */
+        #header {
+            height: 50px;
+            background: linear-gradient(90deg, #1f6feb 0%, #238636 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            flex-shrink: 0;
+        }
+        
+        #header h1 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        #progressDisplay {
+            background: rgba(0,0,0,0.3);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #7ee787;
+        }
+        
+        /* Main container - 70vh */
+        #container {
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* Toolbar */
+        #toolbar {
+            padding: 12px 20px;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        #toolbar input[type="search"] {
+            flex: 1;
+            min-width: 200px;
+            max-width: 400px;
+            padding: 8px 14px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            background: #0d1117;
+            color: #c9d1d9;
+            font-size: 14px;
+        }
+        
+        #toolbar input[type="search"]:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+        
+        #toolbar button {
+            padding: 8px 16px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            background: #21262d;
+            color: #c9d1d9;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        #toolbar button:hover {
+            background: #30363d;
+            border-color: #8b949e;
+        }
+        
+        #toolbar button.primary {
+            background: #238636;
+            border-color: #238636;
+            color: #fff;
+        }
+        
+        #toolbar button.primary:hover {
+            background: #2ea043;
+        }
+        
+        /* Content area */
+        #content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        /* Stats bar */
+        #stats {
+            display: flex;
+            gap: 24px;
+            padding: 16px 20px;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #58a6ff;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Items grid */
+        #itemsGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        
+        .item-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .item-card:hover {
+            border-color: #58a6ff;
+            transform: translateY(-2px);
+        }
+        
+        .item-card.highlighted {
+            border-color: #238636;
+            box-shadow: 0 0 0 2px rgba(35, 134, 54, 0.3);
+        }
+        
+        .item-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .item-title {
+            font-weight: 600;
+            color: #e6edf3;
+        }
+        
+        .item-category {
+            font-size: 11px;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .item-description {
+            font-size: 13px;
+            color: #b0b8c0;
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+        
+        .item-meta {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            font-size: 12px;
+        }
+        
+        .item-tag {
+            padding: 2px 8px;
+            background: #21262d;
+            border-radius: 10px;
+            color: #7d8590;
+        }
+        
+        /* Debug log - 30vh */
+        #debugLog {
+            height: 30vh;
+            position: relative;
+            background: #010409;
+            border-top: 2px solid #30363d;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #logHeader {
+            padding: 8px 16px;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #logHeader span {
+            font-size: 12px;
+            font-weight: 600;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        #logActions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        #logActions button {
+            padding: 4px 10px;
+            font-size: 11px;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            background: #21262d;
+            color: #b0b8c0;
+            cursor: pointer;
+        }
+        
+        #logActions button:hover {
+            background: #30363d;
+        }
+        
+        #logContent {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        
+        .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid #161b22;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-time {
+            color: #6e7681;
+            margin-right: 10px;
+        }
+        
+        .log-level-info { color: #58a6ff; }
+        .log-level-warn { color: #d29922; }
+        .log-level-error { color: #f85149; }
+        .log-level-success { color: #3fb950; }
+        .log-level-debug { color: #a371f7; }
+        
+        .log-message {
+            color: #c9d1d9;
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8b949e;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #30363d;
+            border-top-color: #58a6ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-  <div id="container"></div>
-  
-  <!-- Diagnostics Panel - ALWAYS VISIBLE -->
-  <div id="diagnosticsPanel">
-    <div class="diag-header" onclick="toggleDiagnostics()">
-      <span>🔧 BIM Diagnostics</span>
-      <span class="diag-toggle">▼</span>
+    <!-- Header with progress -->
+    <header id="header">
+        <h1>🔍 ItemsFinder Demo</h1>
+        <div id="progressDisplay">Progress: 0%</div>
+    </header>
+    
+    <!-- Main content container (70vh) -->
+    <div id="container">
+        <div id="toolbar">
+            <input type="search" id="searchInput" placeholder="Search items...">
+            <button onclick="app.loadItems()" class="primary">🔄 Load Items</button>
+            <button onclick="app.clearItems()">🗑️ Clear</button>
+            <button onclick="app.simulateSearch()">🔍 Simulate Search</button>
+        </div>
+        
+        <div id="stats">
+            <div class="stat">
+                <span class="stat-value" id="totalItems">0</span>
+                <span class="stat-label">Total Items</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="filteredItems">0</span>
+                <span class="stat-label">Filtered</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="searchTime">0ms</span>
+                <span class="stat-label">Search Time</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="logCount">0</span>
+                <span class="stat-label">Log Entries</span>
+            </div>
+        </div>
+        
+        <div id="content">
+            <div class="empty-state">
+                <div class="empty-state-icon">📦</div>
+                <h3>No items loaded</h3>
+                <p>Click "Load Items" to start the demo</p>
+            </div>
+        </div>
     </div>
-    <div id="diagnosticsContent"></div>
-  </div>
-
-  <!-- Fatal Error Overlay -->
-  <div id="fatalErrorOverlay">
-    <h1>🏗️ INITIALIZATION FAILED</h1>
-    <div class="error-section">
-      <div class="error-label">Error</div>
-      <div class="error-message" id="fatalErrorMessage"></div>
+    
+    <!-- Debug log (30vh) -->
+    <div id="debugLog">
+        <div id="logHeader">
+            <span>📋 Debug Log</span>
+            <div id="logActions">
+                <button onclick="app.clearLogs()">Clear</button>
+                <button onclick="app.exportLogs()">Export</button>
+            </div>
+        </div>
+        <div id="logContent"></div>
     </div>
-    <div class="error-section">
-      <div class="error-label">Last Successful Step</div>
-      <div class="last-step" id="fatalLastStep"></div>
-    </div>
-    <div class="error-section" style="flex: 1; display: flex; flex-direction: column;">
-      <div class="error-label">Diagnostic Log</div>
-      <div class="diagnostic-log" id="fatalDiagnosticLog"></div>
-    </div>
-    <div class="reload-hint">
-      💡 Try reloading the page. If the error persists, check the browser console for more details.
-    </div>
-  </div>
 
-  <!-- Loading Overlay -->
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-spinner"></div>
-    <div class="loading-text">Loading BIM models...</div>
-  </div>
-  
-  <!-- Stats container -->
-  <div class="stats-container" id="statsContainer"></div>
-
-<div id='debugLog' style='position:fixed;bottom:0;left:0;width:100%;height:30vh;background:black;color:lime;font-family:monospace;font-size:12px;overflow:auto;z-index:9999;padding:10px;box-sizing:border-box;opacity:0.95;'>
-  Debug starting...
-</div>
-
-  <!-- EARLY DEBUG SCRIPT - runs immediately after HTML parsing -->
-  <script>
-    (function() {
-      const debugDiv = document.getElementById('debugLog');
-      if (debugDiv) {
-        debugDiv.innerHTML = '<div style="color:#4ade80;font-weight:bold;">[' + new Date().toLocaleTimeString() + '] JS1: HTML parsed OK</div>';
-      }
-      console.log('JS1 loaded - HTML parsed OK');
-    })();
-  </script>
-
-  <script type="module">
-    // ============================================
-    // EARLY LOGGING SETUP - FIRST LINE OF MODULE
-    // ============================================
-    const debugDiv = document.getElementById('debugLog');
-    const appendLog = (msg) => {
-      if (!debugDiv) {
-        console.log('[EARLY-LOG] ' + msg);
-        return;
-      }
-      const timestamp = new Date().toLocaleTimeString();
-      debugDiv.innerHTML += `<div style="margin:1px 0;"><span style="color:#6b7280;">[${timestamp}]</span> <span style="color:#60a5fa;">JS2:</span> ${msg}</div>`;
-      debugDiv.scrollTop = debugDiv.scrollHeight;
-    };
-
-    // Log immediately on module start
-    appendLog('Module script started');
-
-    // ============================================
-    // GLOBAL ERROR HANDLERS - Catch ALL errors
-    // ============================================
-    window.addEventListener('error', (e) => {
-      appendLog(`<span style="color:#f87171;font-weight:bold;">GLOBAL ERROR: ${e.message} at ${e.filename}:${e.lineno}</span>`);
-      console.error('Global error:', e);
-    });
-    window.addEventListener('unhandledrejection', (e) => {
-      appendLog(`<span style="color:#f87171;font-weight:bold;">UNHANDLED PROMISE: ${e.reason?.message || e.reason || 'Unknown'}</span>`);
-      console.error('Unhandled rejection:', e);
-    });
-    appendLog('Global error handlers registered');
-
-    // ============================================
-    // DIAGNOSTICS SYSTEM - ALWAYS ACTIVE
-    // ============================================
-    // Use appendLog(msg) in all log calls
-    
-    const diagnostics = [];
-    const diagContent = document.getElementById('diagnosticsContent');
-    const diagPanel = document.getElementById('diagnosticsPanel');
-    
-    // Check for force error modes via query param
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Toggle diagnostics panel collapse
-    window.toggleDiagnostics = function() {
-      diagPanel.classList.toggle('collapsed');
-    };
-    
-    // Format timestamp
-    const getTimestamp = () => {
-      const now = new Date();
-      return now.toLocaleTimeString('en-US', { 
-        hour12: false, 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit' 
-      }) + '.' + String(now.getMilliseconds()).padStart(3, '0');
-    };
-    
-    // Get entry color class based on message content
-    const getEntryClass = (msg) => {
-      if (msg.includes('✅') || msg.includes('success')) return 'diag-success';
-      if (msg.includes('❌') || msg.includes('❗') || msg.includes('ERROR') || msg.includes('FAILED')) return 'diag-error';
-      if (msg.includes('⚠️') || msg.includes('WARNING') || msg.includes('Force')) return 'diag-warning';
-      if (msg.includes('🔧') || msg.includes('→') || msg.includes('Step')) return 'diag-info';
-      return '';
-    };
-    
-    // Main log function - ALWAYS logs to panel AND console
-    const log = (msg) => {
-      appendLog(msg);
-      const timestamp = getTimestamp();
-      const fullMsg = `[${timestamp}] ${msg}`;
-      diagnostics.push(fullMsg);
-      // console.log replaced by appendLog
-      
-      // Always update diagnostics panel (no longer conditional on debug mode)
-      if (diagContent) {
-        const entry = document.createElement('div');
-        entry.className = 'diag-entry ' + getEntryClass(msg);
-        entry.innerHTML = `<span class="diag-timestamp">${timestamp}</span> ${escapeHtml(msg)}`;
-        diagContent.appendChild(entry);
-        diagContent.scrollTop = diagContent.scrollHeight;
-      }
-    };
-    
-    // Escape HTML for safe display
-    const escapeHtml = (text) => {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    };
-    
-    // Show fatal error overlay
-    const showFatalError = (error, lastStep) => {
-      const overlay = document.getElementById('fatalErrorOverlay');
-      const errorMsg = document.getElementById('fatalErrorMessage');
-      const lastStepEl = document.getElementById('fatalLastStep');
-      const logEl = document.getElementById('fatalDiagnosticLog');
-      
-      errorMsg.textContent = error.message || error;
-      lastStepEl.textContent = lastStep || 'None';
-      
-      // Build diagnostic log HTML
-      logEl.innerHTML = diagnostics.map(d => {
-        const isError = d.includes('❌') || d.includes('ERROR') || d.includes('FAILED');
-        const isSuccess = d.includes('✅') || d.includes('success');
-        const isWarning = d.includes('⚠️') || d.includes('WARNING');
-        let className = 'log-entry';
-        if (isError) className += ' log-error';
-        else if (isSuccess) className += ' log-success';
-        else if (isWarning) className += ' log-warning';
-        return `<div class="${className}">${escapeHtml(d)}</div>`;
-      }).join('');
-      
-      overlay.classList.add('visible');
-      
-      // Also hide loading overlay
-      document.getElementById('loadingOverlay').classList.add('hidden');
-    };
-
-    // Start logging
-    log("🚀 Starting ItemsFinder Demo initialization...");
-    log(`📍 URL: ${window.location.href}`);
-    log(`📐 Screen: ${window.innerWidth}x${window.innerHeight}`);
-    log(`🌐 User Agent: ${navigator.userAgent.split(' ').pop()}`);
-
-    const container = document.getElementById('container');
-
-    try {
-      // ============================================
-      // STEP 1: Import Modules
-      // ============================================
-      log("Step 1/18: Importing ES modules...");
-      
-      // Import each module individually with error tracking
-      let THREE, OBC_Components, BUI, FRAGS, Stats;
-      
-      try {
-        appendLog('Fetching three.js...');
-        THREE = await import('three');
-        appendLog('three.js import OK');
-        log("  ✓ three.js imported");
-      } catch (e) {
-        appendLog('three.js import FAILED: ' + e.message);
-        throw new Error(`Failed to import three.js: ${e.message}`);
-      }
-
-      try {
-        appendLog('Fetching @thatopen/components...');
-        OBC_Components = await import('@thatopen/components');
-        appendLog('@thatopen/components import OK');
-        log("  ✓ @thatopen/components imported");
-      } catch (e) {
-        appendLog('@thatopen/components import FAILED: ' + e.message);
-        throw new Error(`Failed to import @thatopen/components: ${e.message}`);
-      }
-
-      try {
-        appendLog('Fetching @thatopen/ui...');
-        BUI = await import('@thatopen/ui');
-        appendLog('@thatopen/ui import OK');
-        log("  ✓ @thatopen/ui imported");
-      } catch (e) {
-        appendLog('@thatopen/ui import FAILED: ' + e.message);
-        throw new Error(`Failed to import @thatopen/ui: ${e.message}`);
-      }
-
-      try {
-        appendLog('Fetching @thatopen/fragments...');
-        FRAGS = await import('@thatopen/fragments');
-        appendLog('@thatopen/fragments import OK');
-        log("  ✓ @thatopen/fragments imported");
-      } catch (e) {
-        appendLog('@thatopen/fragments import FAILED: ' + e.message);
-        throw new Error(`Failed to import @thatopen/fragments: ${e.message}`);
-      }
-
-      try {
-        appendLog('Fetching stats.js...');
-        Stats = (await import('stats.js')).default;
-        appendLog('stats.js import OK');
-        log("  ✓ stats.js imported");
-      } catch (e) {
-        appendLog('stats.js import FAILED: ' + e.message);
-        throw new Error(`Failed to import stats.js: ${e.message}`);
-      }
-      
-      log("✅ Step 1: All modules imported successfully");
-
-      // ============================================
-      // STEP 2: Initialize BUI Manager
-      // ============================================
-      log("Step 2/18: Initializing BUI Manager...");
-      BUI.Manager.init();
-      log("✅ Step 2: BUI Manager initialized");
-
-      // ============================================
-      // STEP 3: Create Components
-      // ============================================
-      log("Step 3/18: Creating OBC Components instance...");
-      const components = new OBC_Components.Components();
-      log("✅ Step 3: Components instance created");
-
-      // ============================================
-      // STEP 4: Create World
-      // ============================================
-      log("Step 4/18: Creating World...");
-      const worlds = components.get(OBC_Components.Worlds);
-      const world = worlds.create<
-        OBC_Components.SimpleScene,
-        OBC_Components.OrthoPerspectiveCamera,
-        OBC_Components.SimpleRenderer
-      >();
-      log("✅ Step 4: World created");
-
-      // ============================================
-      // STEP 5: Setup Scene
-      // ============================================
-      log("Step 5/18: Setting up Scene...");
-      world.scene = new OBC_Components.SimpleScene(components);
-      world.scene.setup();
-      world.scene.three.background = null;
-      log("✅ Step 5: Scene configured");
-
-      // ============================================
-      // STEP 6: Setup Renderer
-      // ============================================
-      log("Step 6/18: Setting up Renderer...");
-      world.renderer = new OBC_Components.SimpleRenderer(components, container);
-      log("✅ Step 6: Renderer configured");
-
-      // ============================================
-      // STEP 7: Setup Camera
-      // ============================================
-      log("Step 7/18: Setting up Camera...");
-      world.camera = new OBC_Components.OrthoPerspectiveCamera(components);
-      appendLog('Setting camera position...');
-      await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
-      appendLog('Camera position set OK');
-      log("✅ Step 7: Camera positioned");
-
-      // ============================================
-      // STEP 8: Initialize Components
-      // ============================================
-      log("Step 8/18: Initializing all components...");
-      components.init();
-      log("✅ Step 8: Components initialized");
-
-      // ============================================
-      // STEP 9: Setup Stats.js
-      // ============================================
-      log("Step 9/18: Setting up Stats.js...");
-      const stats = new Stats();
-      stats.showPanel(2);
-      document.getElementById('statsContainer').appendChild(stats.dom);
-      stats.dom.style.left = '0px';
-      stats.dom.style.zIndex = 'unset';
-      world.renderer.onBeforeUpdate.add(() => stats.begin());
-      world.renderer.onAfterUpdate.add(() => stats.end());
-      log("✅ Step 9: Stats.js configured");
-
-      // ============================================
-      // STEP 10: Setup FragmentsManager with Worker
-      // ============================================
-      log("Step 10/18: Setting up FragmentsManager with Worker...");
-      
-      // Check for forced worker error
-      if (urlParams.get('forceError') === 'worker') {
-        log("⚠️ FORCE ERROR MODE: Simulating worker initialization failure");
-        throw new Error("Forced worker initialization error for testing");
-      }
-      
-      const githubUrl = 'https://thatopen.github.io/engine_fragment/resources/worker.mjs';
-      log(`  → Fetching worker from: ${githubUrl}`);
-      appendLog('Fetching worker...');
-
-      const fetchedUrl = await fetch(githubUrl);
-      if (!fetchedUrl.ok) {
-        appendLog('Worker fetch FAILED: HTTP ' + fetchedUrl.status);
-        throw new Error(`Failed to fetch worker: HTTP ${fetchedUrl.status}`);
-      }
-      appendLog('Worker fetch OK - status: ' + fetchedUrl.status);
-
-      appendLog('Creating worker blob...');
-      const workerBlob = await fetchedUrl.blob();
-      appendLog('Worker blob OK - size: ' + (workerBlob.size / 1024).toFixed(2) + 'KB');
-
-      const workerFile = new File([workerBlob], 'worker.mjs', {
-        type: 'text/javascript',
-      });
-      const workerUrl = URL.createObjectURL(workerFile);
-      const fragments = components.get(OBC_Components.FragmentsManager);
-
-      appendLog('Initializing FragmentsManager with worker...');
-      fragments.init(workerUrl);
-      appendLog('FragmentsManager initialized OK');
-      log("✅ Step 10: FragmentsManager initialized with worker");
-
-      // ============================================
-      // STEP 11: Fragment Update Handlers
-      // ============================================
-      log("Step 11/18: Setting up fragment update handlers...");
-      world.camera.controls.addEventListener('update', () => fragments.core.update());
-
-      world.onCameraChanged.add((camera) => {
-        for (const [, model] of fragments.list) {
-          model.useCamera(camera.three);
+    <script>
+        // ============================================
+        // ItemsFinder Demo - Split Screen + Max Logs
+        // ============================================
+        
+        class ItemsFinder {
+            constructor() {
+                this.items = [];
+                this.filteredItems = [];
+                this.logEntries = [];
+                this.lineCounter = 0;
+                this.progress = 0;
+                this.isLoading = false;
+                
+                // Category colors for icons
+                this.categoryColors = {
+                    'Technology': '#58a6ff',
+                    'Design': '#a371f7',
+                    'Business': '#3fb950',
+                    'Marketing': '#d29922',
+                    'Development': '#f778ba',
+                    'Analytics': '#56d364'
+                };
+                
+                // Category icons
+                this.categoryIcons = {
+                    'Technology': '💻',
+                    'Design': '🎨',
+                    'Business': '💼',
+                    'Marketing': '📢',
+                    'Development': '⚙️',
+                    'Analytics': '📊'
+                };
+            }
+            
+            // ============================================
+            // LOGGING SYSTEM - Every 5 lines
+            // ============================================
+            
+            appendLog(message, level = 'info') {
+                this.lineCounter++;
+                
+                const timestamp = new Date().toLocaleTimeString('en-US', { 
+                    hour12: false, 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit',
+                    fractionalSecondDigits: 3
+                });
+                
+                const entry = {
+                    timestamp,
+                    level,
+                    message,
+                    line: this.lineCounter
+                };
+                
+                this.logEntries.push(entry);
+                
+                // Sync to DOM
+                this.renderLogEntry(entry);
+                
+                // Update log count stat
+                document.getElementById('logCount').textContent = this.logEntries.length;
+                
+                // Sync progress every 5 lines
+                if (this.lineCounter % 5 === 0) {
+                    this.syncProgress();
+                }
+                
+                // Auto-scroll to bottom
+                const logContent = document.getElementById('logContent');
+                logContent.scrollTop = logContent.scrollHeight;
+                
+                // Also log to console
+                console.log(`[${level.toUpperCase()}] ${message}`);
+            }
+            
+            renderLogEntry(entry) {
+                const logContent = document.getElementById('logContent');
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                div.innerHTML = `
+                    <span class="log-time">${entry.timestamp}</span>
+                    <span class="log-level-${entry.level}">[${entry.level.toUpperCase()}]</span>
+                    <span class="log-message">${this.escapeHtml(entry.message)}</span>
+                `;
+                logContent.appendChild(div);
+                
+                // Keep only last 500 entries for performance
+                if (logContent.children.length > 500) {
+                    logContent.removeChild(logContent.firstChild);
+                }
+            }
+            
+            syncProgress() {
+                // Update progress display in header
+                const progressDisplay = document.getElementById('progressDisplay');
+                progressDisplay.textContent = `Progress: ${this.progress}% | Lines: ${this.lineCounter}`;
+                
+                // Color code based on progress
+                if (this.progress < 30) {
+                    progressDisplay.style.color = '#f85149';
+                } else if (this.progress < 70) {
+                    progressDisplay.style.color = '#d29922';
+                } else {
+                    progressDisplay.style.color = '#7ee787';
+                }
+            }
+            
+            updateProgress(value) {
+                this.progress = Math.min(100, Math.max(0, Math.round(value)));
+                this.syncProgress();
+            }
+            
+            // ============================================
+            // ITEMS MANAGEMENT
+            // ============================================
+            
+            async loadItems() {
+                if (this.isLoading) {
+                    this.appendLog('Load already in progress, please wait', 'warn');
+                    return;
+                }
+                
+                this.isLoading = true;
+                this.items = [];
+                this.lineCounter = 0;
+                
+                this.appendLog('=== Starting Items Load ===', 'info');
+                this.updateProgress(0);
+                
+                const startTime = performance.now();
+                const categories = ['Technology', 'Design', 'Business', 'Marketing', 'Development', 'Analytics'];
+                const totalBatches = 10;
+                const itemsPerBatch = 5;
+                
+                for (let batch = 0; batch < totalBatches; batch++) {
+                    this.appendLog(`Loading batch ${batch + 1}/${totalBatches}...`, 'debug');
+                    
+                    // Simulate network delay
+                    await this.delay(100);
+                    
+                    // Generate batch
+                    const batchItems = [];
+                    for (let i = 0; i < itemsPerBatch; i++) {
+                        const itemNum = batch * itemsPerBatch + i + 1;
+                        const category = categories[Math.floor(Math.random() * categories.length)];
+                        
+                        batchItems.push({
+                            id: `item-${itemNum}`,
+                            title: `Item ${itemNum}: ${this.generateTitle(category)}`,
+                            category: category,
+                            description: this.generateDescription(category),
+                            tags: this.generateTags(category),
+                            createdAt: new Date(Date.now() - Math.random() * 86400000 * 30).toISOString(),
+                            score: Math.floor(Math.random() * 100)
+                        });
+                        
+                        // Log every 5 items
+                        if (itemNum % 5 === 0) {
+                            this.appendLog(`Generated ${itemNum} items so far`, 'info');
+                        }
+                    }
+                    
+                    this.items.push(...batchItems);
+                    
+                    // Update progress
+                    const progressPercent = ((batch + 1) / totalBatches) * 100;
+                    this.updateProgress(progressPercent);
+                    this.appendLog(`Batch ${batch + 1} complete. Total: ${this.items.length} items`, 'success');
+                    
+                    // Update UI progressively
+                    this.renderItems();
+                    this.updateStats();
+                }
+                
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+                
+                this.appendLog(`=== Load Complete ===`, 'success');
+                this.appendLog(`Total items: ${this.items.length}`, 'info');
+                this.appendLog(`Duration: ${duration}ms`, 'info');
+                this.appendLog(`Average: ${(duration / this.items.length).toFixed(2)}ms per item`, 'debug');
+                
+                this.updateProgress(100);
+                this.isLoading = false;
+            }
+            
+            clearItems() {
+                this.items = [];
+                this.filteredItems = [];
+                this.lineCounter = 0;
+                this.updateProgress(0);
+                this.appendLog('All items cleared', 'warn');
+                this.renderItems();
+                this.updateStats();
+                document.getElementById('searchInput').value = '';
+            }
+            
+            renderItems() {
+                const content = document.getElementById('content');
+                const itemsToRender = this.filteredItems.length > 0 ? this.filteredItems : this.items;
+                
+                if (itemsToRender.length === 0) {
+                    content.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📦</div>
+                            <h3>${this.items.length === 0 ? 'No items loaded' : 'No matching items'}</h3>
+                            <p>${this.items.length === 0 ? 'Click "Load Items" to start the demo' : 'Try a different search term'}</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '<div id="itemsGrid">';
+                
+                itemsToRender.forEach((item, index) => {
+                    const icon = this.categoryIcons[item.category] || '📄';
+                    const color = this.categoryColors[item.category] || '#8b949e';
+                    
+                    html += `
+                        <div class="item-card" data-id="${item.id}" onclick="app.selectItem('${item.id}')">
+                            <div class="item-header">
+                                <div class="item-icon" style="background: ${color}20; color: ${color};">${icon}</div>
+                                <div>
+                                    <div class="item-title">${this.escapeHtml(item.title)}</div>
+                                    <div class="item-category">${item.category}</div>
+                                </div>
+                            </div>
+                            <div class="item-description">${this.escapeHtml(item.description)}</div>
+                            <div class="item-meta">
+                                ${item.tags.map(tag => `<span class="item-tag">${this.escapeHtml(tag)}</span>`).join('')}
+                                <span class="item-tag" style="color: #58a6ff;">Score: ${item.score}</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Log every 5 rendered items
+                    if ((index + 1) % 5 === 0) {
+                        this.appendLog(`Rendered ${index + 1} cards`, 'debug');
+                    }
+                });
+                
+                html += '</div>';
+                content.innerHTML = html;
+            }
+            
+            updateStats() {
+                document.getElementById('totalItems').textContent = this.items.length;
+                document.getElementById('filteredItems').textContent = this.filteredItems.length || this.items.length;
+            }
+            
+            // ============================================
+            // SEARCH FUNCTIONALITY
+            // ============================================
+            
+            async simulateSearch() {
+                const searchInput = document.getElementById('searchInput');
+                const terms = ['technology', 'design', 'business', 'marketing', 'analytics', 'development', 'item 5', 'item 25'];
+                const randomTerm = terms[Math.floor(Math.random() * terms.length)];
+                
+                searchInput.value = randomTerm;
+                this.appendLog(`Starting search for: "${randomTerm}"`, 'info');
+                
+                await this.performSearch(randomTerm);
+            }
+            
+            async performSearch(query) {
+                if (!query.trim()) {
+                    this.filteredItems = [];
+                    this.appendLog('Search cleared', 'info');
+                    this.renderItems();
+                    this.updateStats();
+                    return;
+                }
+                
+                const startTime = performance.now();
+                this.appendLog(`Searching through ${this.items.length} items...`, 'debug');
+                
+                const lowerQuery = query.toLowerCase();
+                this.filteredItems = this.items.filter(item => {
+                    return item.title.toLowerCase().includes(lowerQuery) ||
+                           item.description.toLowerCase().includes(lowerQuery) ||
+                           item.category.toLowerCase().includes(lowerQuery) ||
+                           item.tags.some(tag => tag.toLowerCase().includes(lowerQuery));
+                });
+                
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+                
+                this.appendLog(`Search complete: ${this.filteredItems.length} matches`, 'success');
+                this.appendLog(`Search time: ${duration}ms`, 'info');
+                
+                document.getElementById('searchTime').textContent = `${duration}ms`;
+                this.renderItems();
+                this.updateStats();
+            }
+            
+            selectItem(id) {
+                const item = this.items.find(i => i.id === id);
+                if (item) {
+                    this.appendLog(`Selected: ${item.title}`, 'info');
+                    
+                    // Highlight visual feedback
+                    document.querySelectorAll('.item-card').forEach(card => {
+                        card.classList.remove('highlighted');
+                    });
+                    document.querySelector(`[data-id="${id}"]`)?.classList.add('highlighted');
+                }
+            }
+            
+            // ============================================
+            // DATA GENERATORS
+            // ============================================
+            
+            generateTitle(category) {
+                const titles = {
+                    'Technology': ['Cloud Migration', 'API Gateway', 'Microservices', 'Kubernetes Cluster', 'CI/CD Pipeline'],
+                    'Design': ['UI Components', 'Design System', 'Wireframes', 'Prototyping', 'User Research'],
+                    'Business': ['Strategy Plan', 'Market Analysis', 'Revenue Model', 'Growth Hacking', 'Partnership Deal'],
+                    'Marketing': ['Campaign Plan', 'SEO Strategy', 'Content Calendar', 'Social Media', 'Email Automation'],
+                    'Development': ['Code Review', 'Refactoring', 'Bug Fixes', 'Feature Flags', 'Performance Tuning'],
+                    'Analytics': ['Dashboard Setup', 'Data Pipeline', 'Report Generation', 'KPI Tracking', 'A/B Testing']
+                };
+                const list = titles[category] || ['Project'];
+                return list[Math.floor(Math.random() * list.length)];
+            }
+            
+            generateDescription(category) {
+                const descriptions = [
+                    'A comprehensive approach to modern challenges with scalable solutions.',
+                    'Implementing best practices for optimal performance and reliability.',
+                    'Strategic initiative to drive growth and improve user experience.',
+                    'Data-driven methodology for informed decision making.',
+                    'Cross-functional collaboration to achieve business objectives.'
+                ];
+                return descriptions[Math.floor(Math.random() * descriptions.length)];
+            }
+            
+            generateTags(category) {
+                const tags = ['urgent', 'review', 'approved', 'pending', 'archived'];
+                const count = Math.floor(Math.random() * 2) + 1;
+                const selected = [];
+                for (let i = 0; i < count; i++) {
+                    selected.push(tags[Math.floor(Math.random() * tags.length)]);
+                }
+                return [...new Set(selected)];
+            }
+            
+            // ============================================
+            // UTILITIES
+            // ============================================
+            
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            clearLogs() {
+                this.logEntries = [];
+                this.lineCounter = 0;
+                document.getElementById('logContent').innerHTML = '';
+                document.getElementById('logCount').textContent = '0';
+                this.appendLog('Logs cleared', 'warn');
+            }
+            
+            exportLogs() {
+                const logText = this.logEntries.map(e => 
+                    `[${e.timestamp}] [${e.level.toUpperCase()}] ${e.message}`
+                ).join('\n');
+                
+                const blob = new Blob([logText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `itemsfinder-logs-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                this.appendLog(`Exported ${this.logEntries.length} log entries`, 'success');
+            }
         }
-        fragments.core.update(true);
-      });
-      log("✅ Step 11: Fragment update handlers attached");
-
-      // ============================================
-      // STEP 12: Auto-add Models to Scene
-      // ============================================
-      log("Step 12/18: Setting up auto-add models handler...");
-      fragments.list.onItemSet.add(({ value: model }) => {
-        model.useCamera(world.camera.three);
-        world.scene.three.add(model.object);
-        fragments.core.update(true);
-      });
-      log("✅ Step 12: Auto-add models handler attached");
-
-      // ============================================
-      // STEP 13: Z-fighting Fix
-      // ============================================
-      log("Step 13/18: Setting up z-fighting fix...");
-      fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
-        if (!('isLodMaterial' in material && material.isLodMaterial)) {
-          material.polygonOffset = true;
-          material.polygonOffsetUnits = 1;
-          material.polygonOffsetFactor = Math.random();
-        }
-      });
-      log("✅ Step 13: Z-fighting fix applied");
-
-      // ============================================
-      // STEP 14: Setup ItemsFinder
-      // ============================================
-      log("Step 14/18: Setting up ItemsFinder...");
-      const finder = components.get(OBC_Components.ItemsFinder);
-
-      log("  → Creating query: Walls & Slabs");
-      finder.create('Walls & Slabs', [{ categories: [/WALL/, /SLAB/] }]);
-
-      log("  → Creating query: Masonry Walls");
-      finder.create('Masonry Walls', [
-        {
-          categories: [/WALL/],
-          attributes: { queries: [{ name: /Name/, value: /Masonry/ }] },
-        },
-      ]);
-
-      log("  → Creating query: First Level Columns");
-      const entryLevel = {
-        categories: [/BUILDINGSTOREY/],
-        attributes: { queries: [{ name: /Name/, value: /Entry/ }] },
-      };
-      finder.create('First Level Columns', [
-        {
-          categories: [/COLUMN/],
-          relation: { name: 'ContainedInStructure', query: entryLevel },
-        },
-      ]);
-      log("✅ Step 14: ItemsFinder queries created");
-
-      // ============================================
-      // STEP 15: Setup UI Panel
-      // ============================================
-      log("Step 15/18: Setting up UI Panel...");
-      
-      const getResult = async (name) => {
-        const finderQuery = finder.list.get(name);
-        if (!finderQuery) return {};
-        const result = await finderQuery.test();
-        return result;
-      };
-
-      const queriesListTemplate = () => {
-        const onCreated = (e) => {
-          if (!e) return;
-          const table = e;
-
-          table.loadFunction = async () => {
-            const data = [];
-            for (const [name] of finder.list) {
-              data.push({ data: { Name: name, Actions: '' } });
-            }
-            return data;
-          };
-
-          table.loadData(true);
-        };
-
-        return BUI.html`
-          <bim-table ${BUI.ref(onCreated)}></bim-table>
-        `;
-      };
-
-      const queriesList = BUI.Component.create(queriesListTemplate);
-      queriesList.style.maxHeight = '25rem';
-      queriesList.columns = ['Name', { name: 'Actions', width: 'auto' }];
-      queriesList.noIndentation = true;
-      queriesList.headersHidden = true;
-      queriesList.dataTransform = {
-        Actions: (_, rowData) => {
-          const { Name } = rowData;
-          if (!Name) return _;
-
-          const hider = components.get(OBC_Components.Hider);
-          const onClick = async ({ target }) => {
-            target.loading = true;
-            const modelIdMap = await getResult(Name);
-            await hider.isolate(modelIdMap);
-            target.loading = false;
-          };
-
-          return BUI.html`<bim-button icon="solar:cursor-bold" @click=${onClick}></bim-button>`;
-        },
-      };
-
-      const panel = BUI.Component.create(() => {
-        const onResetVisibility = async ({ target }) => {
-          target.loading = true;
-          const hider = components.get(OBC_Components.Hider);
-          await hider.set(true);
-          target.loading = false;
-        };
-
-        return BUI.html`
-          <bim-panel active label="Items Finder Tutorial" class="options-menu">
-            <bim-panel-section style="min-width: 14rem" label="General">
-              <bim-button label="Reset Visibility" @click=${onResetVisibility}></bim-button>
-            </bim-panel-section>
-            <bim-panel-section label="Queries">
-              ${queriesList}
-            </bim-panel-section>
-          </bim-panel>
-        `;
-      });
-
-      document.body.appendChild(panel);
-      log("✅ Step 15: UI Panel created");
-
-      // ============================================
-      // STEP 16: Phone Menu Toggler
-      // ============================================
-      log("Step 16/18: Creating phone menu toggler...");
-      const button = BUI.Component.create(() => {
-        return BUI.html`
-          <bim-button class="phone-menu-toggler" icon="solar:settings-bold"
-            @click="${() => {
-              panel.classList.toggle('options-menu-visible');
-            }}">
-          </bim-button>
-        `;
-      });
-
-      document.body.appendChild(button);
-      log("✅ Step 16: Phone menu toggler created");
-
-      // ============================================
-      // STEP 17: Load Fragment Models
-      // ============================================
-      log("Step 17/18: Loading fragment models...");
-      
-      const fragPaths = [
-        'https://thatopen.github.io/engine_components/resources/frags/school_arq.frag',
-        'https://thatopen.github.io/engine_components/resources/frags/school_str.frag',
-      ];
-
-      // Test forced error mode - add ?forceError=1 to trigger
-      if (urlParams.get('forceError') === '1') {
-        log("⚠️ FORCE ERROR MODE ENABLED - Will use invalid URL");
-        fragPaths[0] = 'https://invalid-url-that-will-fail.frag';
-      }
-
-      try {
-        appendLog('Starting model loading for ' + fragPaths.length + ' models...');
-        await Promise.all(
-          fragPaths.map(async (path, index) => {
-            const modelName = path.split('/').pop();
-            const modelId = modelName?.split('.').shift();
-            log(`  → [${index + 1}/${fragPaths.length}] Fetching: ${modelName}...`);
-            appendLog(`Fetching ${modelId}...`);
-
-            if (!modelId) {
-              appendLog('ERROR: Could not extract modelId from path: ' + path);
-              throw new Error(`Could not extract modelId from path: ${path}`);
-            }
-
-            appendLog(`Starting fetch for ${modelId}...`);
-            const file = await fetch(path);
-            if (!file.ok) {
-              appendLog(`${modelId} fetch FAILED: HTTP ${file.status}`);
-              throw new Error(`HTTP ${file.status}: Failed to fetch ${path}`);
-            }
-            appendLog(`${modelId} fetch OK - status: ${file.status}`);
-
-            appendLog(`Getting ArrayBuffer for ${modelId}...`);
-            const buffer = await file.arrayBuffer();
-            const sizeMB = (buffer.byteLength / 1024 / 1024).toFixed(2);
-            appendLog(`ArrayBuffer OK for ${modelId} - size: ${sizeMB}MB`);
-            log(`  → Loading ${modelId} into fragments (${sizeMB}MB)...`);
-
-            appendLog(`Loading ${modelId} into fragments.core...`);
-            const result = await fragments.core.load(buffer, { modelId });
-            appendLog(`Fragment load OK for ${modelId}`);
-            return result;
-          }),
-        );
-        appendLog('All models loaded successfully!');
-        log("✅ Step 17: All models loaded successfully");
-      } catch (modelError) {
-        appendLog('Model loading FAILED: ' + modelError.message);
-        log(`❌ Model loading failed: ${modelError.message}`);
-        throw modelError;
-      }
-      
-      // ============================================
-      // STEP 18: Finalize
-      // ============================================
-      log("Step 18/18: Hiding loading overlay and finalizing...");
-      document.getElementById('loadingOverlay').classList.add('hidden');
-      
-      log("✅✅✅ ALL STEPS COMPLETED SUCCESSFULLY! ✅✅✅");
-      log("🏢 ItemsFinder Demo is ready to use");
-
-    } catch (error) {
-      // Get the last successful step
-      const lastStep = diagnostics.filter(d => d.includes('✅')).pop() || 'None';
-      
-      // Log the error
-      log(`❌❌❌ INITIALIZATION FAILED: ${error.message || error}`);
-      log(`❗ Error occurred at: ${error.stack?.split('\n')[0] || 'Unknown location'}`);
-      
-      // Show fatal error overlay
-      showFatalError(error, lastStep);
-      
-      // Also log to console
-      appendLog('Full diagnostics: ' + diagnostics.join('; '));
-      appendLog('Error stack: ' + (error.stack || 'No stack available'));
-    }
-  </script>
-
+        
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        
+        const app = new ItemsFinder();
+        
+        // Setup search input listener
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                app.performSearch(e.target.value);
+            }, 300);
+        });
+        
+        // DOMContentLoaded handler
+        document.addEventListener('DOMContentLoaded', () => {
+            app.appendLog('DOM Content Loaded', 'info');
+            app.appendLog('ItemsFinder initialized', 'success');
+            app.appendLog('Ready to load items', 'info');
+            app.updateProgress(0);
+        });
+        
+        // Expose for debugging
+        window.app = app;
+    </script>
 </body>
 </html>
-<!-- Timeout analysis: 2026-02-17T11:00:16-03:00 -->
