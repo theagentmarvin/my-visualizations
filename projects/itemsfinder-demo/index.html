@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ItemsFinder Demo - That Open Engine</title>
+  
+  <!-- Import Maps for ES Modules -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+      "@thatopen/components": "https://unpkg.com/@thatopen/components@2.4.4/dist/index.js",
+      "@thatopen/fragments": "https://unpkg.com/@thatopen/fragments@2.4.4/dist/index.js",
+      "@thatopen/ui": "https://unpkg.com/@thatopen/ui@2.4.4/dist/index.js",
+      "stats.js": "https://unpkg.com/stats.js@0.17.0/build/stats.min.js"
+    }
+  }
+  </script>
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    #container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    
+    /* Stats.js positioning */
+    .stats-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
+    }
+    
+    /* Panel styling */
+    bim-panel {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      max-width: 20rem;
+      max-height: calc(100vh - 2rem);
+      overflow-y: auto;
+    }
+    
+    /* Phone menu toggler button */
+    .phone-menu-toggler {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 101;
+      display: none;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      bim-panel {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-width: 100%;
+        max-height: 60vh;
+        border-radius: 1rem 1rem 0 0;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+      }
+      
+      bim-panel.options-menu-visible {
+        transform: translateY(0);
+      }
+      
+      .phone-menu-toggler {
+        display: block;
+      }
+    }
+    
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(32, 41, 50, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      color: white;
+      transition: opacity 0.5s ease;
+    }
+    
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      font-size: 1rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading BIM models...</div>
+  </div>
+  
+  <!-- Stats container -->
+  <div class="stats-container" id="statsContainer"></div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import * as OBC from '@thatopen/components';
+    import * as BUI from '@thatopen/ui';
+    import * as FRAGS from '@thatopen/fragments';
+    import Stats from 'stats.js';
+
+    // Initialize BUI Manager
+    BUI.Manager.init();
+
+    // Get container
+    const container = document.getElementById('container');
+
+    // Create components instance
+    const components = new OBC.Components();
+
+    // Create world with OrthoPerspectiveCamera
+    const worlds = components.get(OBC.Worlds);
+    const world = worlds.create<
+      OBC.SimpleScene,
+      OBC.OrthoPerspectiveCamera,
+      OBC.SimpleRenderer
+    >();
+
+    // Set up world
+    world.scene = new OBC.SimpleScene(components);
+    world.scene.setup();
+    world.scene.three.background = null;
+
+    world.renderer = new OBC.SimpleRenderer(components, container);
+    world.camera = new OBC.OrthoPerspectiveCamera(components);
+
+    // Set camera lookAt: 78,20,-2.2 to 26,-4,25
+    await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
+
+    components.init();
+
+    // Set up Stats.js (panel 2: FPS/Memory)
+    const stats = new Stats();
+    stats.showPanel(2);
+    document.getElementById('statsContainer').appendChild(stats.dom);
+    stats.dom.style.left = '0px';
+    stats.dom.style.zIndex = 'unset';
+    world.renderer.onBeforeUpdate.add(() => stats.begin());
+    world.renderer.onAfterUpdate.add(() => stats.end());
+
+    // Set up FragmentsManager
+    const githubUrl = 'https://thatopen.github.io/engine_fragment/resources/worker.mjs';
+    const fetchedUrl = await fetch(githubUrl);
+    const workerBlob = await fetchedUrl.blob();
+    const workerFile = new File([workerBlob], 'worker.mjs', {
+      type: 'text/javascript',
+    });
+    const workerUrl = URL.createObjectURL(workerFile);
+    const fragments = components.get(OBC.FragmentsManager);
+    fragments.init(workerUrl);
+
+    // Update fragments on camera change
+    world.camera.controls.addEventListener('update', () => fragments.core.update());
+
+    world.onCameraChanged.add((camera) => {
+      for (const [, model] of fragments.list) {
+        model.useCamera(camera.three);
+      }
+      fragments.core.update(true);
+    });
+
+    // Auto-add loaded models to scene
+    fragments.list.onItemSet.add(({ value: model }) => {
+      model.useCamera(world.camera.three);
+      world.scene.three.add(model.object);
+      fragments.core.update(true);
+    });
+
+    // Remove z-fighting
+    fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
+      if (!('isLodMaterial' in material && material.isLodMaterial)) {
+        material.polygonOffset = true;
+        material.polygonOffsetUnits = 1;
+        material.polygonOffsetFactor = Math.random();
+      }
+    });
+
+    // Set up ItemsFinder
+    const finder = components.get(OBC.ItemsFinder);
+
+    // Query 1: Walls & Slabs
+    finder.create('Walls & Slabs', [{ categories: [/WALL/, /SLAB/] }]);
+
+    // Query 2: Masonry Walls
+    finder.create('Masonry Walls', [
+      {
+        categories: [/WALL/],
+        attributes: { queries: [{ name: /Name/, value: /Masonry/ }] },
+      },
+    ]);
+
+    // Query 3: First Level Columns
+    const entryLevel = {
+      categories: [/BUILDINGSTOREY/],
+      attributes: { queries: [{ name: /Name/, value: /Entry/ }] },
+    };
+
+    finder.create('First Level Columns', [
+      {
+        categories: [/COLUMN/],
+        relation: { name: 'ContainedInStructure', query: entryLevel },
+      },
+    ]);
+
+    // Helper function to get query results
+    const getResult = async (name) => {
+      const finderQuery = finder.list.get(name);
+      if (!finderQuery) return {};
+      const result = await finderQuery.test();
+      return result;
+    };
+
+    // Create UI Panel
+    type QueriesListTableData = {
+      Name: string;
+      Actions: string;
+    };
+
+    const queriesListTemplate = () => {
+      const onCreated = (e) => {
+        if (!e) return;
+        const table = e;
+
+        table.loadFunction = async () => {
+          const data = [];
+
+          for (const [name] of finder.list) {
+            data.push({
+              data: { Name: name, Actions: '' },
+            });
+          }
+
+          return data;
+        };
+
+        table.loadData(true);
+      };
+
+      return BUI.html`
+        <bim-table ${BUI.ref(onCreated)}></bim-table>
+      `;
+    };
+
+    const queriesList = BUI.Component.create(queriesListTemplate);
+
+    queriesList.style.maxHeight = '25rem';
+    queriesList.columns = ['Name', { name: 'Actions', width: 'auto' }];
+    queriesList.noIndentation = true;
+    queriesList.headersHidden = true;
+    queriesList.dataTransform = {
+      Actions: (_, rowData) => {
+        const { Name } = rowData;
+        if (!Name) return _;
+
+        const hider = components.get(OBC.Hider);
+        const onClick = async ({ target }) => {
+          target.loading = true;
+          const modelIdMap = await getResult(Name);
+          await hider.isolate(modelIdMap);
+          target.loading = false;
+        };
+
+        return BUI.html`<bim-button icon="solar:cursor-bold" @click=${onClick}></bim-button>`;
+      },
+    };
+
+    const panel = BUI.Component.create(() => {
+      const onResetVisibility = async ({ target }) => {
+        target.loading = true;
+        const hider = components.get(OBC.Hider);
+        await hider.set(true);
+        target.loading = false;
+      };
+
+      return BUI.html`
+        <bim-panel active label="Items Finder Tutorial" class="options-menu">
+          <bim-panel-section style="min-width: 14rem" label="General">
+            <bim-button label="Reset Visibility" @click=${onResetVisibility}></bim-button>
+          </bim-panel-section>
+          <bim-panel-section label="Queries">
+            ${queriesList}
+          </bim-panel-section>
+        </bim-panel>
+      `;
+    });
+
+    document.body.appendChild(panel);
+
+    // Phone menu toggler button
+    const button = BUI.Component.create(() => {
+      return BUI.html`
+        <bim-button class="phone-menu-toggler" icon="solar:settings-bold"
+          @click="${() => {
+            if (panel.classList.contains('options-menu-visible')) {
+              panel.classList.remove('options-menu-visible');
+            } else {
+              panel.classList.add('options-menu-visible');
+            }
+          }}">
+        </bim-button>
+      `;
+    });
+
+    document.body.appendChild(button);
+
+    // Load fragment models
+    const fragPaths = [
+      'https://thatopen.github.io/engine_components/resources/frags/school_arq.frag',
+      'https://thatopen.github.io/engine_components/resources/frags/school_str.frag',
+    ];
+
+    try {
+      await Promise.all(
+        fragPaths.map(async (path) => {
+          const modelId = path.split('/').pop()?.split('.').shift();
+          if (!modelId) return null;
+          const file = await fetch(path);
+          const buffer = await file.arrayBuffer();
+          return fragments.core.load(buffer, { modelId });
+        }),
+      );
+      
+      // Hide loading overlay when done
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    } catch (error) {
+      console.error('Error loading models:', error);
+      document.querySelector('.loading-text').textContent = 'Error loading models. Please refresh.';
+    }
+  </script>
+</body>
+</html>
