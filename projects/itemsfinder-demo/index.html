@@ -366,6 +366,12 @@
     // ============================================
     // DIAGNOSTICS SYSTEM - ALWAYS ACTIVE
     // ============================================
+    const debugDiv = document.getElementById('debugLog');
+    const appendLog = (msg) => {
+      debugDiv.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+      debugDiv.scrollTop = debugDiv.scrollHeight;
+    };
+    // Use appendLog(msg) in all log calls
     
     const diagnostics = [];
     const diagContent = document.getElementById('diagnosticsContent');
@@ -401,10 +407,11 @@
     
     // Main log function - ALWAYS logs to panel AND console
     const log = (msg) => {
+      appendLog(msg);
       const timestamp = getTimestamp();
       const fullMsg = `[${timestamp}] ${msg}`;
       diagnostics.push(fullMsg);
-      console.log(`[BIM-DIAG] ${fullMsg}`);
+      // console.log replaced by appendLog
       
       // Always update diagnostics panel (no longer conditional on debug mode)
       if (diagContent) {
@@ -830,10 +837,13 @@
       showFatalError(error, lastStep);
       
       // Also log to console
-      console.error('[BIM-DIAG] Full diagnostics:', diagnostics);
-      console.error('[BIM-DIAG] Error stack:', error.stack);
+      appendLog('Full diagnostics: ' + diagnostics.join('; '));
+      appendLog('Error stack: ' + (error.stack || 'No stack available'));
     }
   </script>
+<div id='debugLog' style='position:fixed;bottom:0;left:0;width:100%;height:30vh;background:black;color:lime;font-family:monospace;font-size:12px;overflow:auto;z-index:9999;padding:10px;box-sizing:border-box;opacity:0.95;'>
+  Debug starting...
+</div>
 </body>
 </html>
 <!-- Timeout analysis: 2026-02-17T11:00:16-03:00 -->
