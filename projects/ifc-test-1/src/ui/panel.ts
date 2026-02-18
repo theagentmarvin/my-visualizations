@@ -11,6 +11,7 @@
  * - Always call BUI.Manager.init() BEFORE calling createPanel()
  * - The panel re-renders by calling updatePanel() — call this whenever model
  *   state changes (models loaded, models removed, selection changes)
+ * - Use getters for selectionColor and selectedAttributes to enable reactivity
  */
 
 import * as THREE from "three";
@@ -31,12 +32,13 @@ const DEMO_MODEL_URLS = [
 ];
 
 /**
- * Configuration options for the panel including raycasting selection state
+ * Configuration options for the panel including raycasting selection state.
+ * Use getters for selectionColor and selectedAttributes to enable reactivity.
  */
 export interface PanelConfig {
-  /** Current selection highlight color */
+  /** Current selection highlight color - use getter for reactivity */
   selectionColor: THREE.Color;
-  /** Currently selected element's attributes */
+  /** Currently selected element's attributes - use getter for reactivity */
   selectedAttributes: FRAGS.ItemData | undefined;
   /** Callback to clear all selections */
   onClearSelection: () => Promise<void>;
@@ -117,15 +119,20 @@ export function createPanel(
         : undefined;
 
       // ── Raycasting Selection Controls (only shown when models are loaded) ──
+      // Get current values from config (which may be reactive getters)
+      const currentColor = config.selectionColor;
+      const currentAttrs = config.selectedAttributes;
+      
       const selectionControls = hasModels
         ? BUI.html`
             <bim-panel-section label="Selection Controls">
               <bim-label>Double Click on element to select/highlight</bim-label>
               <bim-color-input 
                 label="Highlight Color"
-                color="#${config.selectionColor.getHexString()}" 
+                color="#${currentColor.getHexString()}" 
                 @input=${({ target }: { target: BUI.ColorInput }) => {
-                  config.selectionColor.set(target.color);
+                  const newColor = new THREE.Color(target.color);
+                  config.onColorChange(newColor);
                 }}>
               </bim-color-input>
               <bim-button 
@@ -146,12 +153,11 @@ export function createPanel(
         // Build properties display from selected attributes
         let propertiesContent;
         
-        if (config.selectedAttributes) {
-          const attrs = config.selectedAttributes;
-          const rows: string[] = [];
+        if (currentAttrs) {
+          // Build property rows as a single template
+          const propertyRows: Array<{key: string, value: string}> = [];
           
-          // Iterate through all properties and create label rows
-          for (const [key, value] of Object.entries(attrs)) {
+          for (const [key, value] of Object.entries(currentAttrs)) {
             let displayValue = "N/A";
             if (value && typeof value === "object" && "value" in value) {
               displayValue = String(value.value);
@@ -161,23 +167,25 @@ export function createPanel(
             
             // Skip internal/technical properties for cleaner display
             if (!key.startsWith("_") && key !== "LocalId") {
-              rows.push(`
-                <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #333;">
-                  <bim-label style="font-weight: 600; color: #888;">${key}</bim-label>
-                  <bim-label style="text-align: right; max-width: 60%; word-break: break-word;">${displayValue}</bim-label>
-                </div>
-              `);
+              propertyRows.push({ key, value: displayValue });
             }
           }
           
-          propertiesContent = BUI.html`
-            <div style="max-height: 300px; overflow-y: auto;">
-              ${rows.length > 0 
-                ? BUI.html`${rows.map(row => BUI.html`${row}`)}` 
-                : BUI.html`<bim-label style="color: #888;">No properties available</bim-label>`
-              }
-            </div>
-          `;
+          // Create the properties HTML
+          if (propertyRows.length > 0) {
+            propertiesContent = BUI.html`
+              <div style="max-height: 300px; overflow-y: auto;">
+                ${propertyRows.map(({ key, value }) => BUI.html`
+                  <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #333;">
+                    <bim-label style="font-weight: 600; color: #888;">${key}</bim-label>
+                    <bim-label style="text-align: right; max-width: 60%; word-break: break-word;">${value}</bim-label>
+                  </div>
+                `)}
+              </div>
+            `;
+          } else {
+            propertiesContent = BUI.html`<bim-label style="color: #888;">No properties available</bim-label>`;
+          }
         } else {
           propertiesContent = BUI.html`
             <bim-label style="color: #888; font-style: italic;">

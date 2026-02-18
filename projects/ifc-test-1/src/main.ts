@@ -49,8 +49,11 @@ const caster = casters.get(world);
 
 let onSelectCallback = (_modelIdMap: OBC.ModelIdMap) => {};
 let onItemSelected = () => {};
-let selectedAttributes: FRAGS.ItemData | undefined;
-const selectionColor = new THREE.Color("purple");
+// Use a reactive state object so panel always gets current values
+const selectionState = {
+  selectedAttributes: undefined as FRAGS.ItemData | undefined,
+  selectionColor: new THREE.Color("purple"),
+};
 
 // ─── 7. Raycasting Event Handler ─────────────────────────────────────────────
 
@@ -71,12 +74,13 @@ onSelectCallback = async (modelIdMap) => {
   if (modelId && fragments.list.get(modelId)) {
     const model = fragments.list.get(modelId)!;
     const [data] = await model.getItemsData([...modelIdMap[modelId]]);
-    selectedAttributes = data;
+    // Update the reactive state object
+    selectionState.selectedAttributes = data;
   }
 
   await fragments.highlight(
     {
-      color: selectionColor,
+      color: selectionState.selectionColor,
       renderedFaces: FRAGS.RenderedFaces.ONE,
       opacity: 1,
       transparent: false,
@@ -93,16 +97,16 @@ onSelectCallback = async (modelIdMap) => {
 BUI.Manager.init();
 
 const [panel, updatePanel] = createPanel(fragments, {
-  selectionColor,
-  selectedAttributes,
+  get selectionColor() { return selectionState.selectionColor; },
+  get selectedAttributes() { return selectionState.selectedAttributes; },
   onClearSelection: async () => {
     await fragments.resetHighlight();
     await fragments.core.update(true);
-    selectedAttributes = undefined;
+    selectionState.selectedAttributes = undefined;
     updatePanel();
   },
   onColorChange: (color: THREE.Color) => {
-    selectionColor.set(color);
+    selectionState.selectionColor.set(color);
   },
 });
 
