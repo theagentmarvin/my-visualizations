@@ -1,25 +1,21 @@
 /**
- * main.ts — Application Entry Point
+ * main.ts — Application Entry Point with Raycasting Selection
  *
- * This file wires together the three main concerns:
+ * Features:
  *   1. 3D World   → src/core/world.ts
  *   2. Fragments  → src/core/fragments.ts
  *   3. UI Panel   → src/ui/panel.ts
+ *   4. Raycasting → Click to select/highlight elements, show properties
  *
- * AGENT NOTE: Keep this file thin. Put feature logic in src/core/ or src/ui/.
- * Initialization order here is mandatory — see CLAUDE.md §4 for details.
- *
- * See also:
- *   CLAUDE.md              — full API reference and patterns
- *   src/core/fragments.ts  — model loading and management functions
- *   src/core/world.ts      — scene/camera/renderer setup
- *   src/ui/panel.ts        — BUI side panel and controls
- *   src/snippets/          — copy-paste patterns (IFC loading, etc.)
+ * AGENT NOTE: Raycasting implementation follows ThatOpen example:
+ * https://github.com/ThatOpen/engine_components/blob/main/packages/core/src/core/Raycasters/example.ts
  */
 
 import Stats from "stats.js";
+import * as THREE from "three";
 import * as BUI from "@thatopen/ui";
 import * as OBC from "@thatopen/components";
+import * as FRAGS from "@thatopen/fragments";
 
 import { setupWorld, addGrid } from "./core/world";
 import { fetchWorkerUrl, setupFragments } from "./core/fragments";
@@ -27,59 +23,104 @@ import { createPanel, createMobileToggle } from "./ui/panel";
 
 // ─── 1. Bootstrap ─────────────────────────────────────────────────────────────
 
-// OBC.Components is the central coordinator. All tools are accessed through it.
-// There is only ever one instance per application.
 const components = new OBC.Components();
-
-// Grab the viewport div from index.html (#container).
-// The renderer will draw into this element.
 const container = document.getElementById("container")!;
 
 // ─── 2. Create the 3D World ───────────────────────────────────────────────────
 
-// Sets up scene (lights), renderer (WebGL canvas), and camera (orbit controls).
-// MUST happen before components.init().
 const world = await setupWorld(components, container);
-
-// ─── 3. Start the Render Loop ─────────────────────────────────────────────────
-
-// components.init() starts the Three.js render loop and the component system.
-// MUST be called after scene + camera + renderer are all assigned to the world.
 components.init();
 
-// ─── 4. Add Scene Helpers ─────────────────────────────────────────────────────
+// ─── 3. Add Scene Helpers ─────────────────────────────────────────────────────
 
-// Optional: reference grid on the ground plane
 addGrid(components, world);
 
-// ─── 5. Initialize FragmentsManager ──────────────────────────────────────────
+// ─── 4. Initialize FragmentsManager ──────────────────────────────────────────
 
-// The fragments worker must be fetched remotely before fragment loading can begin.
-// setupFragments() also registers the mandatory onItemSet handler that adds
-// loaded models to the scene automatically.
 const workerUrl = await fetchWorkerUrl();
 const fragments = setupFragments(components, world, workerUrl);
 
-// ─── 6. Build the UI ──────────────────────────────────────────────────────────
+// ─── 5. Initialize Raycaster for Selection ───────────────────────────────────
 
-// BUI.Manager.init() MUST be called before any BUI.Component.create() calls.
+const casters = components.get(OBC.Raycasters);
+const caster = casters.get(world);
+
+// ─── 6. Selection State ───────────────────────────────────────────────────────
+
+let onSelectCallback = (_modelIdMap: OBC.ModelIdMap) => {};
+let onItemSelected = () => {};
+let selectedAttributes: FRAGS.ItemData | undefined;
+const selectionColor = new THREE.Color("purple");
+
+// ─── 7. Raycasting Event Handler ─────────────────────────────────────────────
+
+container.addEventListener("dblclick", async () => {
+  const result = (await caster.castRay()) as any;
+  if (!result) return;
+  
+  // The modelIdMap is how selections are represented in the engine.
+  // Keys are modelIds, values are sets of localIds (items within the model)
+  const modelIdMap = { [result.fragments.modelId]: new Set([result.localId]) };
+  onSelectCallback(modelIdMap);
+});
+
+// ─── 8. Selection Handler with Highlighting ──────────────────────────────────
+
+onSelectCallback = async (modelIdMap) => {
+  const modelId = Object.keys(modelIdMap)[0];
+  if (modelId && fragments.list.get(modelId)) {
+    const model = fragments.list.get(modelId)!;
+    const [data] = await model.getItemsData([...modelIdMap[modelId]]);
+    selectedAttributes = data;
+  }
+
+  await fragments.highlight(
+    {
+      color: selectionColor,
+      renderedFaces: FRAGS.RenderedFaces.ONE,
+      opacity: 1,
+      transparent: false,
+    },
+    modelIdMap,
+  );
+
+  await fragments.core.update(true);
+  onItemSelected();
+};
+
+// ─── 9. Build the UI ──────────────────────────────────────────────────────────
+
 BUI.Manager.init();
 
-const [panel, updatePanel] = createPanel(fragments);
+const [panel, updatePanel] = createPanel(fragments, {
+  selectionColor,
+  selectedAttributes,
+  onClearSelection: async () => {
+    await fragments.resetHighlight();
+    await fragments.core.update(true);
+    selectedAttributes = undefined;
+    updatePanel();
+  },
+  onColorChange: (color: THREE.Color) => {
+    selectionColor.set(color);
+  },
+});
+
 const mobileToggle = createMobileToggle(panel);
 
-// Re-render the panel whenever the model list changes
+// Update panel when model list changes
 fragments.list.onItemSet.add(() => updatePanel());
 fragments.list.onItemDeleted.add(() => updatePanel());
 
+// Update panel when item is selected
+onItemSelected = () => updatePanel();
+
 document.body.append(panel, mobileToggle);
 
-// ─── 7. Performance Monitor ───────────────────────────────────────────────────
+// ─── 10. Performance Monitor ───────────────────────────────────────────────────
 
-// stats.js panel: shows memory usage (panel 2). Drag to move.
-// Remove this block if you don't need frame stats.
 const stats = new Stats();
-stats.showPanel(2); // 0=fps, 1=ms, 2=MB
+stats.showPanel(2);
 stats.dom.style.left = "0px";
 stats.dom.style.zIndex = "unset";
 document.body.append(stats.dom);
