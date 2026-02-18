@@ -60,150 +60,108 @@ export function createPanel(
 ): [HTMLElement, () => void] {
   const [panel, updatePanel] = BUI.Component.create<BUI.PanelSection, {}>(
     (_) => {
-      // ── Load button (only shown when no models are loaded) ─────────────────
+      // ── Check model states ─────────────────────────────────────────────────
       const showLoadBtn = fragments.list.size === 0;
-      const loadBtn = showLoadBtn
-        ? BUI.html`
-            <bim-button
-              label="Load fragments"
-              @click=${async ({ target }: { target: BUI.Button }) => {
-                target.loading = true;
-                await Promise.all(
-                  DEMO_MODEL_URLS.map(async (url) => {
-                    const modelId = url.split("/").pop()?.split(".").shift();
-                    if (modelId) await loadFragmentFromUrl(fragments, url, modelId);
-                  }),
-                );
-                target.loading = false;
-              }}
-            ></bim-button>
-          `
-        : undefined;
-
-      // ── Dispose arch model button (only shown when arch model is loaded) ───
       const hasArchModel = [...fragments.list.keys()].some((key) =>
         /arq/.test(key),
       );
-      const disposeArchBtn = hasArchModel
-        ? BUI.html`
-            <bim-button
-              label="Dispose Arch Model"
-              @click=${() => {
-                const modelId = [...fragments.list.keys()].find((key) =>
-                  /arq/.test(key),
-                );
-                if (modelId) disposeModel(fragments, modelId);
-              }}
-            ></bim-button>
-          `
-        : undefined;
-
-      // ── Dispose all + export buttons (only shown when models are loaded) ───
       const hasModels = fragments.list.size > 0;
-      const disposeAllBtn = hasModels
-        ? BUI.html`
-            <bim-button
-              label="Dispose All Models"
-              @click=${() => disposeAllModels(fragments)}
-            ></bim-button>
-          `
-        : undefined;
 
-      const exportBtn = hasModels
-        ? BUI.html`
-            <bim-button
-              label="Export fragments"
-              @click=${() => downloadAllModels(fragments)}
-            ></bim-button>
-          `
-        : undefined;
-
-      // ── Raycasting Selection Controls (only shown when models are loaded) ──
       // Get current values from config (which may be reactive getters)
       const currentColor = config.selectionColor;
       const currentAttrs = config.selectedAttributes;
 
-      // Always render section if models exist - use empty template instead of undefined
-      const selectionControls = hasModels
-        ? BUI.html`
-            <bim-panel-section label="Selection Controls" style="margin-top: 8px;">
-              <bim-label>Double Click on element to select/highlight</bim-label>
-              <bim-color-input
-                label="Highlight Color"
-                color="#${currentColor.getHexString()}"
-                @input=${({ target }: { target: BUI.ColorInput }) => {
-                  const newColor = new THREE.Color(target.color);
-                  config.onColorChange(newColor);
-                }}>
-              </bim-color-input>
-              <bim-button
-                label="Clear Selection"
-                @click=${async ({ target }: { target: BUI.Button }) => {
-                  target.loading = true;
-                  await config.onClearSelection();
-                  target.loading = false;
-                }}>
-              </bim-button>
-            </bim-panel-section>
-          `
-        : BUI.html``;
+      // ── Load button ────────────────────────────────────────────────────────
+      const loadBtn = BUI.html`
+        <bim-button
+          label="Load fragments"
+          ?hidden=${!showLoadBtn}
+          @click=${async ({ target }: { target: BUI.Button }) => {
+            target.loading = true;
+            await Promise.all(
+              DEMO_MODEL_URLS.map(async (url) => {
+                const modelId = url.split("/").pop()?.split(".").shift();
+                if (modelId) await loadFragmentFromUrl(fragments, url, modelId);
+              }),
+            );
+            target.loading = false;
+          }}
+        ></bim-button>
+      `;
 
-      // ── Item Data / Properties Display ─────────────────────────────────────
-      // Always render section if models exist - use empty template instead of undefined
-      let itemDataSection = BUI.html``;
-      if (hasModels) {
-        // Build properties display from selected attributes
-        let propertiesContent;
+      // ── Dispose arch model button ──────────────────────────────────────────
+      const disposeArchBtn = BUI.html`
+        <bim-button
+          label="Dispose Arch Model"
+          ?hidden=${!hasArchModel}
+          @click=${() => {
+            const modelId = [...fragments.list.keys()].find((key) =>
+              /arq/.test(key),
+            );
+            if (modelId) disposeModel(fragments, modelId);
+          }}
+        ></bim-button>
+      `;
 
-        if (currentAttrs) {
-          // Build property rows as a single template
-          const propertyRows: Array<{key: string, value: string}> = [];
+      // ── Dispose all button ─────────────────────────────────────────────────
+      const disposeAllBtn = BUI.html`
+        <bim-button
+          label="Dispose All Models"
+          ?hidden=${!hasModels}
+          @click=${() => disposeAllModels(fragments)}
+        ></bim-button>
+      `;
 
-          for (const [key, value] of Object.entries(currentAttrs)) {
-            let displayValue = "N/A";
-            if (value && typeof value === "object" && "value" in value) {
-              displayValue = String(value.value);
-            } else if (value !== undefined && value !== null) {
-              displayValue = String(value);
-            }
+      // ── Export button ──────────────────────────────────────────────────────
+      const exportBtn = BUI.html`
+        <bim-button
+          label="Export fragments"
+          ?hidden=${!hasModels}
+          @click=${() => downloadAllModels(fragments)}
+        ></bim-button>
+      `;
 
-            // Skip internal/technical properties for cleaner display
-            if (!key.startsWith("_") && key !== "LocalId") {
-              propertyRows.push({ key, value: displayValue });
-            }
+      // ── Build properties content ───────────────────────────────────────────
+      let propertiesContent;
+      if (currentAttrs) {
+        const propertyRows: Array<{key: string, value: string}> = [];
+
+        for (const [key, value] of Object.entries(currentAttrs)) {
+          let displayValue = "N/A";
+          if (value && typeof value === "object" && "value" in value) {
+            displayValue = String(value.value);
+          } else if (value !== undefined && value !== null) {
+            displayValue = String(value);
           }
 
-          // Create the properties HTML
-          if (propertyRows.length > 0) {
-            propertiesContent = BUI.html`
-              <div style="max-height: 300px; overflow-y: auto;">
-                ${propertyRows.map(({ key, value }) => BUI.html`
-                  <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #333;">
-                    <bim-label style="font-weight: 600; color: #888;">${key}</bim-label>
-                    <bim-label style="text-align: right; max-width: 60%; word-break: break-word;">${value}</bim-label>
-                  </div>
-                `)}
-              </div>
-            `;
-          } else {
-            propertiesContent = BUI.html`<bim-label style="color: #888;">No properties available</bim-label>`;
+          if (!key.startsWith("_") && key !== "LocalId") {
+            propertyRows.push({ key, value: displayValue });
           }
-        } else {
-          propertiesContent = BUI.html`
-            <bim-label style="color: #888; font-style: italic;">
-              Double-click an element to see its properties
-            </bim-label>
-          `;
         }
 
-        itemDataSection = BUI.html`
-          <bim-panel-section label="Item Properties" style="margin-top: 8px;">
-            ${propertiesContent}
-          </bim-panel-section>
+        if (propertyRows.length > 0) {
+          propertiesContent = BUI.html`
+            <div style="max-height: 300px; overflow-y: auto;">
+              ${propertyRows.map(({ key, value }) => BUI.html`
+                <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #333;">
+                  <bim-label style="font-weight: 600; color: #888;">${key}</bim-label>
+                  <bim-label style="text-align: right; max-width: 60%; word-break: break-word;">${value}</bim-label>
+                </div>
+              `)}
+            </div>
+          `;
+        } else {
+          propertiesContent = BUI.html`<bim-label style="color: #888;">No properties available</bim-label>`;
+        }
+      } else {
+        propertiesContent = BUI.html`
+          <bim-label style="color: #888; font-style: italic;">
+            Double-click an element to see its properties
+          </bim-label>
         `;
       }
 
-      // ── Panel template ──────────────────────────────────────────────────────
+      // ── Panel template ─────────────────────────────────────────────────────
       return BUI.html`
         <bim-panel active label="BIM Viewer" class="options-menu">
 
@@ -214,8 +172,29 @@ export function createPanel(
             ${exportBtn}
           </bim-panel-section>
 
-          ${selectionControls}
-          ${itemDataSection}
+          <bim-panel-section label="Selection Controls" ?hidden=${!hasModels}>
+            <bim-label>Double Click on element to select/highlight</bim-label>
+            <bim-color-input
+              label="Highlight Color"
+              color="#${currentColor.getHexString()}"
+              @input=${({ target }: { target: BUI.ColorInput }) => {
+                const newColor = new THREE.Color(target.color);
+                config.onColorChange(newColor);
+              }}>
+            </bim-color-input>
+            <bim-button
+              label="Clear Selection"
+              @click=${async ({ target }: { target: BUI.Button }) => {
+                target.loading = true;
+                await config.onClearSelection();
+                target.loading = false;
+              }}>
+            </bim-button>
+          </bim-panel-section>
+
+          <bim-panel-section label="Item Properties" ?hidden=${!hasModels}>
+            ${propertiesContent}
+          </bim-panel-section>
 
         </bim-panel>
       `;
