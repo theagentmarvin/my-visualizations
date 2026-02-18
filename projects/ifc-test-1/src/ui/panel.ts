@@ -122,21 +122,22 @@ export function createPanel(
       // Get current values from config (which may be reactive getters)
       const currentColor = config.selectionColor;
       const currentAttrs = config.selectedAttributes;
-      
+
+      // Always render section if models exist - use empty template instead of undefined
       const selectionControls = hasModels
         ? BUI.html`
-            <bim-panel-section label="Selection Controls">
+            <bim-panel-section label="Selection Controls" style="margin-top: 8px;">
               <bim-label>Double Click on element to select/highlight</bim-label>
-              <bim-color-input 
+              <bim-color-input
                 label="Highlight Color"
-                color="#${currentColor.getHexString()}" 
+                color="#${currentColor.getHexString()}"
                 @input=${({ target }: { target: BUI.ColorInput }) => {
                   const newColor = new THREE.Color(target.color);
                   config.onColorChange(newColor);
                 }}>
               </bim-color-input>
-              <bim-button 
-                label="Clear Selection" 
+              <bim-button
+                label="Clear Selection"
                 @click=${async ({ target }: { target: BUI.Button }) => {
                   target.loading = true;
                   await config.onClearSelection();
@@ -145,18 +146,19 @@ export function createPanel(
               </bim-button>
             </bim-panel-section>
           `
-        : undefined;
+        : BUI.html``;
 
       // ── Item Data / Properties Display ─────────────────────────────────────
-      let itemDataSection;
+      // Always render section if models exist - use empty template instead of undefined
+      let itemDataSection = BUI.html``;
       if (hasModels) {
         // Build properties display from selected attributes
         let propertiesContent;
-        
+
         if (currentAttrs) {
           // Build property rows as a single template
           const propertyRows: Array<{key: string, value: string}> = [];
-          
+
           for (const [key, value] of Object.entries(currentAttrs)) {
             let displayValue = "N/A";
             if (value && typeof value === "object" && "value" in value) {
@@ -164,13 +166,13 @@ export function createPanel(
             } else if (value !== undefined && value !== null) {
               displayValue = String(value);
             }
-            
+
             // Skip internal/technical properties for cleaner display
             if (!key.startsWith("_") && key !== "LocalId") {
               propertyRows.push({ key, value: displayValue });
             }
           }
-          
+
           // Create the properties HTML
           if (propertyRows.length > 0) {
             propertiesContent = BUI.html`
@@ -193,9 +195,9 @@ export function createPanel(
             </bim-label>
           `;
         }
-        
+
         itemDataSection = BUI.html`
-          <bim-panel-section label="Item Properties">
+          <bim-panel-section label="Item Properties" style="margin-top: 8px;">
             ${propertiesContent}
           </bim-panel-section>
         `;
