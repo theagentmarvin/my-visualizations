@@ -99,6 +99,31 @@ export class FragmentViewer {
     // Get FragmentsManager - matches bim-viewer
     this.fragments = this.components.get(OBC.FragmentsManager);
 
+    // Initialize FragmentsManager worker (required before loading/fragments operations)
+    // Mirrors ThatOpen example: fetch worker.mjs and pass URL to fragments.init()
+    try {
+      const githubUrl = "https://thatopen.github.io/engine_fragment/resources/worker.mjs";
+      const fetchedUrl = await fetch(githubUrl);
+      const workerBlob = await fetchedUrl.blob();
+      const workerFile = new File([workerBlob], "worker.mjs", {
+        type: "text/javascript",
+      });
+      const workerUrl = URL.createObjectURL(workerFile);
+      this.fragments.init(workerUrl);
+    } catch (err) {
+      console.warn('[FragmentViewer] Failed to initialize fragments worker:', err);
+    }
+
+    // Remove z-fighting on materials (same fix used in canonical viewers)
+    this.fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
+      if (!("isLodMaterial" in material && material.isLodMaterial)) {
+        material.polygonOffset = true;
+        material.polygonOffsetUnits = 1;
+        material.polygonOffsetFactor = Math.random();
+      }
+    });
+
+
     // Set up camera update for culling/LOD
     this.world.camera.controls.addEventListener("update", () => {
       this.fragments.core.update();
