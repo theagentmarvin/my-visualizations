@@ -6,6 +6,27 @@
  * 
  * Example local path: "/models/my-model.frag"
  * Example remote path: "https://example.com/models/my-model.frag"
+ * 
+ * ---
+ * 
+ * COORDINATE MAPPING NOTES for Pick Operations:
+ * 
+ * Screen coordinates (pixels) must be converted to Normalized Device Coordinates (NDC)
+ * for both the @thatopen/components Raycasters API and raw three.js raycasting.
+ * 
+ * NDC Conversion Formula:
+ *   ndcX = (screenX / containerWidth) * 2 - 1   // Range: [-1, 1]
+ *   ndcY = -(screenY / containerHeight) * 2 + 1 // Range: [-1, 1], Y is inverted
+ * 
+ * Assumptions:
+ *   - container.getBoundingClientRect() provides accurate screen-relative coordinates
+ *   - The canvas fills the container (no padding/margin affecting mouse position)
+ *   - No CSS transforms are applied that would skew mouse event coordinates
+ * 
+ * The Raycasters API handles this conversion internally when castRay() is called,
+ * but we maintain the mouse position calculation here for defensive fallback raycasting.
+ * 
+ * Reference: See viewer.ts handleClick() for implementation.
  */
 
 export const CONFIG = {
@@ -28,9 +49,9 @@ export const CONFIG = {
 
   /** Selection settings */
   SELECTION: {
-    /** Debounce delay in milliseconds */
+    /** Debounce delay in milliseconds (prevents rapid-fire selections) */
     debounceMs: 150,
-    /** Highlight color (hex) */
+    /** Highlight color (hex) - used by Highlighter component */
     highlightColor: "#4fc3f7",
   },
 };

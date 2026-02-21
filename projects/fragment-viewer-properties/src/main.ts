@@ -3,9 +3,13 @@
  * 
  * Automatically loads fragment models on page load and sets up
  * the viewer with properties table interaction.
+ * 
+ * REFERENCE: See projects/ifc-test-1/src/main.ts for the canonical
+ * implementation pattern using @thatopen/components Raycasters and
+ * @thatopen/components-front Highlighter.
  */
 
-import { FragmentViewer } from "./viewer.js";
+import { FragmentViewer, SelectionResult } from "./viewer.js";
 import { PropertiesUI } from "./ui.js";
 import { CONFIG } from "./config.js";
 
@@ -25,9 +29,9 @@ async function init(): Promise<void> {
     propertiesUI.clear();
 
     // Set up selection handler
-    viewer.onElementSelected = (element, instanceId) => {
-      if (element) {
-        propertiesUI.populate(element, instanceId);
+    viewer.onElementSelected = (result: SelectionResult | null) => {
+      if (result) {
+        propertiesUI.populate(result.object, result.instanceId);
       } else {
         propertiesUI.clear();
       }

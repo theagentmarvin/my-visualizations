@@ -3,26 +3,43 @@
  * 
  * Adapted from property-inspector project in this repo.
  * Uses @thatopen/components for BIM/fragment loading and rendering.
+ * 
+ * REFERENCE: For correct pick/highlight usage, see:
+ *   - projects/ifc-test-1/src/main.ts (primary reference)
+ *   - That Open Components docs: https://docs.thatopen.com/api/@thatopen/components/classes/Raycasters
+ * 
+ * IMPORTANT: Always use @thatopen/components Raycasters + @thatopen/components-front Highlighter
+ * for selection in fragment projects. Do NOT use raw three.js raycast against fragment scene.
  */
 
 import * as THREE from "three";
 import * as OBC from "@thatopen/components";
 import * as OBCF from "@thatopen/components-front";
+import * as FRAGS from "@thatopen/fragments";
 import { CONFIG } from "./config.js";
+
+export interface SelectionResult {
+  /** The selected fragment object */
+  object: THREE.Object3D;
+  /** Local ID (express ID) of the selected element */
+  localId: number;
+  /** Model ID the selection belongs to */
+  modelId: string;
+  /** Instance ID for instanced geometry */
+  instanceId?: number;
+  /** Raw fragment model reference */
+  fragments: FRAGS.FragmentsModel;
+}
 
 export interface ViewerAPI {
   components: OBC.Components;
   world: OBC.World<OBC.SimpleScene, OBC.OrthoPerspectiveCamera, OBC.SimpleRenderer>;
   fragments: OBC.FragmentsManager;
   highlighter: OBCF.Highlighter;
+  raycaster: OBC.Raycaster;
   container: HTMLElement;
   canvas: HTMLCanvasElement;
-  onElementSelected: (element: THREE.Object3D | null, instanceId?: number) => void;
-}
-
-interface SelectionEvent {
-  object: THREE.Object3D;
-  instanceId?: number;
+  onElementSelected: (result: SelectionResult | null) => void;
 }
 
 export class FragmentViewer {
@@ -30,12 +47,15 @@ export class FragmentViewer {
   public world!: OBC.World<OBC.SimpleScene, OBC.OrthoPerspectiveCamera, OBC.SimpleRenderer>;
   public fragments!: OBC.FragmentsManager;
   public highlighter!: OBCF.Highlighter;
+  public raycaster!: OBC.Raycaster;
   public container: HTMLElement;
   public canvas: HTMLCanvasElement;
   
-  private raycaster: THREE.Raycaster;
+  // Fallback raycaster for defensive programming
+  private fallbackRaycaster: THREE.Raycaster;
   private mouse: THREE.Vector2;
-  private onElementSelectedCallback: ((element: THREE.Object3D | null, instanceId?: number) => void) | null = null;
+  
+  private onElementSelectedCallback: ((result: SelectionResult | null) => void) | null = null;
   private selectionTimeout: ReturnType<typeof setTimeout> | null = null;
   private isInitialized = false;
 
@@ -48,7 +68,7 @@ export class FragmentViewer {
     
     this.container = container;
     this.canvas = canvas;
-    this.raycaster = new THREE.Raycaster();
+    this.fallbackRaycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
   }
 
@@ -121,7 +141,11 @@ export class FragmentViewer {
 
     // Set up highlighter (from components-front)
     this.highlighter = this.components.get(OBCF.Highlighter);
-    this.highlighter.setup({ world: this.world });
+    await this.highlighter.setup({ world: this.world });
+
+    // Set up raycaster (from components) for proper fragment picking
+    const casters = this.components.get(OBC.Raycasters);
+    this.raycaster = casters.get(this.world);
 
     // Set up click handler for selection
     this.setupSelectionHandler();
@@ -132,7 +156,7 @@ export class FragmentViewer {
 
   private setupSelectionHandler(): void {
     this.container.addEventListener("click", (event) => {
-      // Debounce selection
+      // Debounce selection (150ms)
       if (this.selectionTimeout) {
         clearTimeout(this.selectionTimeout);
       }
@@ -143,50 +167,133 @@ export class FragmentViewer {
     });
   }
 
-  private handleClick(event: MouseEvent): void {
+  private async handleClick(event: MouseEvent): Promise<void> {
+    // Calculate mouse position in Normalized Device Coordinates (NDC)
+    // NDC: -1 to +1 for both axes, Y is inverted
     const rect = this.container.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    this.raycaster.setFromCamera(this.mouse, this.world.camera.three);
+    let selectionResult: SelectionResult | null = null;
 
-    // Get all meshes from loaded models
-    const meshes: THREE.Mesh[] = [];
-    for (const [, model] of this.fragments.list) {
-      model.object.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          meshes.push(child);
+    try {
+      // PRIMARY METHOD: Use engine's pick API (handles instanced geometry correctly)
+      const raycastResult = await this.raycaster.castRay();
+      
+      if (raycastResult) {
+        selectionResult = {
+          object: raycastResult.object,
+          localId: raycastResult.localId,
+          modelId: raycastResult.fragments.modelId,
+          instanceId: raycastResult.instanceId,
+          fragments: raycastResult.fragments,
+        };
+
+        // Highlight using Highlighter API with model context
+        const modelIdMap: OBC.ModelIdMap = {
+          [raycastResult.fragments.modelId]: new Set([raycastResult.localId])
+        };
+        await this.highlighter.highlight("selection", modelIdMap);
+      } else {
+        // No hit - clear selection
+        this.highlighter.clear("selection");
+      }
+    } catch (error) {
+      console.warn("[FragmentViewer] Engine pick API failed, falling back to raycast:", error);
+      
+      // FALLBACK METHOD: Filtered three.js raycast (defensive)
+      selectionResult = await this.fallbackRaycast();
+      
+      if (selectionResult) {
+        try {
+          const modelIdMap: OBC.ModelIdMap = {
+            [selectionResult.modelId]: new Set([selectionResult.localId])
+          };
+          await this.highlighter.highlight("selection", modelIdMap);
+        } catch (highlightError) {
+          console.warn("[FragmentViewer] Fallback highlight failed:", highlightError);
         }
-      });
+      } else {
+        this.highlighter.clear("selection");
+      }
     }
 
-    const intersects = this.raycaster.intersectObjects(meshes, true);
-
-    if (intersects.length > 0) {
-      const intersect = intersects[0];
-      const selectedObject = intersect.object;
-      const instanceId = intersect.instanceId;
-
-      // Highlight the selected element
-      this.highlighter.clear();
-      if (instanceId !== undefined) {
-        this.highlighter.highlightByID("selection", [instanceId]);
-      }
-
-      // Notify callback
-      if (this.onElementSelectedCallback) {
-        this.onElementSelectedCallback(selectedObject, instanceId);
-      }
-    } else {
-      // Clear selection
-      this.highlighter.clear();
-      if (this.onElementSelectedCallback) {
-        this.onElementSelectedCallback(null);
-      }
+    // Notify callback
+    if (this.onElementSelectedCallback) {
+      this.onElementSelectedCallback(selectionResult);
     }
   }
 
-  public set onElementSelected(callback: (element: THREE.Object3D | null, instanceId?: number) => void) {
+  /**
+   * Fallback raycast method using raw three.js
+   * Only used when engine pick API is unavailable
+   * Filters to only objects with geometry.attributes.position to avoid errors
+   */
+  private async fallbackRaycast(): Promise<SelectionResult | null> {
+    try {
+      this.fallbackRaycaster.setFromCamera(this.mouse, this.world.camera.three);
+
+      // Get all meshes from loaded models - FILTER for valid geometry
+      const meshes: THREE.Mesh[] = [];
+      for (const [, model] of this.fragments.list) {
+        model.object.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            // Defensive: only include meshes with valid position attribute
+            const geometry = child.geometry;
+            if (geometry && 'attributes' in geometry && geometry.attributes.position) {
+              meshes.push(child);
+            }
+          }
+        });
+      }
+
+      if (meshes.length === 0) return null;
+
+      const intersects = this.fallbackRaycaster.intersectObjects(meshes, true);
+
+      if (intersects.length > 0) {
+        const intersect = intersects[0];
+        const selectedObject = intersect.object as THREE.Mesh;
+        const instanceId = intersect.instanceId;
+
+        // Try to find the parent model
+        let modelId = "unknown";
+        let fragments: FRAGS.FragmentsModel | undefined;
+        
+        for (const [id, model] of this.fragments.list) {
+          let found = false;
+          model.object.traverse((child) => {
+            if (child === selectedObject || child === selectedObject.parent) {
+              found = true;
+            }
+          });
+          if (found) {
+            modelId = id;
+            fragments = model;
+            break;
+          }
+        }
+
+        // Generate a local ID from instance or object UUID
+        const localId = instanceId ?? selectedObject.id;
+
+        return {
+          object: selectedObject,
+          localId,
+          modelId,
+          instanceId,
+          fragments: fragments ?? ({} as FRAGS.FragmentsModel),
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("[FragmentViewer] Fallback raycast failed:", error);
+      return null;
+    }
+  }
+
+  public set onElementSelected(callback: (result: SelectionResult | null) => void) {
     this.onElementSelectedCallback = callback;
   }
 
