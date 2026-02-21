@@ -2,14 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Mobile optimization: prevent zoom/pinch conflicts, proper viewport - matches bim-viewer -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1a1a1a">
   <title>Fragment Viewer + Properties</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <div class="app-container">
+    <!-- Viewer Container - matches bim-viewer container pattern -->
     <div id="viewer-container" class="viewer-container">
-      <canvas id="viewer-canvas"></canvas>
       <div id="loading-indicator" class="loading-indicator">
         <div class="spinner"></div>
         <span>Loading fragment models...</span>

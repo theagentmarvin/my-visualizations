@@ -1,15 +1,19 @@
 /**
  * Viewer module - 3D fragment viewer using That Open Components
  * 
- * Adapted from property-inspector project in this repo.
- * Uses @thatopen/components for BIM/fragment loading and rendering.
+ * Aligned with canonical viewer implementation from:
+ *   - my-visualizations/projects/bim-viewer/index.html (renderer, camera, scene setup)
+ *   - my-visualizations/projects/bim-mobile-viewer/index.html (highlighter setup)
  * 
- * REFERENCE: For correct pick/highlight usage, see:
- *   - projects/ifc-test-1/src/main.ts (primary reference)
- *   - That Open Components docs: https://docs.thatopen.com/api/@thatopen/components/classes/Raycasters
+ * REFERENCE: This implementation matches the canonical bim-viewer project in:
+ *   - World/scene initialization
+ *   - Renderer configuration
+ *   - Camera setup and initial position
+ *   - Grid and environment
+ *   - Fragment loading approach
  * 
- * IMPORTANT: Always use @thatopen/components Raycasters + @thatopen/components-front Highlighter
- * for selection in fragment projects. Do NOT use raw three.js raycast against fragment scene.
+ * SELECTION FIX PRESERVED: Uses OBC Raycasters + OBCF Highlighter
+ * as the primary selection method (from ifc-test-1 project).
  */
 
 import * as THREE from "three";
@@ -38,7 +42,6 @@ export interface ViewerAPI {
   highlighter: OBCF.Highlighter;
   raycaster: OBC.Raycaster;
   container: HTMLElement;
-  canvas: HTMLCanvasElement;
   onElementSelected: (result: SelectionResult | null) => void;
 }
 
@@ -49,7 +52,6 @@ export class FragmentViewer {
   public highlighter!: OBCF.Highlighter;
   public raycaster!: OBC.Raycaster;
   public container: HTMLElement;
-  public canvas: HTMLCanvasElement;
   
   // Fallback raycaster for defensive programming
   private fallbackRaycaster: THREE.Raycaster;
@@ -59,15 +61,12 @@ export class FragmentViewer {
   private selectionTimeout: ReturnType<typeof setTimeout> | null = null;
   private isInitialized = false;
 
-  constructor(containerId: string, canvasId: string) {
+  constructor(containerId: string) {
     const container = document.getElementById(containerId);
-    const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
     
     if (!container) throw new Error(`Container #${containerId} not found`);
-    if (!canvas) throw new Error(`Canvas #${canvasId} not found`);
     
     this.container = container;
-    this.canvas = canvas;
     this.fallbackRaycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
   }
@@ -75,10 +74,10 @@ export class FragmentViewer {
   public async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    // Create components instance
+    // Create components instance - matches bim-viewer
     this.components = new OBC.Components();
 
-    // Create world
+    // Setup world - matches bim-viewer pattern
     const worlds = this.components.get(OBC.Worlds);
     this.world = worlds.create<
       OBC.SimpleScene,
@@ -86,43 +85,35 @@ export class FragmentViewer {
       OBC.SimpleRenderer
     >();
 
-    // Set up world
+    // Scene setup - matches bim-viewer exactly
     this.world.scene = new OBC.SimpleScene(this.components);
+    this.world.scene.setup();
+    // Canonical bim-viewer uses null (transparent) background
+    this.world.scene.three.background = null;
+
+    // Renderer setup - matches bim-viewer (renders to container)
     this.world.renderer = new OBC.SimpleRenderer(this.components, this.container);
+    
+    // Camera setup - matches bim-viewer (OrthoPerspectiveCamera)
     this.world.camera = new OBC.OrthoPerspectiveCamera(this.components);
 
+    // Initialize components - matches bim-viewer
     this.components.init();
-    this.world.scene.setup();
-    this.world.scene.three.background = new THREE.Color(CONFIG.VIEWER.backgroundColor);
 
-    // Set camera position
-    const [x, y, z, tx, ty, tz] = CONFIG.VIEWER.cameraPosition;
-    await this.world.camera.controls.setLookAt(x, y, z, tx, ty, tz);
-
-    // Add grid for reference
+    // Add grid - matches bim-viewer
     if (CONFIG.VIEWER.showGrid) {
-      const grid = this.components.get(OBC.Grids);
-      grid.create(this.world);
+      this.components.get(OBC.Grids).create(this.world);
     }
 
-    // Initialize FragmentsManager with worker URL
-    const githubUrl = "https://thatopen.github.io/engine_fragment/resources/worker.mjs";
-    const fetchedUrl = await fetch(githubUrl);
-    const workerBlob = await fetchedUrl.blob();
-    const workerFile = new File([workerBlob], "worker.mjs", {
-      type: "text/javascript",
-    });
-    const workerUrl = URL.createObjectURL(workerFile);
-
+    // Get FragmentsManager - matches bim-viewer (no worker URL needed for basic loading)
     this.fragments = this.components.get(OBC.FragmentsManager);
-    this.fragments.init(workerUrl);
 
     // Set up camera update for culling/LOD
     this.world.camera.controls.addEventListener("update", () => {
       this.fragments.core.update();
     });
 
-    // Handle model loading
+    // Handle model loading - add to scene when loaded
     this.fragments.list.onItemSet.add(({ value: model }) => {
       console.log(`[Model Loaded] ${model.modelId}`);
       model.useCamera(this.world.camera.three);
@@ -130,28 +121,23 @@ export class FragmentViewer {
       this.fragments.core.update(true);
     });
 
-    // Fix z-fighting on materials
-    this.fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
-      if (!("isLodMaterial" in material && material.isLodMaterial)) {
-        material.polygonOffset = true;
-        material.polygonOffsetUnits = 1;
-        material.polygonOffsetFactor = Math.random();
-      }
-    });
-
-    // Set up highlighter (from components-front)
+    // Set up highlighter (from components-front) - selection fix preserved
     this.highlighter = this.components.get(OBCF.Highlighter);
     await this.highlighter.setup({ world: this.world });
 
-    // Set up raycaster (from components) for proper fragment picking
+    // Set up raycaster (from components) for proper fragment picking - selection fix preserved
     const casters = this.components.get(OBC.Raycasters);
     this.raycaster = casters.get(this.world);
 
-    // Set up click handler for selection
+    // Set up click handler for selection - selection fix preserved
     this.setupSelectionHandler();
 
+    // Set initial camera position - matches bim-viewer exactly
+    const [x, y, z, tx, ty, tz] = CONFIG.VIEWER.cameraPosition;
+    await this.world.camera.controls.setLookAt(x, y, z, tx, ty, tz);
+
     this.isInitialized = true;
-    console.log("[FragmentViewer] Initialized");
+    console.log("[FragmentViewer] Initialized - aligned with bim-viewer canonical implementation");
   }
 
   private setupSelectionHandler(): void {
@@ -178,6 +164,7 @@ export class FragmentViewer {
 
     try {
       // PRIMARY METHOD: Use engine's pick API (handles instanced geometry correctly)
+      // This is the selection fix from ifc-test-1 project
       const raycastResult = await this.raycaster.castRay();
       
       if (raycastResult) {
@@ -189,7 +176,7 @@ export class FragmentViewer {
           fragments: raycastResult.fragments,
         };
 
-        // Highlight using Highlighter API with model context
+        // Highlight using Highlighter API with model context - selection fix preserved
         const modelIdMap: OBC.ModelIdMap = {
           [raycastResult.fragments.modelId]: new Set([raycastResult.localId])
         };
@@ -297,19 +284,46 @@ export class FragmentViewer {
     this.onElementSelectedCallback = callback;
   }
 
+  /**
+   * Load fragment models - aligned with bim-viewer canonical implementation
+   * Uses fragments.load() which is the standard approach in bim-viewer
+   */
   public async loadFragments(urls: string[]): Promise<void> {
     console.log("[FragmentViewer] Loading fragment models...", urls);
     
-    await Promise.all(
-      urls.map(async (path) => {
-        const modelId = path.split("/").pop()?.split(".").shift();
-        if (!modelId) return null;
-        console.log(`[Loading] ${modelId} from ${path}`);
-        const file = await fetch(path);
-        const buffer = await file.arrayBuffer();
-        return this.fragments.core.load(buffer, { modelId });
-      })
-    );
+    for (const path of urls) {
+      const modelId = path.split("/").pop()?.split(".").shift();
+      if (!modelId) continue;
+      
+      console.log(`[Loading] ${modelId} from ${path}`);
+      const file = await fetch(path);
+      const buffer = await file.arrayBuffer();
+      const data = new Uint8Array(buffer);
+      
+      // Use fragments.load() - matches bim-viewer canonical implementation
+      const group = this.fragments.load(data, {
+        name: modelId,
+        coordinate: true,
+      });
+      
+      // Add to scene - matches bim-viewer
+      this.world.scene.three.add(group);
+      console.log(`[Loaded] ${modelId}`, group);
+    }
+    
+    // Fit camera to scene after loading - matches bim-viewer
+    const meshes: THREE.Mesh[] = [];
+    this.fragments.groups.forEach((group) => {
+      group.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          meshes.push(child);
+        }
+      });
+    });
+    
+    if (meshes.length > 0) {
+      await this.world.camera.fit(meshes, 0.5);
+    }
     
     console.log("[FragmentViewer] All models loaded!");
   }

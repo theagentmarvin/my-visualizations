@@ -1,12 +1,12 @@
 /**
  * Main entry point - Fragment Viewer + Properties
  * 
+ * Aligned with canonical viewer implementation from:
+ *   - my-visualizations/projects/bim-viewer/index.html
+ *   - my-visualizations/projects/bim-mobile-viewer/index.html
+ * 
  * Automatically loads fragment models on page load and sets up
  * the viewer with properties table interaction.
- * 
- * REFERENCE: See projects/ifc-test-1/src/main.ts for the canonical
- * implementation pattern using @thatopen/components Raycasters and
- * @thatopen/components-front Highlighter.
  */
 
 import { FragmentViewer, SelectionResult } from "./viewer.js";
@@ -20,8 +20,9 @@ async function init(): Promise<void> {
   const loadingIndicator = document.getElementById("loading-indicator");
 
   try {
-    // Initialize viewer
-    const viewer = new FragmentViewer("viewer-container", "viewer-canvas");
+    // Initialize viewer - aligned with bim-viewer canonical implementation
+    // Note: We no longer need canvasId since we render directly to container (like bim-viewer)
+    const viewer = new FragmentViewer("viewer-container");
     await viewer.initialize();
 
     // Initialize UI
@@ -37,7 +38,7 @@ async function init(): Promise<void> {
       }
     };
 
-    // Auto-load fragment models
+    // Auto-load fragment models - matches bim-viewer pattern
     console.log("[Fragment Viewer] Auto-loading models...");
     await viewer.loadFragments(CONFIG.FRAGMENT_URLS);
 
