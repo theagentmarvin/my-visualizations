@@ -26,6 +26,8 @@ export interface SelectionResult {
   instanceId?: number;
   /** Raw fragment model reference */
   fragments: FRAGS.FragmentsModel;
+  /** Optional item attributes returned by model.getItemsData */
+  attributes?: any;
 }
 
 export interface ViewerAPI {
@@ -226,6 +228,47 @@ export class FragmentViewer {
         const modelIdMap: OBC.ModelIdMap = {
           [raycastResult.fragments.modelId]: new Set([raycastResult.localId])
         };
+
+        // Attempt to fetch item data (Name, properties) from the fragment model if available
+        let itemAttributes = undefined;
+        try {
+          const model = this.fragments.list.get(raycastResult.fragments.modelId);
+          if (model && typeof model.getItemsData === 'function') {
+            const ids = [...modelIdMap[raycastResult.fragments.modelId]];
+            if (ids.length > 0) {
+              const res = await model.getItemsData(ids);
+              if (res && res.length > 0) itemAttributes = res[0];
+            }
+          }
+        } catch (e) {
+          console.warn('[FragmentViewer] getItemsData failed', e);
+        }
+
+        // Attach attributes to selectionResult for UI consumption
+        selectionResult.attributes = itemAttributes;
+
+        // Debug log selection (modelId, localId, attributes)
+        console.log('[FragmentViewer] selection', selectionResult.modelId, selectionResult.localId, selectionResult.attributes);
+
+
+
+        // Attempt to fetch item data (Name, properties) from the fragment model if available
+        let itemAttributes: any = undefined;
+        try {
+          const model = this.fragments.list.get(raycastResult.fragments.modelId);
+          if (model && typeof model.getItemsData === 'function') {
+            const ids = [...modelIdMap[raycastResult.fragments.modelId]];
+            if (ids.length > 0) {
+              const res = await model.getItemsData(ids);
+              if (res && res.length > 0) itemAttributes = res[0];
+            }
+          }
+        } catch (e) {
+          console.warn('[FragmentViewer] getItemsData failed', e);
+        }
+
+        // Attach attributes to selectionResult for UI consumption
+        selectionResult.attributes = itemAttributes;
 
         // Use fragments.highlight per official ThatOpen example
         // REFERENCE: https://raw.githubusercontent.com/ThatOpen/engine_components/main/packages/core/src/core/Raycasters/example.ts

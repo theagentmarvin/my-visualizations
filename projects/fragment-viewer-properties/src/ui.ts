@@ -50,7 +50,7 @@ export class PropertiesUI {
   /**
    * Populate the properties table with element data
    */
-  public populate(element: THREE.Object3D, instanceId?: number): void {
+  public populate(element: THREE.Object3D, instanceId?: number, attributes?: any): void {
     const properties = this.extractProperties(element, instanceId);
     this.renderProperties(properties);
   }
@@ -58,11 +58,11 @@ export class PropertiesUI {
   /**
    * Extract properties from a Three.js object
    */
-  private extractProperties(object: THREE.Object3D, instanceId?: number): PropertyRow[] {
+  private extractProperties(object: THREE.Object3D, instanceId?: number, attributes?: any): PropertyRow[] {
     const rows: PropertyRow[] = [];
 
     // Basic properties
-    rows.push({ key: "Name", value: object.name || "Unnamed", category: "General" });
+    rows.push({ key: "Name", value: (attributes && attributes.Name && attributes.Name.value) ? attributes.Name.value : (object.name || "Unnamed"), category: "General" });
     rows.push({ key: "Type", value: object.type, category: "General" });
     rows.push({ key: "UUID", value: object.uuid, category: "General" });
     
@@ -137,6 +137,20 @@ export class PropertiesUI {
         } else if (value !== null && typeof value === "object") {
           rows.push({ key, value: JSON.stringify(value), category: "Custom" });
         }
+      }
+    }
+
+    // Item attributes from fragments model (if provided)
+    if (attributes && typeof attributes === 'object') {
+      for (const [k,v] of Object.entries(attributes)) {
+        try {
+          const val = (v && typeof v === 'object' && 'value' in v) ? v.value : v;
+          if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+            rows.push({ key: k, value: val, category: 'Attributes' });
+          } else if (val !== null && typeof val === 'object') {
+            rows.push({ key: k, value: JSON.stringify(val), category: 'Attributes' });
+          }
+        } catch (e) { }
       }
     }
 

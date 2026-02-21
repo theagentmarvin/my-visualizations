@@ -32,7 +32,7 @@ async function init(): Promise<void> {
     // Set up selection handler
     viewer.onElementSelected = (result: SelectionResult | null) => {
       if (result) {
-        propertiesUI.populate(result.object, result.instanceId);
+        propertiesUI.populate(result.object, result.instanceId, result.attributes);
       } else {
         propertiesUI.clear();
       }
