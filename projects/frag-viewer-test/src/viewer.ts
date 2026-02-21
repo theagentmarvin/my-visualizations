@@ -86,20 +86,58 @@ export class FragmentViewer {
     // Get FragmentsManager
     this.fragments = this.components.get(OBC.FragmentsManager);
 
+    // IMPORTANT: initialize fragments worker before using fragments API
+    try {
+      const githubUrl = "https://thatopen.github.io/engine_fragment/resources/worker.mjs";
+      const fetchedUrl = await fetch(githubUrl);
+      const workerBlob = await fetchedUrl.blob();
+      const workerFile = new File([workerBlob], "worker.mjs", { type: "text/javascript" });
+      const workerUrl = URL.createObjectURL(workerFile);
+
+      // Await init and ensure core exists (defensive)
+      if (typeof (this.fragments as any).init === 'function') {
+        await (this.fragments as any).init(workerUrl);
+        const start = Date.now();
+        while (!((this.fragments as any)?.core)) {
+          if (Date.now() - start > 10000) {
+            console.warn('[FragmentViewer] fragments.init timeout - core not available');
+            break;
+          }
+          // small delay
+          // eslint-disable-next-line no-await-in-loop
+          await new Promise((r) => setTimeout(r, 50));
+        }
+      }
+    } catch (e) {
+      console.warn('[FragmentViewer] fragments worker init failed', e);
+    }
+
     // Set up camera update for culling/LOD - use local camera var
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (camera as any).controls.addEventListener("update", () => {
-      this.fragments.core.update();
+      try {
+        if (this.fragments?.core && typeof this.fragments.core.update === 'function') {
+          this.fragments.core.update();
+        }
+      } catch (err) {
+        console.warn('[FragmentViewer] fragments.core.update failed', err);
+      }
     });
 
     // Handle model loading - use local camera var
-    this.fragments.list.onItemSet.add(({ value: model }) => {
-      console.log(`[Model Loaded] ${model.modelId}`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      model.useCamera((camera as any).three);
-      this.world.scene.three.add(model.object);
-      this.fragments.core.update(true);
-    });
+    if (this.fragments && this.fragments.list && this.fragments.list.onItemSet) {
+      this.fragments.list.onItemSet.add(({ value: model }) => {
+        try {
+          console.log(`[Model Loaded] ${model.modelId}`);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          if (typeof model.useCamera === 'function') model.useCamera((camera as any).three);
+          if (model && model.object) this.world.scene.three.add(model.object);
+          if (this.fragments?.core && typeof this.fragments.core.update === 'function') this.fragments.core.update(true);
+        } catch (e) {
+          console.warn('[FragmentViewer] onItemSet handler failed', e);
+        }
+      });
+    }
 
     // Set up highlighter
     this.highlighter = this.components.get(OBCF.Highlighter);
