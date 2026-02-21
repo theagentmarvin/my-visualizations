@@ -36,11 +36,13 @@ html, body {
   height: 100vh;
 }
 
-/* Viewer Container - Top 50% - matches bim-viewer container */
+/* Viewer Container - increased flex so viewer keeps more vertical space */
 .viewer-container {
   position: relative;
-  flex: 1;
-  min-height: 50%;
+  /* Give the viewer more weight so it doesn't get squashed by the table */
+  flex: 2;
+  /* Ensure a reasonable minimum height on small viewports */
+  min-height: 40vh;
   /* Matches bim-viewer background */
   background: #1a1a1a;
   overflow: hidden;
