@@ -230,29 +230,6 @@ export class FragmentViewer {
         };
 
         // Attempt to fetch item data (Name, properties) from the fragment model if available
-        let itemAttributes = undefined;
-        try {
-          const model = this.fragments.list.get(raycastResult.fragments.modelId);
-          if (model && typeof model.getItemsData === 'function') {
-            const ids = [...modelIdMap[raycastResult.fragments.modelId]];
-            if (ids.length > 0) {
-              const res = await model.getItemsData(ids);
-              if (res && res.length > 0) itemAttributes = res[0];
-            }
-          }
-        } catch (e) {
-          console.warn('[FragmentViewer] getItemsData failed', e);
-        }
-
-        // Attach attributes to selectionResult for UI consumption
-        selectionResult.attributes = itemAttributes;
-
-        // Debug log selection (modelId, localId, attributes)
-        console.log('[FragmentViewer] selection', selectionResult.modelId, selectionResult.localId, selectionResult.attributes);
-
-
-
-        // Attempt to fetch item data (Name, properties) from the fragment model if available
         let itemAttributes: any = undefined;
         try {
           const model = this.fragments.list.get(raycastResult.fragments.modelId);
