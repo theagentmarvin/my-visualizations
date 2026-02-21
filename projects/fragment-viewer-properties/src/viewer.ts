@@ -425,14 +425,29 @@ export class FragmentViewer {
     }
 
     // Fit camera to scene after loading - matches bim-viewer
+    // Collect meshes robustly across engine versions
     const meshes: THREE.Mesh[] = [];
-    this.fragments.groups.forEach((group) => {
-      group.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          meshes.push(child);
-        }
+
+    if (this.fragments && (this.fragments as any).groups && typeof (this.fragments as any).groups.forEach === 'function') {
+      (this.fragments as any).groups.forEach((group: any) => {
+        group.traverse((child: any) => {
+          if (child instanceof THREE.Mesh) {
+            meshes.push(child);
+          }
+        });
       });
-    });
+    } else if (this.fragments && this.fragments.list) {
+      for (const [, model] of this.fragments.list) {
+        const obj = (model as any).object ?? (model as any).group ?? model;
+        if (obj && obj.traverse) {
+          obj.traverse((child: any) => {
+            if (child instanceof THREE.Mesh) meshes.push(child);
+          });
+        }
+      }
+    } else {
+      console.warn('[FragmentViewer] No fragments.groups or fragments.list available to collect meshes');
+    }
 
     if (meshes.length > 0) {
       await this.world.camera.fit(meshes, 0.5);
