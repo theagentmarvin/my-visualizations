@@ -32,6 +32,8 @@ jobs:
 
       - name: Build fragment-viewer-properties
         working-directory: ./projects/fragment-viewer-properties
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: npm run build
 
       - name: Copy build output to dist
