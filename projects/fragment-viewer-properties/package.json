@@ -1,0 +1,25 @@
+{
+  "name": "fragment-viewer-properties",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Fragment viewer with properties table - auto-loads models on page open",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@thatopen/components": "^3.3.2",
+    "@thatopen/components-front": "^3.3.1",
+    "@thatopen/fragments": "~3.3.4",
+    "@thatopen/ui": "^3.3.3",
+    "stats.js": "^0.17.0",
+    "three": "^0.182.0",
+    "web-ifc": "^0.0.75"
+  },
+  "devDependencies": {
+    "@types/three": "^0.182.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.11"
+  }
+}

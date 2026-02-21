@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fragment Viewer + Properties</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <div id="viewer-container" class="viewer-container">
+      <canvas id="viewer-canvas"></canvas>
+      <div id="loading-indicator" class="loading-indicator">
+        <div class="spinner"></div>
+        <span>Loading fragment models...</span>
+      </div>
+    </div>
+    <div class="properties-container">
+      <div class="properties-header">
+        <h2>Properties</h2>
+        <span id="selection-info" class="selection-info">Click an element to view properties</span>
+      </div>
+      <div id="properties-table-container" class="properties-table-container">
+        <table id="properties-table" class="properties-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody id="properties-tbody">
+            <!-- Properties will be populated here -->
+          </tbody>
+        </table>
+        <div id="empty-state" class="empty-state">
+          <p>No element selected</p>
+          <p class="hint">Click on any element in the 3D view to see its properties</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
