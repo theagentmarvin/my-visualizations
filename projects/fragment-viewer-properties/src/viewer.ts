@@ -376,27 +376,54 @@ export class FragmentViewer {
    */
   public async loadFragments(urls: string[]): Promise<void> {
     console.log("[FragmentViewer] Loading fragment models...", urls);
-    
+
     for (const path of urls) {
       const modelId = path.split("/").pop()?.split(".").shift();
       if (!modelId) continue;
-      
+
       console.log(`[Loading] ${modelId} from ${path}`);
       const file = await fetch(path);
       const buffer = await file.arrayBuffer();
       const data = new Uint8Array(buffer);
-      
-      // Use fragments.load() - matches bim-viewer canonical implementation
-      const group = this.fragments.load(data, {
-        name: modelId,
-        coordinate: true,
-      });
-      
-      // Add to scene - matches bim-viewer
-      this.world.scene.three.add(group);
-      console.log(`[Loaded] ${modelId}`, group);
+
+      // Try the modern fragments.load API if available (some engine versions)
+      try {
+        if (typeof (this.fragments as any).load === 'function') {
+          const group = (this.fragments as any).load(data, {
+            name: modelId,
+            coordinate: true,
+          });
+          // fragments.load may return a Group synchronously or a Promise
+          if (group && typeof group.then === 'function') {
+            const resolved = await group;
+            this.world.scene.three.add(resolved);
+            console.log(`[Loaded] ${modelId} (async group)`);
+          } else {
+            this.world.scene.three.add(group);
+            console.log(`[Loaded] ${modelId} (group)`);
+          }
+          continue;
+        }
+      } catch (e) {
+        console.warn('[FragmentViewer] fragments.load attempt failed, falling back to core.load', e);
+      }
+
+      // Fallback: use fragments.core.load (older API)
+      try {
+        if (this.fragments && (this.fragments as any).core && typeof (this.fragments as any).core.load === 'function') {
+          const model = await (this.fragments as any).core.load(buffer, { modelId });
+          model.useCamera(this.world.camera.three);
+          this.world.scene.three.add(model.object);
+          console.log(`[Loaded] ${modelId} (core.load)`);
+          continue;
+        }
+      } catch (e) {
+        console.warn('[FragmentViewer] fragments.core.load failed', e);
+      }
+
+      console.error('[FragmentViewer] No compatible fragments load API found for', modelId);
     }
-    
+
     // Fit camera to scene after loading - matches bim-viewer
     const meshes: THREE.Mesh[] = [];
     this.fragments.groups.forEach((group) => {
@@ -406,14 +433,13 @@ export class FragmentViewer {
         }
       });
     });
-    
+
     if (meshes.length > 0) {
       await this.world.camera.fit(meshes, 0.5);
     }
-    
+
     console.log("[FragmentViewer] All models loaded!");
   }
-
   public getLoadedModelCount(): number {
     return this.fragments?.list.size ?? 0;
   }
