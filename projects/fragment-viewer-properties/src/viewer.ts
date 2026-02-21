@@ -156,6 +156,37 @@ export class FragmentViewer {
     // Selection handler
     this.setupSelectionHandler();
 
+    // Keep renderer/camera in sync with container size. This fixes
+    // the 'squashed table / distorted viewer' issue when the layout
+    // splits the page (viewer on top, properties below).
+    if (typeof ResizeObserver !== 'undefined') {
+      try {
+        const ro = new ResizeObserver(() => {
+          try {
+            if (this.world?.renderer && typeof (this.world.renderer as any).resize === 'function') {
+              (this.world.renderer as any).resize();
+            }
+          } catch (e) {
+            console.warn('[FragmentViewer] ResizeObserver handler failed', e);
+          }
+        });
+        ro.observe(this.container);
+      } catch (e) {
+        console.warn('[FragmentViewer] Failed to create ResizeObserver', e);
+      }
+    } else {
+      // Fallback: window resize
+      window.addEventListener('resize', () => {
+        try {
+          if (this.world?.renderer && typeof (this.world.renderer as any).resize === 'function') {
+            (this.world.renderer as any).resize();
+          }
+        } catch (e) {
+          console.warn('[FragmentViewer] window.resize handler failed', e);
+        }
+      });
+    }
+
     const [x, y, z, tx, ty, tz] = CONFIG.VIEWER.cameraPosition;
     await this.world.camera.controls.setLookAt(x, y, z, tx, ty, tz);
 
@@ -332,6 +363,15 @@ export class FragmentViewer {
     // Fit camera to scene using adapter
     const meshes = this.adapter.collectMeshes();
     if (meshes.length > 0) {
+      // Ensure renderer size is correct before fitting camera
+      try {
+        if (this.world?.renderer && typeof (this.world.renderer as any).resize === 'function') {
+          (this.world.renderer as any).resize();
+        }
+      } catch (e) {
+        console.warn('[FragmentViewer] renderer.resize failed before camera.fit', e);
+      }
+
       await this.world.camera.fit(meshes, 0.5);
     }
 
