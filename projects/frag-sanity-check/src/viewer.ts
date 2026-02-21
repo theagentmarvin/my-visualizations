@@ -198,3 +198,5 @@ export class FragmentViewer {
     this.components.dispose();
   }
 }
+
+// patch: commit to force new version - 2026-02-21T14:47:27Z
