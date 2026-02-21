@@ -277,6 +277,13 @@ export class FragmentViewer {
     return this.fragments?.list.size ?? 0;
   }
 
+
+
+  // Expose a simple setter so external code (main.ts) can register a callback
+  public set onElementSelected(callback: (result: SelectionResult | null) => void) {
+    this.onElementSelectedCallback = callback;
+  }
+
   public dispose(): void {
     if (this.selectionTimeout) {
       clearTimeout(this.selectionTimeout);
