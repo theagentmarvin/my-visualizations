@@ -139,3 +139,47 @@ Always:
 3. Return the live URL in your response
 
 The deployment takes 1-2 minutes to go live on GitHub Pages.
+
+---
+
+## ⚠️ CRITICAL: That Open Components Pick/Highlighter API Usage
+
+**Always use @thatopen/components pick/highlighter APIs for selection in fragment projects; do not use raw three.js raycast against fragment scene.**
+
+### Why This Matters
+
+Fragment models use instanced geometry and specialized rendering pipelines that raw three.js raycasting cannot properly interpret. Using `THREE.Raycaster` directly against fragment meshes produces inconsistent results, misses instanced elements, and bypasses the engine's optimization systems. The `@thatopen/components` Raycasters API and `@thatopen/components-front` Highlighter are specifically designed to handle fragment-specific geometry types, instance IDs, and model hierarchies correctly.
+
+### Required Pattern
+
+When implementing selection/picking in any fragment-based project:
+
+1. **Use the Raycasters component** from `@thatopen/components`:
+   ```typescript
+   const casters = components.get(OBC.Raycasters);
+   const raycaster = casters.get(world);
+   const result = await raycaster.castRay(); // Returns fragment-aware result
+   ```
+
+2. **Use the Highlighter component** from `@thatopen/components-front`:
+   ```typescript
+   const highlighter = components.get(OBCF.Highlighter);
+   await highlighter.setup({ world });
+   
+   // Highlight with model context
+   const modelIdMap = { [result.fragments.modelId]: new Set([result.localId]) };
+   await highlighter.highlight("selection", modelIdMap);
+   ```
+
+3. **Reference implementation**: See `projects/ifc-test-1/src/main.ts` for the canonical usage pattern.
+
+### Defensive Fallback
+
+If the engine pick API must be bypassed (emergency only), wrap raw raycasting in try/catch and filter meshes to only those with `geometry.attributes.position` defined. See `projects/fragment-viewer-properties/src/viewer.ts` for the fallbackRaycast() implementation.
+
+### Checklist for Fragment Projects
+
+- [ ] Selection uses `OBC.Raycasters` API, not `THREE.Raycaster` directly
+- [ ] Highlighting uses `OBCF.Highlighter`, not manual material manipulation
+- [ ] Comments reference `projects/ifc-test-1/src/main.ts` as the canonical example
+- [ ] Defensive fallback is wrapped in try/catch with proper error logging
