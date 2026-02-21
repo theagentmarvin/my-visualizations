@@ -1,19 +1,12 @@
 /**
  * Viewer module - 3D fragment viewer using That Open Components
  * 
+ * REFERENCE: Raycasters implementation based on ThatOpen official example:
+ *   - https://raw.githubusercontent.com/ThatOpen/engine_components/main/packages/core/src/core/Raycasters/example.ts
+ * 
  * Aligned with canonical viewer implementation from:
  *   - my-visualizations/projects/bim-viewer/index.html (renderer, camera, scene setup)
  *   - my-visualizations/projects/bim-mobile-viewer/index.html (highlighter setup)
- * 
- * REFERENCE: This implementation matches the canonical bim-viewer project in:
- *   - World/scene initialization
- *   - Renderer configuration
- *   - Camera setup and initial position
- *   - Grid and environment
- *   - Fragment loading approach
- * 
- * SELECTION FIX PRESERVED: Uses OBC Raycasters + OBCF Highlighter
- * as the primary selection method (from ifc-test-1 project).
  */
 
 import * as THREE from "three";
@@ -37,25 +30,26 @@ export interface SelectionResult {
 
 export interface ViewerAPI {
   components: OBC.Components;
-  world: OBC.World<OBC.SimpleScene, OBC.OrthoPerspectiveCamera, OBC.SimpleRenderer>;
+  world: OBC.World;
   fragments: OBC.FragmentsManager;
   highlighter: OBCF.Highlighter;
-  raycaster: OBC.Raycaster;
+  raycaster: OBC.SimpleRaycaster;
   container: HTMLElement;
   onElementSelected: (result: SelectionResult | null) => void;
 }
 
 export class FragmentViewer {
   public components!: OBC.Components;
-  public world!: OBC.World<OBC.SimpleScene, OBC.OrthoPerspectiveCamera, OBC.SimpleRenderer>;
+  public world!: OBC.World;
   public fragments!: OBC.FragmentsManager;
   public highlighter!: OBCF.Highlighter;
-  public raycaster!: OBC.Raycaster;
+  public raycaster!: OBC.SimpleRaycaster;
   public container: HTMLElement;
   
   // Fallback raycaster for defensive programming
   private fallbackRaycaster: THREE.Raycaster;
   private mouse: THREE.Vector2;
+  private highlightColor: THREE.Color;
   
   private onElementSelectedCallback: ((result: SelectionResult | null) => void) | null = null;
   private selectionTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -69,6 +63,7 @@ export class FragmentViewer {
     this.container = container;
     this.fallbackRaycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
+    this.highlightColor = new THREE.Color(CONFIG.SELECTION.highlightColor);
   }
 
   public async initialize(): Promise<void> {
@@ -79,11 +74,7 @@ export class FragmentViewer {
 
     // Setup world - matches bim-viewer pattern
     const worlds = this.components.get(OBC.Worlds);
-    this.world = worlds.create<
-      OBC.SimpleScene,
-      OBC.OrthoPerspectiveCamera,
-      OBC.SimpleRenderer
-    >();
+    this.world = worlds.create();
 
     // Scene setup - matches bim-viewer exactly
     this.world.scene = new OBC.SimpleScene(this.components);
@@ -105,7 +96,7 @@ export class FragmentViewer {
       this.components.get(OBC.Grids).create(this.world);
     }
 
-    // Get FragmentsManager - matches bim-viewer (no worker URL needed for basic loading)
+    // Get FragmentsManager - matches bim-viewer
     this.fragments = this.components.get(OBC.FragmentsManager);
 
     // Set up camera update for culling/LOD
@@ -121,15 +112,16 @@ export class FragmentViewer {
       this.fragments.core.update(true);
     });
 
-    // Set up highlighter (from components-front) - selection fix preserved
+    // Set up highlighter (from components-front) - for non-fragment highlighting if needed
     this.highlighter = this.components.get(OBCF.Highlighter);
     await this.highlighter.setup({ world: this.world });
 
-    // Set up raycaster (from components) for proper fragment picking - selection fix preserved
+    // Set up raycaster (from components) for proper fragment picking
+    // REFERENCE: https://raw.githubusercontent.com/ThatOpen/engine_components/main/packages/core/src/core/Raycasters/example.ts
     const casters = this.components.get(OBC.Raycasters);
     this.raycaster = casters.get(this.world);
 
-    // Set up click handler for selection - selection fix preserved
+    // Set up click handler for selection
     this.setupSelectionHandler();
 
     // Set initial camera position - matches bim-viewer exactly
@@ -137,7 +129,7 @@ export class FragmentViewer {
     await this.world.camera.controls.setLookAt(x, y, z, tx, ty, tz);
 
     this.isInitialized = true;
-    console.log("[FragmentViewer] Initialized - aligned with bim-viewer canonical implementation");
+    console.log("[FragmentViewer] Initialized - using OBC Raycasters (example.ts pattern)");
   }
 
   private setupSelectionHandler(): void {
@@ -163,9 +155,9 @@ export class FragmentViewer {
     let selectionResult: SelectionResult | null = null;
 
     try {
-      // PRIMARY METHOD: Use engine's pick API (handles instanced geometry correctly)
-      // This is the selection fix from ifc-test-1 project
-      const raycastResult = await this.raycaster.castRay();
+      // PRIMARY METHOD: Use OBC Raycasters per official example
+      // REFERENCE: https://raw.githubusercontent.com/ThatOpen/engine_components/main/packages/core/src/core/Raycasters/example.ts
+      const raycastResult = (await this.raycaster.castRay()) as any;
       
       if (raycastResult) {
         selectionResult = {
@@ -176,17 +168,31 @@ export class FragmentViewer {
           fragments: raycastResult.fragments,
         };
 
-        // Highlight using Highlighter API with model context - selection fix preserved
+        // The modelIdMap is how selections are represented in the engine.
+        // The keys are modelIds, while the values are sets of localIds (items within the model)
         const modelIdMap: OBC.ModelIdMap = {
           [raycastResult.fragments.modelId]: new Set([raycastResult.localId])
         };
-        await this.highlighter.highlight("selection", modelIdMap);
+
+        // Use fragments.highlight per official ThatOpen example
+        // REFERENCE: https://raw.githubusercontent.com/ThatOpen/engine_components/main/packages/core/src/core/Raycasters/example.ts
+        await this.fragments.highlight(
+          {
+            color: this.highlightColor,
+            renderedFaces: FRAGS.RenderedFaces.ONE,
+            opacity: 1,
+            transparent: false,
+          },
+          modelIdMap,
+        );
+
+        await this.fragments.core.update(true);
       } else {
         // No hit - clear selection
-        this.highlighter.clear("selection");
+        await this.clearSelection();
       }
     } catch (error) {
-      console.warn("[FragmentViewer] Engine pick API failed, falling back to raycast:", error);
+      console.warn("[FragmentViewer] castRay() failed, using fallback:", error);
       
       // FALLBACK METHOD: Filtered three.js raycast (defensive)
       selectionResult = await this.fallbackRaycast();
@@ -196,24 +202,51 @@ export class FragmentViewer {
           const modelIdMap: OBC.ModelIdMap = {
             [selectionResult.modelId]: new Set([selectionResult.localId])
           };
-          await this.highlighter.highlight("selection", modelIdMap);
+          
+          await this.fragments.highlight(
+            {
+              color: this.highlightColor,
+              renderedFaces: FRAGS.RenderedFaces.ONE,
+              opacity: 1,
+              transparent: false,
+            },
+            modelIdMap,
+          );
+          
+          await this.fragments.core.update(true);
         } catch (highlightError) {
           console.warn("[FragmentViewer] Fallback highlight failed:", highlightError);
+          this.highlighter.clear("selection");
         }
       } else {
-        this.highlighter.clear("selection");
+        await this.clearSelection();
       }
     }
 
-    // Notify callback
+    // Notify callback with stable selection result
     if (this.onElementSelectedCallback) {
       this.onElementSelectedCallback(selectionResult);
     }
   }
 
   /**
+   * Clear the current selection
+   * Uses fragments.resetHighlight() per official ThatOpen example
+   * REFERENCE: https://raw.githubusercontent.com/ThatOpen/engine_components/main/packages/core/src/core/Raycasters/example.ts
+   */
+  private async clearSelection(): Promise<void> {
+    try {
+      await this.fragments.resetHighlight();
+      await this.fragments.core.update(true);
+    } catch (error) {
+      console.warn("[FragmentViewer] fragments.resetHighlight() failed, falling back to highlighter.clear():", error);
+      this.highlighter.clear("selection");
+    }
+  }
+
+  /**
    * Fallback raycast method using raw three.js
-   * Only used when engine pick API is unavailable
+   * Only used when castRay() is unavailable or throws
    * Filters to only objects with geometry.attributes.position to avoid errors
    */
   private async fallbackRaycast(): Promise<SelectionResult | null> {
