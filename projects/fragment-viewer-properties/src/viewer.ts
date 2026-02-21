@@ -100,6 +100,34 @@ export class FragmentViewer {
     this.fragments = this.components.get(OBC.FragmentsManager);
 
     // Initialize FragmentsManager worker (required before loading/fragments operations)
+    // Mirrors ThatOpen example: fetch worker.mjs and pass URL to fragments.init().
+    // We await here to ensure fragments.core is available before any listeners access it.
+    try {
+      const githubUrl = "https://thatopen.github.io/engine_fragment/resources/worker.mjs";
+      const fetchedUrl = await fetch(githubUrl);
+      const workerBlob = await fetchedUrl.blob();
+      const workerFile = new File([workerBlob], "worker.mjs", {
+        type: "text/javascript",
+      });
+      const workerUrl = URL.createObjectURL(workerFile);
+      await this.fragments.init(workerUrl);
+    } catch (err) {
+      console.warn('[FragmentViewer] Failed to initialize fragments worker:', err);
+      // rethrow so initialization stops and error shows in UI
+      throw err;
+    }
+
+    // Remove z-fighting on materials (same fix used in canonical viewers)
+    this.fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
+      if (!("isLodMaterial" in material && material.isLodMaterial)) {
+        material.polygonOffset = true;
+        material.polygonOffsetUnits = 1;
+        material.polygonOffsetFactor = Math.random();
+      }
+    });
+
+
+    // Initialize FragmentsManager worker (required before loading/fragments operations)
     // Mirrors ThatOpen example: fetch worker.mjs and pass URL to fragments.init()
     try {
       const githubUrl = "https://thatopen.github.io/engine_fragment/resources/worker.mjs";
