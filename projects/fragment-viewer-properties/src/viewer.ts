@@ -98,34 +98,60 @@ export class FragmentViewer {
     // keep fragments reference for legacy usage
     this.fragments = this.adapter.fragments;
 
-    // Remove z-fighting on materials (already handled by adapter/core, keep as safety)
-    this.fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
-      if (!("isLodMaterial" in material && material.isLodMaterial)) {
-        material.polygonOffset = true;
-        material.polygonOffsetUnits = 1;
-        material.polygonOffsetFactor = Math.random();
-      }
-    });
+    // Defensive: ensure fragments.core exists after init
+    if (!this.fragments?.core) {
+      throw new Error('Fragments core not initialized after adapter.init');
+    }
 
-    // Set up camera update for culling/LOD
-    this.world.camera.controls.addEventListener("update", () => {
-      this.fragments.core.update();
-    });
+    // Remove z-fighting on materials (already handled by adapter/core, keep as safety)
+    if (this.fragments.core && this.fragments.core.models && this.fragments.core.models.materials && this.fragments.core.models.materials.list) {
+      this.fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
+        if (!("isLodMaterial" in material && material.isLodMaterial)) {
+          material.polygonOffset = true;
+          material.polygonOffsetUnits = 1;
+          material.polygonOffsetFactor = Math.random();
+        }
+      });
+    }
+
+    // Set up camera update for culling/LOD (guard existence)
+    if (this.world?.camera?.controls && typeof this.world.camera.controls.addEventListener === 'function') {
+      this.world.camera.controls.addEventListener("update", () => {
+        try {
+          if (this.fragments?.core && typeof this.fragments.core.update === 'function') {
+            this.fragments.core.update();
+          }
+        } catch (e) {
+          console.warn('[FragmentViewer] fragments.core.update failed', e);
+        }
+      });
+    }
 
     // Handle model loading - add to scene when loaded (listener kept for core-load compatibility)
-    this.fragments.list.onItemSet.add(({ value: model }) => {
-      model.useCamera(this.world.camera.three);
-      this.world.scene.three.add(model.object);
-      this.fragments.core.update(true);
-    });
+    if (this.fragments.list && this.fragments.list.onItemSet && typeof this.fragments.list.onItemSet.add === 'function') {
+      this.fragments.list.onItemSet.add(({ value: model }) => {
+        try {
+          if (model && typeof model.useCamera === 'function') model.useCamera(this.world.camera.three);
+          if (model && model.object) this.world.scene.three.add(model.object);
+          if (this.fragments?.core && typeof this.fragments.core.update === 'function') this.fragments.core.update(true);
+        } catch (e) {
+          console.warn('[FragmentViewer] onItemSet handler failed', e);
+        }
+      });
+    }
 
     // Highlighter
     this.highlighter = this.components.get(OBCF.Highlighter);
     await this.highlighter.setup({ world: this.world });
 
-    // Raycaster from components
-    const casters = this.components.get(OBC.Raycasters);
-    this.raycaster = casters.get(this.world);
+    // Raycaster from components (guard)
+    try {
+      const casters = this.components.get(OBC.Raycasters);
+      this.raycaster = casters.get(this.world);
+    } catch (e) {
+      console.warn('[FragmentViewer] Failed to get OBC Raycasters, will use fallback', e);
+      // leave this.raycaster undefined; fallbackRaycast will be used
+    }
 
     // Selection handler
     this.setupSelectionHandler();
@@ -156,7 +182,10 @@ export class FragmentViewer {
     let selectionResult: SelectionResult | null = null;
 
     try {
-      const raycastResult = (await this.raycaster.castRay()) as any;
+      let raycastResult: any = null;
+      if (this.raycaster && typeof this.raycaster.castRay === 'function') {
+        raycastResult = (await this.raycaster.castRay()) as any;
+      }
 
       if (raycastResult) {
         selectionResult = {
@@ -189,15 +218,23 @@ export class FragmentViewer {
         console.log('[FragmentViewer] selection', selectionResult.modelId, selectionResult.localId, selectionResult.attributes);
 
         // highlight using adapter
-        await this.adapter.highlight({
-          color: this.highlightColor,
-          renderedFaces: FRAGS.RenderedFaces.ONE,
-          opacity: 1,
-          transparent: false,
-        }, modelIdMap);
+        try {
+          await this.adapter.highlight({
+            color: this.highlightColor,
+            renderedFaces: FRAGS.RenderedFaces.ONE,
+            opacity: 1,
+            transparent: false,
+          }, modelIdMap);
+        } catch (e) {
+          console.warn('[FragmentViewer] adapter.highlight failed', e);
+        }
 
       } else {
-        await this.clearSelection();
+        // use fallback raycast
+        selectionResult = await this.fallbackRaycast();
+        if (!selectionResult) {
+          await this.clearSelection();
+        }
       }
     } catch (error) {
       console.warn("[FragmentViewer] castRay() failed, using fallback:", error);
@@ -217,7 +254,7 @@ export class FragmentViewer {
           }, modelIdMap);
         } catch (highlightError) {
           console.warn("[FragmentViewer] Fallback highlight failed:", highlightError);
-          this.highlighter.clear("selection");
+          try { this.highlighter.clear("selection"); } catch (e) { /* ignore */ }
         }
       } else {
         await this.clearSelection();
@@ -229,12 +266,40 @@ export class FragmentViewer {
     }
   }
 
+  private async fallbackRaycast(): Promise<SelectionResult | null> {
+    try {
+      // Use basic THREE raycast over collected meshes as a fallback
+      this.fallbackRaycaster.setFromCamera(this.mouse, (this.world?.camera as any)?.three);
+      const meshes = this.adapter.collectMeshes();
+      if (!meshes || meshes.length === 0) return null;
+      const intersects = this.fallbackRaycaster.intersectObjects(meshes, true);
+      if (!intersects || intersects.length === 0) return null;
+      const intersect = intersects[0];
+      const obj: any = intersect.object;
+
+      // Best-effort extraction of ids; fill safe defaults if unavailable
+      const localId = (intersect as any).localId ?? -1;
+      const modelId = (obj?.userData?.modelId) ?? '';
+
+      return {
+        object: obj,
+        localId,
+        modelId,
+        instanceId: (intersect as any).instanceId,
+        fragments: this.fragments as any,
+      } as SelectionResult;
+    } catch (e) {
+      console.warn('[FragmentViewer] fallbackRaycast failed', e);
+      return null;
+    }
+  }
+
   private async clearSelection(): Promise<void> {
     try {
       await this.adapter.resetHighlight();
     } catch (error) {
       console.warn("[FragmentViewer] resetHighlight failed, falling back:", error);
-      this.highlighter.clear("selection");
+      try { this.highlighter.clear("selection"); } catch (e) { /* ignore */ }
     }
   }
 
@@ -245,11 +310,11 @@ export class FragmentViewer {
       const modelId = path.split("/").pop()?.split(".").shift();
       if (!modelId) continue;
       console.log(`[Loading] ${modelId} from ${path}`);
-      const file = await fetch(path);
-      const buffer = await file.arrayBuffer();
-      const data = new Uint8Array(buffer);
-
       try {
+        const file = await fetch(path);
+        const buffer = await file.arrayBuffer();
+        const data = new Uint8Array(buffer);
+
         const res = await this.adapter.load(data, { modelId });
         if (res.group) {
           this.world.scene.three.add(res.group);
