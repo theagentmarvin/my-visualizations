@@ -51,7 +51,6 @@ export class PropertiesUI {
    * Populate the properties table with element data
    */
   public populate(element: THREE.Object3D, instanceId?: number, attributes?: any): void {
-    console.log("[PropertiesUI] populate called", element, instanceId, attributes);
     const properties = this.extractProperties(element, instanceId, attributes);
     this.renderProperties(properties);
   }

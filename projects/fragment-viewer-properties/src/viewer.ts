@@ -185,7 +185,7 @@ export class FragmentViewer {
 
         selectionResult.attributes = itemAttributes;
 
-        // Debug (kept intentionally): selection details
+        // Debug: selection details
         console.log('[FragmentViewer] selection', selectionResult.modelId, selectionResult.localId, selectionResult.attributes);
 
         // highlight using adapter

@@ -29,10 +29,6 @@ async function init(): Promise<void> {
     const propertiesUI = new PropertiesUI();
     propertiesUI.clear();
 
-    // expose to window for runtime debugging (dev-only)
-    (window as any).__propertiesUI = propertiesUI;
-    (window as any).__viewer = viewer;
-
     // Set up selection handler
     viewer.onElementSelected = (result: SelectionResult | null) => {
       // Expose viewer & UI for runtime inspection (dev only)
