@@ -9,10 +9,10 @@ declare global {
   }
 }
 
-// Canonical sample .frag URLs from ThatOpen
+// Use canonical sample .frag URLs and worker from ThatOpen examples
 const MODEL_URLS = {
-  schoolArq: 'https://thatopen.github.io/engine_resources/sample-models/school_arq.frag',
-  schoolStr: 'https://thatopen.github.io/engine_resources/sample-models/school_str.frag',
+  schoolArq: 'https://thatopen.github.io/engine_components/resources/frags/school_arq.frag',
+  schoolStr: 'https://thatopen.github.io/engine_components/resources/frags/school_str.frag',
 };
 
 async function init() {
@@ -23,8 +23,8 @@ async function init() {
 
   const viewer = new FragmentViewer(container);
   
-  // Initialize with worker
-  const workerUrl = 'https://thatopen.github.io/engine_resources/fragments-worker/worker.mjs';
+  // Initialize with canonical worker used in ThatOpen examples
+  const workerUrl = 'https://thatopen.github.io/engine_fragment/resources/worker.mjs';
   await viewer.init(workerUrl);
   
   // Load canonical sample models
