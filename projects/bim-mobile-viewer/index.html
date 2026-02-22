@@ -267,15 +267,16 @@
       color: #fff;
     }
   </style>
-  <!-- Import Map for Three.js and That Open - v2.0.0 for fragments.init() compatibility -->
+  <!-- Import Map for Three.js and That Open - using esm.sh for better resolution -->
   <script type="importmap">
   {
     "imports": {
-      "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.1/examples/jsm/",
-      "@thatopen/components": "https://unpkg.com/@thatopen/components@2.0.0/dist/index.mjs",
-      "@thatopen/ui": "https://unpkg.com/@thatopen/ui@2.0.0/dist/index.js",
-      "stats.js": "https://unpkg.com/stats.js@0.17.0/build/stats.min.js"
+      "three": "https://esm.sh/three@0.160.0",
+      "three/addons/": "https://esm.sh/three@0.160.0/examples/jsm/",
+      "@thatopen/components": "https://esm.sh/@thatopen/components@1.0.0",
+      "@thatopen/ui": "https://esm.sh/@thatopen/ui@1.0.0",
+      "@thatopen/fragments": "https://esm.sh/@thatopen/fragments@2.0.0",
+      "stats.js": "https://esm.sh/stats.js@0.17.0"
     }
   }
   </script>
