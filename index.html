@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Visualizations</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d0d0d;
+      color: #e0e0e0;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+      padding-top: 40px;
+    }
+    
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, #2196F3, #21CBF3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    
+    .subtitle {
+      color: #888;
+      font-size: 1.1rem;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: #2196F3;
+      box-shadow: 0 8px 32px rgba(33, 150, 243, 0.15);
+    }
+    
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    
+    .card-description {
+      font-size: 0.9rem;
+      color: #888;
+      flex-grow: 1;
+    }
+    
+    .card-arrow {
+      align-self: flex-end;
+      color: #2196 font-size: 1.5rem;
+      margin-top: 16px;
+      transition: transform 0.3s easeF3;
+     ;
+    }
+    
+    .card:hover .card-arrow {
+      transform: translateX(4px);
+    }
+    
+    .section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #555;
+      margin-bottom: 16px;
+      margin-top: 40px;
+    }
+    
+    .section-title:first-of-type {
+      margin-top: 0;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 24px 16px;
+      }
+      
+      header {
+        margin-bottom: 40px;
+        padding-top: 24px;
+      }
+      
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      .card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>My Visualizations</h1>
+      <p class="subtitle">Interactive data visualizations and 3D viewers</p>
+    </header>
+
+    <p class="section-title">BIM & 3D Viewers</p>
+    <div class="grid">
+      <a href="projects/bim-mobile-viewer/" class="card">
+        <div class="card-title">BIM Mobile Viewer</div>
+        <div class="card-description">3D BIM model viewer optimized for mobile devices with touch controls and fragment loading</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/bim-itemsfinder/" class="card">
+        <div class="card-title">BIM Items Finder</div>
+        <div class="card-description">Search and find items within BIM models with property inspection capabilities</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/bim-viewer/" class="card">
+        <div class="card-title">BIM Viewer</div>
+        <div class="card-description">Desktop-focused 3D viewer for IFC and BIM files</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/fragment-viewer-properties/" class="card">
+        <div class="card-title">Fragment Viewer Properties</div>
+        <div class="card-description">3D fragment viewer with property inspection and metadata display</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/bim-fragment-viewer/" class="card">
+        <div class="card-title">BIM Fragment Viewer</div>
+        <div class="card-description">High-performance fragment-based BIM model visualization</div>
+        <span class="card-arrow">→</span>
+      </a>
+    </div>
+
+    <p class="section-title">Mining & Resource Data</p>
+    <div class="grid">
+      <a href="projects/mining-mobile-demo-reader/" class="card">
+        <div class="card-title">Mining Mobile Demo Reader</div>
+        <div class="card-description">Mobile-optimized reader for mining data and reports</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/mining-complete-reader/" class="card">
+        <div class="card-title">Mining Complete Reader</div>
+        <div class="card-description">Comprehensive mining data reader with full report access</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/mining-el-salvador-reader/" class="card">
+        <div class="card-title">Mining El Salvador Reader</div>
+        <div class="card-description">Mining data specific to El Salvador operations</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/mining-el-salvador-full/" class="card">
+        <div class="card-title">Mining El Salvador Full</div>
+        <div class="card-description">Complete mining dataset for El Salvador</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/mining-el-salvador-history/" class="card">
+        <div class="card-title">Mining El Salvador History</div>
+        <div class="card-description">Historical mining data and trends for El Salvador</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/mining-full-reader/" class="card">
+        <div class="card-title">Mining Full Reader</div>
+        <div class="card-description">Full-scale mining data visualization and reading</div>
+        <span class="card-arrow">→</span>
+      </a>
+    </div>
+
+    <p class="section-title">Readers & E-Books</p>
+    <div class="grid">
+      <a href="projects/wiki-reader/" class="card">
+        <div class="card-title">Wiki Reader</div>
+        <div class="card-description">Wikipedia content reader with offline capabilities</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/wiki-research-e-reader/" class="card">
+        <div class="card-title">Wiki Research E-Reader</div>
+        <div class="card-description">E-reader optimized for research and wiki content</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/wiki-e-reader-template/" class="card">
+        <div class="card-title">Wiki E-Reader Template</div>
+        <div class="card-description">Template for wiki-based e-reader applications</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/wiki-e-reader-template-v2/" class="card">
+        <div class="card-title">Wiki E-Reader V2</div>
+        <div class="card-description">Updated version of wiki e-reader template</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/chile-coffee-market-2026/" class="card">
+        <div class="card-title">Chile Coffee Market 2026</div>
+        <div class="card-description">Market analysis and visualization for Chile's coffee industry</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/coffee-chile-reader/" class="card">
+        <div class="card-title">Coffee Chile Reader</div>
+        <div class="card-description">Reader for Chile coffee market data and reports</div>
+        <span class="card-arrow">→</span>
+      </a>
+    </div>
+
+    <p class="section-title">Historical & Geographic</p>
+    <div class="grid">
+      <a href="projects/andres-nino-el-salvador-conquista/" class="card">
+        <div class="card-title">El Salvador Conquista</div>
+        <div class="card-description">Historical data about the conquest of El Salvador by Andrés Niño</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/andres-nino-el-salvador-conquista-v2/" class="card">
+        <div class="card-title">El Salvador Conquista V2</div>
+        <div class="card-description">Updated version of El Salvador conquest historical data</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/la-palma-reader/" class="card">
+        <div class="card-title">La Palma Reader</div>
+        <div class="card-description">Content reader for La Palma related data</div>
+        <span class="card-arrow">→</span>
+      </a>
+    </div>
+
+    <p class="section-title">Demos & Tests</p>
+    <div class="grid">
+      <a href="projects/e-reader-test/" class="card">
+        <div class="card-title">E-Reader Test</div>
+        <div class="card-description">Testing e-reader functionality and features</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/e-reader-test-v3/" class="card">
+        <div class="card-title">E-Reader Test V3</div>
+        <div class="card-description">Version 3 of e-reader testing</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/e-reader-test-v4/" class="card">
+        <div class="card-title">E-Reader Test V4</div>
+        <div class="card-description">Version 4 of e-reader testing</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/e-reader-hello-test/" class="card">
+        <div class="card-title">E-Reader Hello Test</div>
+        <div class="card-description">Basic hello-world test for e-reader</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/hello-bim-v3/" class="card">
+        <div class="card-title">Hello BIM V3</div>
+        <div class="card-description">Basic BIM viewer example version 3</div>
+        <span class="card-arrow">→</span>
+      </a>
+    </div>
+
+    <p class="section-title">Tools & Utilities</p>
+    <div class="grid">
+      <a href="projects/property-inspector/" class="card">
+        <div class="card-title">Property Inspector</div>
+        <div class="card-description">Tool for inspecting object properties in 3D scenes</div>
+        <span class="card-arrow">→</span>
+      </a>
+      
+      <a href="projects/itemsfinder-demo/" class="card">
+        <div class="card-title">Items Finder Demo</div>
+        <div class="card-description">Demo application for finding items within models</div>
+        <span class="card-arrow">→</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
