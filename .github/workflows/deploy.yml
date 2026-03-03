@@ -1,0 +1,78 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for fragment-viewer-properties
+        working-directory: ./projects/fragment-viewer-properties
+        run: npm ci
+
+      - name: Build fragment-viewer-properties
+        working-directory: ./projects/fragment-viewer-properties
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
+        run: npm run build
+
+      - name: Copy build output to dist
+        run: |
+          mkdir -p dist/projects/fragment-viewer-properties
+          cp -r projects/fragment-viewer-properties/dist/* dist/projects/fragment-viewer-properties/ || true
+          # Copy other existing project files
+          for dir in projects/*/; do
+            project=$(basename "$dir")
+            if [ "$project" != "fragment-viewer-properties" ]; then
+              if [ -d "$dir/dist" ]; then
+                mkdir -p "dist/projects/$project"
+                cp -r "$dir/dist/"* "dist/projects/$project/" || true
+              elif [ -f "$dir/index.html" ]; then
+                mkdir -p "dist/projects/$project"
+                cp "$dir/"* "dist/projects/$project/" || true
+              fi
+            fi
+          done
+
+      - name: Copy root files
+        run: |
+          cp -r projects dist/ || true
+          cp README.md dist/ || true
+          cp YOUR-URLS.md dist/ || true
+          cp .nojekyll dist/ || true
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

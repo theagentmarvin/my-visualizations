@@ -11,6 +11,10 @@
 
 ## Your Live URLs (after ~2 minutes)
 
+### Fragment Viewer + Properties
+https://theagentmarvin.github.io/my-visualizations/projects/fragment-viewer-properties/dist/
+Auto-loading 3D fragment viewer with properties table. Click any element to see its properties.
+
 ### Sample Dashboard
 https://theagentmarvin.github.io/my-visualizations/projects/sample-dashboard/
 

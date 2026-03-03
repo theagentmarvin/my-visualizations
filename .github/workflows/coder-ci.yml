@@ -1,0 +1,28 @@
+name: Coder PR Checks
+
+on:
+  pull_request:
+    paths:
+      - 'projects/**'
+      - 'skills/**'
+      - 'templates/**'
+      - '.github/workflows/**'
+
+jobs:
+  coder-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run coder-skill checks
+        run: |
+          chmod +x ./skills/coder-skill/scripts/check_pr.sh
+          ./skills/coder-skill/scripts/check_pr.sh

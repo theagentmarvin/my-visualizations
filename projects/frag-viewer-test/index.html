@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#1a1a1a">
+  <title>Fragment Viewer Test</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Viewer Container - Full window -->
+    <div id="viewer-container" class="viewer-container">
+      <div id="loading-indicator" class="loading-indicator">
+        <div class="spinner"></div>
+        <span>Loading models...</span>
+      </div>
+      <div id="error-display" class="error-display"></div>
+      
+      <!-- Properties Toggle Button -->
+      <button id="properties-toggle" class="properties-toggle" aria-expanded="false" aria-controls="properties-panel">
+        Show Properties
+      </button>
+    </div>
+
+    <!-- Properties Panel - Hidden by default, toggleable -->
+    <div id="properties-panel" class="properties-panel" role="region" aria-label="Properties panel">
+      <div class="properties-header">
+        <h2>Properties</h2>
+      </div>
+      <div class="properties-content">
+        <table class="properties-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody id="properties-tbody"></tbody>
+        </table>
+        <div id="empty-state" class="empty-state">
+          <p>No element selected</p>
+          <p class="hint">Click on an element in the 3D view</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
