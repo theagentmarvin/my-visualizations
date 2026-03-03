@@ -60,12 +60,17 @@ const selectionState = {
 
 let updatePanel: () => void;
 
+// Apply initial selection color to the highlighter (if available)
+if (highlighter.styles && highlighter.styles.select) {
+  highlighter.styles.select.color = selectionState.selectionColor;
+}
+
 // ─── 7. Raycasting Event Handler ─────────────────────────────────────────────
 
 container.addEventListener("dblclick", async () => {
   const result = await caster.castRay();
   if (!result) return;
-  
+
   // Highlight using the Highlighter component
   const modelIdMap = { [result.fragments.modelId]: new Set([result.localId]) };
   highlighter.highlight("select", modelIdMap);

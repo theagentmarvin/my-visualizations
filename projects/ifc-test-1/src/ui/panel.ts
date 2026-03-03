@@ -172,7 +172,7 @@ export function createPanel(
             ${exportBtn}
           </bim-panel-section>
 
-          <bim-panel-section label="Selection Controls" ?hidden=${!hasModels}>
+          <bim-panel-section label="Selection Controls" ?hidden=${!hasModels && !currentAttrs}>
             <bim-label>Double Click on element to select/highlight</bim-label>
             <bim-color-input
               label="Highlight Color"
@@ -192,7 +192,7 @@ export function createPanel(
             </bim-button>
           </bim-panel-section>
 
-          <bim-panel-section label="Item Properties" ?hidden=${!hasModels}>
+          <bim-panel-section label="Item Properties" ?hidden=${!hasModels && !currentAttrs}>
             ${propertiesContent}
           </bim-panel-section>
 
