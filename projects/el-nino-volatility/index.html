@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Niño + Geopolitical Volatility: Top 3 Commodity Targets (Apr 2026 – Jan 2027)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --border: #2a2d3a;
+    --text: #e0e3eb;
+    --muted: #8b8fa8;
+    --oil: #f4a261;
+    --coffee: #a8daff;
+    --fert: #81c784;
+    --red: #e76f51;
+    --green: #2a9d8f;
+    --accent: #e9c46a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+  }
+  .card-ticker {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.2rem;
+  }
+  .card-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .card-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .card-change { font-size: 0.8rem; margin-bottom: 0.8rem; }
+  .tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-right: 0.3rem;
+    margin-bottom: 0.3rem;
+  }
+  .tag-el { background: #1d4e7a; color: #a8daff; }
+  .tag-geo { background: #7a2a1d; color: #ffb4a2; }
+  .card p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; margin-top: 0.6rem; }
+  .chart-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .chart-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--accent); }
+  canvas { max-height: 350px; }
+  .drivers { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+  .driver-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem; }
+  .driver h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.6rem; }
+  .driver ul { list-style: none; }
+  .driver li { font-size: 0.82rem; color: var(--muted); padding: 0.25rem 0; padding-left: 1rem; position: relative; }
+  .driver li::before { content: '›'; position: absolute; left: 0; color: var(--accent); }
+  .footer { text-align: center; color: var(--muted); font-size: 0.75rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  @media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; }
+    .driver-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ High-Volatility Commodity Targets</h1>
+  <p>9-Month Horizon: April 2026 – January 2027 &nbsp;|&nbsp; Super El Niño + Gulf Crisis</p>
+</header>
+
+<!-- Asset Cards -->
+<div class="grid">
+  <div class="card">
+    <div class="card-ticker">NYMEX BZ2026 · Crude Oil</div>
+    <div class="card-name" style="color: var(--oil)">Brent Crude Oil</div>
+    <div class="card-price">~$83–126/bbl</div>
+    <div class="card-change" style="color: var(--red)">▲ +95% peak (Feb–Mar 2026)</div>
+    <div>
+      <span class="tag tag-geo">GEOPOLITICAL</span>
+      <span class="tag tag-el">EL NIÑO</span>
+    </div>
+    <p>Direct play on Strait of Hormuz disruption. 15.8 M bbl/day blocked. Reopened Apr 17 but US blockade + conflict unresolved. Physical scarcity premium of $35/bbl above futures.</p>
+  </div>
+  <div class="card">
+    <div class="card-ticker">ICE KC · Coffee Arabica</div>
+    <div class="card-name" style="color: var(--coffee)">Arabica Coffee</div>
+    <div class="card-price">~$2.85–4.23/lb</div>
+    <div class="card-change" style="color: var(--green)">▲ +47% since 2024 lows</div>
+    <div>
+      <span class="tag tag-el">SUPER EL NIÑO</span>
+      <span class="tag tag-geo">BRAZIL DROUGHT</span>
+    </div>
+    <p>Super El Niño drives drought in Brazil (40% of arabica) and below-normal rainfall in Vietnam. Global inventories at 24-year lows. Weather scares can trigger rapid price spikes.</p>
+  </div>
+  <div class="card">
+    <div class="card-ticker">CBOT / Nitrogen Futures · Urea</div>
+    <div class="card-name" style="color: var(--fert)">Nitrogen Fertilizer</div>
+    <div class="card-price">~$350–800/MT</div>
+    <div class="card-change" style="color: var(--red)">▲ +50% since Hormuz closure</div>
+    <div>
+      <span class="tag tag-geo">GEOPOLITICAL</span>
+      <span class="tag tag-el">EL NIÑO</span>
+    </div>
+    <p>24% of global ammonium nitrate transits Hormuz. 41% of Brazil's urea imports at risk. El Niño reduces fertilizer efficiency. Supply squeeze meets peak planting demand.</p>
+  </div>
+</div>
+
+<!-- Volatility Comparison Chart -->
+<div class="chart-section">
+  <div class="chart-title">📊 Volatility Profile Comparison (Simulated 9-Month Price Bands)</div>
+  <canvas id="volChart"></canvas>
+</div>
+
+<!-- Oil Price Timeline -->
+<div class="chart-section">
+  <div class="chart-title">🛢️ Brent Crude: Hormuz Crisis Price Timeline (Jan–Apr 2026)</div>
+  <canvas id="oilChart"></canvas>
+</div>
+
+<!-- Drivers -->
+<div class="drivers">
+  <div class="driver-grid">
+    <div class="driver">
+      <h3 style="color: #a8daff">🌡️ Super El Niño Catalysts</h3>
+      <ul>
+        <li>Drought in Brazil arabica regions ( Minas Gerais)</li>
+        <li>Below-normal rainfall in Vietnam robusta zones</li>
+        <li>Dry conditions in Central America & East Africa</li>
+        <li>Reduced palm oil yields: –10–15% in MY/MY</li>
+        <li>Frost risk in Southern Brazil (Jun–Aug)</li>
+        <li>Reduced fertilizer efficiency in wet soils</li>
+      </ul>
+    </div>
+    <div class="driver">
+      <h3 style="color: #ffb4a2">⚔️ Geopolitical Catalysts</h3>
+      <ul>
+        <li>Strait of Hormuz: 15.8 M bbl/day at risk</li>
+        <li>US–Iran conflict unresolved; blockade ongoing</li>
+        <li>Physical oil scarcity premium: $35/bbl over futures</li>
+        <li>Qatar LNG (22% global) still disrupted</li>
+        <li>Urea fertilizer up 50%; 24% via Hormuz</li>
+        <li>China moves on Scarborough Shoal (South China Sea)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Data sources: Barchart, Kpler, SolAbility, Wikipedia, StoneX, S&P Global, Halderman — April 2026<br>
+  FOR INFORMATION PURPOSES ONLY · Not financial advice
+</div>
+
+<script>
+  // Volatility comparison chart
+  new Chart(document.getElementById('volChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Brent Crude Oil', 'Arabica Coffee', 'Nitrogen Urea'],
+      datasets: [
+        {
+          label: '9M Expected High (sim.)',
+          data: [170, 4.8, 900],
+          backgroundColor: ['rgba(244,162,97,0.7)', 'rgba(168,218,255,0.7)', 'rgba(129,199,132,0.7)'],
+          borderColor: ['#f4a261', '#a8daff', '#81c784'],
+          borderWidth: 2,
+          borderRadius: 6,
+        },
+        {
+          label: '9M Expected Low (sim.)',
+          data: [65, 2.20, 280],
+          backgroundColor: ['rgba(244,162,97,0.2)', 'rgba(168,218,255,0.2)', 'rgba(129,199,132,0.2)'],
+          borderColor: ['#f4a261', '#a8daff', '#81c784'],
+          borderWidth: 2,
+          borderRadius: 6,
+        },
+        {
+          label: 'Current / Reference Price',
+          data: [83, 2.85, 400],
+          backgroundColor: ['#e76f51', '#4fc3f7', '#e57373'],
+          borderColor: '#fff',
+          borderWidth: 0,
+          borderRadius: 4,
+          type: 'scatter',
+          pointStyle: 'rectRot',
+          pointRadius: 10,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: '#8b8fa8', font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + (ctx.dataIndex === 0 ? '/bbl' : ctx.dataIndex === 1 ? '/lb' : '/MT')
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#8b8fa8', font: { size: 11 } }, grid: { color: '#2a2d3a' } },
+        y: {
+          ticks: { color: '#8b8fa8', font: { size: 11 } },
+          grid: { color: '#2a2d3a' },
+          title: { display: true, text: 'Price (USD)', color: '#8b8fa8' }
+        }
+      }
+    }
+  });
+
+  // Oil price timeline
+  new Chart(document.getElementById('oilChart'), {
+    type: 'line',
+    data: {
+      labels: ['Jan 1', 'Feb 1', 'Feb 28', 'Mar 8', 'Mar 30', 'Apr 8', 'Apr 12', 'Apr 17', 'Apr 19'],
+      datasets: [{
+        label: 'Brent ($/bbl)',
+        data: [61, 68, 98, 126, 118, 83, 97, 83, 93],
+        borderColor: '#f4a261',
+        backgroundColor: 'rgba(244,162,97,0.1)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 5,
+        pointBackgroundColor: '#f4a261',
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: '#8b8fa8', font: { size: 11 } } },
+        annotation: {
+          annotations: {
+            line1: {
+              type: 'line',
+              yMin: 100,
+              yMax: 100,
+              borderColor: '#e76f51',
+              borderDash: [5,5],
+              label: { content: 'War begins Feb 28', enabled: true }
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#8b8fa8', font: { size: 10 } }, grid: { color: '#2a2d3a' } },
+        y: {
+          ticks: { color: '#8b8fa8', font: { size: 11 } },
+          grid: { color: '#2a2d3a' },
+          title: { display: true, text: 'Brent Crude ($/bbl)', color: '#8b8fa8' },
+          min: 50, max: 140
+        }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
