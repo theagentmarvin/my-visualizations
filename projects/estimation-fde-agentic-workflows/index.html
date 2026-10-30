@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estimating Model Factory — Interactive Artifact</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D1117;
+  --panel:#161B22;
+  --panel2:#1C2128;
+  --border:#30363D;
+  --text:#E6EDF3;
+  --muted:#8B949E;
+  --cyan:#2DD4BF;
+  --amber:#F59E0B;
+  --purple:#8B5CF6;
+  --red:#EF4444;
+  --green:#22C55E;
+  --slate:#94A3B8;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{color:var(--cyan);text-decoration:none;}
+.mono{font-family:var(--mono);}
+
+nav#topnav{
+  position:sticky;top:0;z-index:1000;
+  display:flex;align-items:center;gap:2px;
+  background:rgba(13,17,23,.82);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 18px;
+  height:52px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+nav#topnav::-webkit-scrollbar{display:none;}
+nav#topnav .brand{
+  font-weight:800;font-size:13px;letter-spacing:.02em;
+  color:var(--text);white-space:nowrap;margin-right:10px;
+}
+nav#topnav .brand span{color:var(--cyan);}
+nav#topnav a.navlink{
+  font-size:12.5px;color:var(--muted);padding:6px 11px;border-radius:7px;
+  white-space:nowrap;transition:all .15s ease;font-weight:500;
+}
+nav#topnav a.navlink:hover{color:var(--text);background:var(--panel2);}
+nav#topnav a.navlink.active{color:var(--cyan);background:rgba(45,212,191,.1);}
+
+main{max-width:1240px;margin:0 auto;padding:0 22px;}
+section{padding:72px 0 28px;scroll-margin-top:64px;}
+.section-kicker{
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:10px;
+}
+.section-title{font-size:clamp(22px,3.2vw,32px);font-weight:800;letter-spacing:-.01em;margin-bottom:8px;}
+.section-sub{color:var(--muted);font-size:15px;max-width:820px;margin-bottom:30px;}
+
+#hero{padding-top:74px;position:relative;}
+#hero .grid{display:grid;grid-template-columns:1.5fr 1fr;gap:34px;align-items:start;}
+.hero-headline{
+  font-size:clamp(28px,4.6vw,46px);font-weight:800;line-height:1.06;
+  letter-spacing:-.02em;margin-bottom:18px;
+}
+.hero-headline .accent{color:var(--cyan);}
+.hero-story{color:#c3ccd6;font-size:15.5px;}
+.hero-story strong{color:var(--text);}
+.hero-story em{color:var(--cyan);font-style:italic;}
+.metric-strip{display:flex;flex-direction:column;gap:14px;}
+.metric{perspective:1000px;cursor:pointer;height:96px;}
+.metric-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.2,.7,.2,1);}
+.metric:hover .metric-inner,.metric.flipped .metric-inner{transform:rotateY(180deg);}
+.metric-face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:12px;border:1px solid var(--border);background:var(--panel);
+  display:flex;align-items:center;justify-content:center;padding:14px 18px;
+}
+.metric-front{flex-direction:column;align-items:flex-start;gap:2px;}
+.metric-back{transform:rotateY(180deg);background:var(--panel2);border-color:var(--cyan);flex-direction:column;gap:4px;text-align:center;}
+.metric-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.metric-nums{display:flex;align-items:baseline;gap:10px;}
+.metric-nums .before{font-size:26px;font-weight:800;color:var(--muted);text-decoration:line-through;text-decoration-color:var(--red);}
+.metric-nums .arrow{color:var(--cyan);font-weight:700;}
+.metric-nums .after{font-size:26px;font-weight:800;color:var(--cyan);}
+.metric-back .m-title{font-weight:700;color:var(--cyan);font-size:14px;}
+.metric-back .m-sub{font-family:var(--mono);font-size:12px;color:var(--text);}
+.scroll-cue{margin-top:40px;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.14em;}
+.scroll-cue .chev{animation:bob 1.6s ease-in-out infinite;font-size:18px;color:var(--cyan);}
+@keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10.5px;
+  font-weight:600;letter-spacing:.04em;padding:3px 9px;border-radius:999px;border:1px solid;
+}
+.badge.green{color:var(--green);border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.1);}
+.badge.red{color:var(--red);border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.1);}
+.badge.amber{color:var(--amber);border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.1);}
+.badge.purple{color:var(--purple);border-color:rgba(139,92,246,.4);background:rgba(139,92,246,.1);}
+.badge.cyan{color:var(--cyan);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.1);}
+.badge.slate{color:var(--slate);border-color:rgba(148,163,184,.35);background:rgba(148,163,184,.1);}
+
+.onto-wrap{display:grid;grid-template-columns:1.35fr 1fr;gap:20px;align-items:start;}
+.graph-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:10px;}
+#onto-svg{width:100%;height:auto;display:block;}
+.legend{display:flex;flex-wrap:wrap;gap:12px;padding:10px 8px 6px;}
+.legend .lg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+.legend .sw{width:11px;height:11px;border-radius:3px;display:inline-block;}
+
+.detail-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;min-height:440px;}
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 8px;}
+.tabs button{
+  flex:1;background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:11.5px;
+  padding:12px 6px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;
+}
+.tabs button:hover{color:var(--text);}
+.tabs button.active{color:var(--cyan);border-bottom-color:var(--cyan);}
+#json-toggle{
+  background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);
+  font-size:10.5px;padding:4px 9px;border-radius:7px;cursor:pointer;margin:8px;transition:all .15s;
+}
+#json-toggle.on{color:var(--cyan);border-color:var(--cyan);background:rgba(45,212,191,.08);}
+.panel-body{flex:1;overflow:auto;max-height:520px;padding:12px;}
+.node-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.node-chip{
+  background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:7px 9px;
+  cursor:pointer;transition:all .14s;font-size:12px;color:var(--text);text-align:left;
+  font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.node-chip:hover{border-color:var(--muted);}
+.node-chip.selected{border-color:var(--cyan);background:rgba(45,212,191,.08);}
+.detail-block{margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
+.detail-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:10px;}
+.detail-head h4{font-size:15px;font-weight:700;font-family:var(--mono);}
+.prop-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;}
+.prop-table th,.prop-table td{text-align:left;padding:5px 7px;border-bottom:1px solid var(--border);vertical-align:top;}
+.prop-table th{color:var(--muted);font-weight:500;font-size:10px;letter-spacing:.06em;text-transform:uppercase;}
+.prop-table td.key{color:var(--cyan);white-space:nowrap;}
+.prop-table td.type{color:var(--muted);font-size:10px;}
+.example-box{
+  background:#0A0E14;border:1px solid var(--border);border-radius:8px;padding:10px 12px;
+  font-family:var(--mono);font-size:11.5px;color:#b7f5ec;line-height:1.7;margin-top:8px;word-break:break-word;
+}
+.empty-note{color:var(--muted);font-size:13px;text-align:center;padding:34px 12px;}
+.link-list{display:flex;flex-direction:column;gap:7px;}
+.link-row{
+  background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;
+  font-family:var(--mono);font-size:11.5px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;
+}
+.link-row .n{color:var(--cyan);}
+.link-row .verb{color:var(--amber);font-weight:600;}
+.link-row .cardn{color:var(--muted);font-size:10.5px;margin-left:auto;}
+pre.schema{
+  background:#0A0E14;border:1px solid var(--border);border-radius:8px;padding:12px;
+  font-family:var(--mono);font-size:11px;line-height:1.55;color:#b7f5ec;overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+
+.episodes{display:flex;flex-direction:column;gap:22px;}
+.episode-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px;overflow:hidden;}
+.ep-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.ep-head .ep-letter{
+  width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-family:var(--mono);font-size:14px;background:var(--panel2);border:1px solid var(--border);color:var(--cyan);
+}
+.ep-head h3{font-size:17px;font-weight:700;}
+.ep-badges{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;}
+.ep-stage-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px;}
+.stage{
+  border-radius:12px;border:1px solid var(--border);padding:13px;background:var(--panel2);
+  transition:all .35s ease;opacity:.42;transform:translateY(4px);
+}
+.stage.active{opacity:1;transform:none;box-shadow:0 0 0 1px var(--stagec,var(--cyan));}
+.stage .stage-title{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  font-weight:600;margin-bottom:10px;
+}
+.stage.context .stage-title{color:var(--cyan);}
+.stage.action .stage-title{color:var(--slate);}
+.stage.outcome.good .stage-title{color:var(--green);}
+.stage.outcome.bad .stage-title{color:var(--red);}
+.field{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;}
+.field .ft{
+  font-family:var(--mono);font-size:10px;color:var(--stagec,var(--cyan));letter-spacing:.02em;
+  background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:5px;padding:2px 6px;align-self:flex-start;
+}
+.field .fv{font-size:12.8px;color:var(--text);}
+.ep-note{
+  border-radius:10px;padding:10px 13px;font-size:13px;margin-bottom:14px;
+  background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);color:#f5d9a8;
+}
+.ep-note.red{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3);color:#f5b9b9;}
+.ep-note.purple{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.3);color:#d6c3fa;}
+.ep-note.green{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3);color:#b5e8c5;}
+.slider-row{display:flex;align-items:center;gap:12px;}
+.slider-row .stage-ind{
+  font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;display:flex;gap:6px;
+}
+.slider-row .stage-ind b{color:var(--text);font-weight:600;}
+.slider-row .stage-ind .s{opacity:.35;}
+.slider-row .stage-ind .s.on{opacity:1;color:var(--cyan);}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;flex:1;height:6px;border-radius:6px;
+  background:var(--border);outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--cyan);border:3px solid #0D1117;box-shadow:0 0 0 1.5px var(--cyan);cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{
+  width:16px;height:16px;border-radius:50%;background:var(--cyan);border:3px solid #0D1117;cursor:pointer;
+}
+
+.legend-bar{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:20px;font-size:12px;color:var(--muted);}
+.legend-bar .lg{display:flex;align-items:center;gap:6px;}
+.legend-bar .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.pipeline{display:flex;align-items:stretch;gap:8px;overflow-x:auto;padding:10px 4px 18px;}
+.pipeline::-webkit-scrollbar{height:8px;}
+.pipeline::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+.agent{
+  min-width:210px;max-width:230px;flex:1 0 210px;background:var(--panel);border:1px solid var(--border);
+  border-radius:13px;padding:14px;display:flex;flex-direction:column;gap:10px;
+}
+.agent .a-head{display:flex;align-items:center;gap:8px;}
+.agent .a-num{
+  width:24px;height:24px;border-radius:7px;background:var(--panel2);border:1px solid var(--border);
+  color:var(--cyan);font-family:var(--mono);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.agent .a-head h4{font-size:14px;font-weight:700;line-height:1.2;}
+.agent .io{margin:0;}
+.agent .io .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--muted);display:block;margin:6px 0 4px;text-transform:uppercase;}
+.agent .chips{display:flex;flex-wrap:wrap;gap:4px;}
+.agent .chip{
+  font-family:var(--mono);font-size:9.5px;background:var(--panel2);border:1px solid var(--border);
+  border-radius:5px;padding:2px 6px;color:var(--text);
+}
+.agent .chip.in{color:var(--cyan);border-color:rgba(45,212,191,.3);}
+.agent .chip.out{color:var(--green);border-color:rgba(34,197,94,.3);}
+.agent .a-actions{font-size:11.8px;color:var(--muted);margin:0;}
+.gate-col{display:flex;align-items:center;flex-shrink:0;position:relative;}
+.gate-diamond{
+  width:44px;height:44px;background:rgba(245,158,11,.12);border:1.5px solid var(--amber);
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);cursor:pointer;transition:all .18s ease;
+  position:relative;display:flex;align-items:center;justify-content:center;
+}
+.gate-diamond:hover{background:rgba(245,158,11,.28);transform:scale(1.1);}
+.gate-diamond::after{
+  content:"GATE";color:var(--amber);font-family:var(--mono);font-size:8.5px;font-weight:600;letter-spacing:.04em;
+}
+.gate-label{position:absolute;width:120px;left:50%;transform:translateX(-50%);bottom:-20px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--muted);}
+
+.factory-wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;align-items:center;}
+#factory-svg{width:100%;height:auto;display:block;}
+.factory-side{display:flex;flex-direction:column;gap:16px;}
+.mix-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.mix-card h4{font-size:14px;margin-bottom:12px;}
+.mix-row{display:flex;align-items:center;gap:9px;margin-bottom:8px;font-size:13px;}
+.mix-row .sw{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+.mix-row .pct{font-family:var(--mono);font-weight:600;margin-left:auto;}
+.mix-note{font-size:12px;color:var(--muted);margin-top:12px;border-top:1px solid var(--border);padding-top:10px;}
+.hint{font-size:12px;color:var(--muted);text-align:center;font-family:var(--mono);}
+
+.counter-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px;}
+.counter{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
+.counter .c-val{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--cyan);}
+.counter .c-label{font-size:11px;color:var(--muted);margin-top:3px;}
+.gantt-track{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:34px 16px 22px;margin-bottom:18px;}
+.gantt-ruler{position:relative;height:74px;margin-bottom:8px;}
+.gantt-ruler .rline{position:absolute;top:56px;left:0;right:0;height:2px;background:var(--border);}
+.gantt-ruler .rtick{position:absolute;top:48px;font-family:var(--mono);font-size:9.5px;color:var(--muted);transform:translateX(-50%);}
+.phase-bar{position:absolute;top:46px;height:22px;border-radius:5px;opacity:.85;}
+.phase-bar.p1{left:0%;width:33.3%;background:rgba(45,212,191,.18);border:1px solid rgba(45,212,191,.5);}
+.phase-bar.p2{left:33.3%;width:34.4%;background:rgba(245,158,11,.16);border:1px solid rgba(245,158,11,.5);}
+.phase-bar.p3{left:67.7%;width:32.3%;background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.55);}
+.phase-bar .plabel{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;}
+.flag{position:absolute;top:8px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;cursor:default;}
+.flag .fmark{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:9px solid var(--amber);}
+.flag .flabel{font-family:var(--mono);font-size:8.5px;color:var(--muted);white-space:nowrap;margin-top:3px;max-width:92px;text-align:center;}
+.flag.f2 .fmark{border-top-color:var(--cyan);}
+.flag.f3 .fmark{border-top-color:var(--purple);}
+.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
+.phase{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.phase h4{font-size:13.5px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.phase .days{font-family:var(--mono);font-size:10.5px;color:var(--cyan);}
+.phase p.goal{font-size:12.5px;color:var(--muted);margin-bottom:12px;}
+.friction-pair{display:flex;flex-direction:column;gap:8px;}
+.friction,.fde-move{border-radius:10px;padding:10px 12px;font-size:12.3px;}
+.friction{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);}
+.friction .flbl,.fde-move .flbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px;font-weight:600;}
+.friction .flbl{color:var(--red);}
+.fde-move{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);}
+.fde-move .flbl{color:var(--green);}
+.cta{
+  margin-top:26px;text-align:center;padding:26px 20px;border-radius:16px;
+  background:linear-gradient(135deg,rgba(45,212,191,.1),rgba(139,92,246,.1));
+  border:1px solid rgba(45,212,191,.4);
+}
+.cta h3{font-size:clamp(18px,2.6vw,24px);font-weight:800;color:var(--text);}
+
+#modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);
+  z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;
+}
+#modal-backdrop.show{display:flex;}
+#modal-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:16px;
+  width:100%;max-width:640px;max-height:82vh;overflow:auto;box-shadow:0 24px 80px rgba(0,0,0,.5);
+}
+#modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);}
+#modal-head h3{font-size:16px;font-weight:700;}
+#modal-close{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:16px;transition:all .15s;}
+#modal-close:hover{color:var(--text);border-color:var(--muted);}
+#modal-body{padding:20px;}
+.modal-section{margin-bottom:18px;}
+.modal-section h5{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.approve-box{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:12px 14px;font-size:13.5px;color:#f5d9a8;}
+.sig-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--border);}
+.sig-row:last-child{border-bottom:none;}
+.sig-row .sig-d{font-size:13px;color:var(--text);}
+.kpi-table{width:100%;border-collapse:collapse;font-size:12px;}
+.kpi-table th,.kpi-table td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--border);vertical-align:top;}
+.kpi-table th{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+.kpi-table td.formula{font-family:var(--mono);font-size:10.5px;color:var(--muted);}
+.kpi-table .g{color:var(--green);font-weight:600;}
+.kpi-table .a{color:var(--amber);font-weight:600;}
+.kpi-table .r{color:var(--red);font-weight:600;}
+.kpi-table .cad{color:var(--slate);font-family:var(--mono);font-size:10.5px;}
+.hp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.hp{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
+.hp .hp-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.hp .hp-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--cyan);}
+.hp .hp-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+
+#tooltip{
+  position:fixed;z-index:3000;pointer-events:none;display:none;max-width:280px;
+  background:#0A0E14;border:1px solid var(--border);border-radius:9px;padding:8px 11px;
+  font-family:var(--mono);font-size:11px;line-height:1.5;color:var(--text);box-shadow:0 10px 30px rgba(0,0,0,.5);
+}
+#tooltip .tt-title{color:var(--cyan);font-weight:600;margin-bottom:2px;}
+#tooltip .tt-muted{color:var(--muted);}
+
+footer{border-top:1px solid var(--border);margin-top:60px;padding:26px 22px;text-align:center;color:var(--muted);font-size:12px;font-family:var(--mono);}
+
+@media (max-width:960px){
+  #hero .grid{grid-template-columns:1fr;}
+  .onto-wrap{grid-template-columns:1fr;}
+  .factory-wrap{grid-template-columns:1fr;}
+  .phases{grid-template-columns:1fr;}
+  .counter-strip{grid-template-columns:1fr 1fr;}
+  .ep-stage-row{grid-template-columns:1fr;}
+}
+@media (max-width:640px){
+  main{padding:0 14px;}
+  .counter-strip{grid-template-columns:1fr;}
+  .node-grid{grid-template-columns:1fr;}
+  .hp-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav id="topnav">
+  <div class="brand">FDE <span>·</span> Estimating Model Factory</div>
+  <a class="navlink active" href="#hero">Hero</a>
+  <a class="navlink" href="#ontology">Ontology</a>
+  <a class="navlink" href="#episodes">Episodes</a>
+  <a class="navlink" href="#pipeline">Pipeline</a>
+  <a class="navlink" href="#factory">Factory</a>
+  <a class="navlink" href="#plan">90-day plan</a>
+</nav>
+
+<main>
+
+<section id="hero">
+  <div class="section-kicker">The FDE thesis</div>
+  <h1 class="hero-headline">Stop renting generic AI.<br><span class="accent">Own your Estimating Model Factory.</span></h1>
+  <div class="grid">
+    <p class="hero-story">
+      In 2023, "Constructora Andes" (Santiago, CLP ~950/USD) priced 40 bids a year from a fortress of 12 Excel masters, 4 shared drives, and one senior estimator — "Don Patricio" — whose 30 years of gut feel lived only in his head. A junior estimator needed 11 days to produce a single BOQ, re-keying quantities from Procore takeoffs, then hand-copying unit rates from a 2019 cost catalog. Estimates were wrong in both directions: the firm won jobs it shouldn't (losing 6–14% at closeout) and lost jobs it should have won (pricing 8% above the winning bid). Nobody could say <em>why</em>, because the reasons were locked in the spreadsheet cells and in Patricio's memory. The FDE's thesis: <strong>stop renting generic AI to read those spreadsheets — build a compounding <em>Estimating Model Factory</em> that owns the firm's specialized pricing intelligence.</strong> Each estimate becomes an <em>Episode</em> (context + action + measured outcome); each estimator's override becomes a <em>Gate</em> that emits preference data; each closed project feeds actual-cost variance back as a <em>label</em>. After 90 days, the factory prices bids in 3 days instead of 11, and every month of operation makes the next estimate smarter. This is the artifact's arc: from spreadsheet chaos → ontology → episodes → agents → a self-improving loop the firm owns.
+    </p>
+    <div class="metric-strip">
+      <div class="metric" tabindex="0">
+        <div class="metric-inner">
+          <div class="metric-face metric-front">
+            <span class="metric-label">Estimate cycle time</span>
+            <div class="metric-nums"><span class="before">11 days</span><span class="arrow">→</span><span class="after">3 days</span></div>
+          </div>
+          <div class="metric-face metric-back">
+            <span class="m-title">120 backfilled episodes</span>
+            <span class="m-sub">3 yrs of history → Episodes that train the factory</span>
+          </div>
+        </div>
+      </div>
+      <div class="metric" tabindex="0">
+        <div class="metric-inner">
+          <div class="metric-face metric-front">
+            <span class="metric-label">Variance at completion</span>
+            <div class="metric-nums"><span class="before">±14%</span><span class="arrow">→</span><span class="after">±8%</span></div>
+          </div>
+          <div class="metric-face metric-back">
+            <span class="m-title">120 episodes</span>
+            <span class="m-sub">with outcome labels from closeout variance records</span>
+          </div>
+        </div>
+      </div>
+      <div class="metric" tabindex="0">
+        <div class="metric-inner">
+          <div class="metric-face metric-front">
+            <span class="metric-label">Spreadsheet fortress</span>
+            <div class="metric-nums"><span class="before">12 Excel</span><span class="arrow">→</span><span class="after">1 ontology</span></div>
+          </div>
+          <div class="metric-face metric-back">
+            <span class="m-title">12 object types</span>
+            <span class="m-sub">· 13 labeled link types</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-cue">
+    <span>SCROLL</span>
+    <span class="chev">⌄</span>
+  </div>
+</section>
+
+<section id="ontology">
+  <div class="section-kicker">Step 1 · Ontology</div>
+  <h2 class="section-title">Twelve object types, thirteen labeled links</h2>
+  <p class="section-sub">The firm's pricing intelligence — projects, models, takeoffs, BOQ lines, rates, quotes, RFIs, estimates, bids, outcomes, variances and estimators — becomes a typed graph. <span class="mono" style="color:var(--muted)">Click a node</span> to inspect its properties; <span class="mono" style="color:var(--muted)">hover an edge</span> for cardinality.</p>
+  <div class="onto-wrap">
+    <div class="graph-panel">
+      <svg id="onto-svg" viewBox="0 0 960 700" role="img" aria-label="Ontology node-link diagram"></svg>
+      <div class="legend">
+        <span class="lg"><span class="sw" style="background:var(--cyan)"></span> project</span>
+        <span class="lg"><span class="sw" style="background:var(--slate)"></span> document / record</span>
+        <span class="lg"><span class="sw" style="background:var(--amber)"></span> cost</span>
+        <span class="lg"><span class="sw" style="background:var(--green)"></span> outcome</span>
+      </div>
+    </div>
+    <div class="detail-panel">
+      <div class="tabs">
+        <button id="tab-objects" class="active">Objects</button>
+        <button id="tab-links">Links</button>
+        <button id="tab-schema">Schema</button>
+      </div>
+      <button id="json-toggle">JSON</button>
+      <div class="panel-body" id="panel-body">
+        <div id="panel-objects">
+          <div class="node-grid" id="node-grid"></div>
+          <div class="detail-block" id="node-detail"></div>
+        </div>
+        <div id="panel-links" style="display:none;">
+          <div class="link-list" id="link-list"></div>
+        </div>
+        <div id="panel-schema" style="display:none;">
+          <p class="empty-note" id="schema-summary"></p>
+          <pre class="schema" id="schema-json" style="display:none;"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="episodes">
+  <div class="section-kicker">Step 2 · Episodes</div>
+  <h2 class="section-title">Episode anatomy: Context → Action → Measured Outcome</h2>
+  <p class="section-sub">Every estimate becomes a training episode. Drag the time slider to sweep each one from context, through the action taken, to the measured outcome it emitted. Every closed project emits three quantitative labels — <span class="mono">quantity_error%</span>, <span class="mono">rate_error%</span>, <span class="mono">bid_gap%</span> — that turn raw estimates into training data.</p>
+  <div class="episodes" id="episodes-cont"></div>
+</section>
+
+<section id="pipeline">
+  <div class="section-kicker">Step 3 · Agents</div>
+  <h2 class="section-title">Five agents, gated by human judgment</h2>
+  <p class="section-sub">The <span style="color:var(--amber)">amber GATE</span> is where human judgment becomes structured training data — approval = SFT, override/correction = DPO, win/loss = GRPO reward. Click any gate to see what the human approves and the training signal it emits.</p>
+  <div class="legend-bar">
+    <span class="lg"><span class="dot" style="background:var(--green)"></span> SFT — Imitate</span>
+    <span class="lg"><span class="dot" style="background:var(--amber)"></span> DPO — Contrast</span>
+    <span class="lg"><span class="dot" style="background:var(--purple)"></span> GRPO — Explore</span>
+  </div>
+  <div class="pipeline" id="pipeline-cont"></div>
+</section>
+
+<section id="factory">
+  <div class="section-kicker">Step 4 · The compounding loop</div>
+  <h2 class="section-title">The Model Factory loop</h2>
+  <p class="section-sub">Six stages around a ring. Click <span class="mono" style="color:var(--cyan)">Fine-tune</span> for hyperparameters and <span class="mono" style="color:var(--amber)">Eval</span> for the full KPI scorecard. The synthetic Mixture node glows purple.</p>
+  <div class="factory-wrap">
+    <svg id="factory-svg" viewBox="0 0 500 500" role="img" aria-label="Model Factory circular loop"></svg>
+    <div class="factory-side">
+      <div class="mix-card">
+        <h4>Mixture v1.3 — weighted, versioned</h4>
+        <div class="mix-row"><span class="sw" style="background:var(--cyan)"></span> Real episodes (recency-weighted) <span class="pct">60%</span></div>
+        <div class="mix-row"><span class="sw" style="background:var(--purple)"></span> Synthetic — rare-event augmentation <span class="pct">25%</span></div>
+        <div class="mix-row"><span class="sw" style="background:var(--amber)"></span> Synthetic — cold-start coverage <span class="pct">15%</span></div>
+        <p class="mix-note">Synthetic weight is always ≤ 0.5 of real weight unless a rare event. Versioning lets the FDE roll back any mixture that worsens win rate.</p>
+      </div>
+      <p class="hint">Click a node on the ring for details.</p>
+    </div>
+  </div>
+</section>
+
+<section id="plan">
+  <div class="section-kicker">Step 5 · The 90-day plan</div>
+  <h2 class="section-title">From spreadsheet chaos to a loop the firm owns</h2>
+  <p class="section-sub">Three phases, six milestones, and a friction-vs-move playbook for each. The counters below animate to the Day-90 compounding milestone as you scroll.</p>
+
+  <div class="counter-strip" id="counter-strip">
+    <div class="counter"><div class="c-val" id="c-cycle">11 days</div><div class="c-label">cycle time → 3 days</div></div>
+    <div class="counter"><div class="c-val" id="c-error">—</div><div class="c-label">takeoff error &lt; 3%</div></div>
+    <div class="counter"><div class="c-val" id="c-win">—</div><div class="c-label">win rate +4 pts</div></div>
+    <div class="counter"><div class="c-val" id="c-var">±14%</div><div class="c-label">variance → ±8%</div></div>
+  </div>
+
+  <div class="gantt-track">
+    <div class="gantt-ruler">
+      <div class="phase-bar p1"><span class="plabel">0–30 · Ontology &amp; backfill</span></div>
+      <div class="phase-bar p2"><span class="plabel">31–60 · First gated agent</span></div>
+      <div class="phase-bar p3"><span class="plabel">61–90 · Factory v1</span></div>
+      <div class="rline"></div>
+      <span class="rtick" style="left:0%">D0</span>
+      <span class="rtick" style="left:33.3%">D30</span>
+      <span class="rtick" style="left:66.7%">D60</span>
+      <span class="rtick" style="left:100%">D90</span>
+      <div class="flag" style="left:8%"><span class="fmark"></span><span class="flabel">Ontology live</span></div>
+      <div class="flag" style="left:28%"><span class="fmark"></span><span class="flabel">Backfill 120 episodes</span></div>
+      <div class="flag f2" style="left:38%"><span class="fmark"></span><span class="flabel">First agent gated</span></div>
+      <div class="flag f3" style="left:71%"><span class="fmark"></span><span class="flabel">Factory v1</span></div>
+      <div class="flag f3" style="left:78%"><span class="fmark"></span><span class="flabel">Shadow mode</span></div>
+      <div class="flag" style="left:96%"><span class="fmark"></span><span class="flabel">Go-live</span></div>
+    </div>
+  </div>
+
+  <div class="phases">
+    <div class="phase">
+      <h4><span class="days">Days 0–30</span> Ontology wiring &amp; episode extraction backfill</h4>
+      <p class="goal">Ingest ERP + Procore + cost-catalog into the ontology. Backfill 120 past estimates → Episodes with Measured Outcome labels.</p>
+      <div class="friction-pair">
+        <div class="friction"><span class="flbl">Friction</span>Dirty historical data — missing unit rates, mismatched BOQ item codes, estimates stored as PDFs not rows.</div>
+        <div class="fde-move"><span class="flbl">FDE move</span>Ship a <span class="mono">dataQualityScore</span> per episode; only episodes &gt; 0.6 enter the mixture; document the data-quality debt in a one-pager the CFO reads.</div>
+        <div class="friction"><span class="flbl">Friction</span>Estimators fear replacement.</div>
+        <div class="fde-move"><span class="flbl">FDE move</span>"Your assistant, not your replacement" — the first agent is gated <em>by</em> estimators; their overrides are the highest-value input. Enlist "Don Patricio" as co-designer of the rate-check agent (his 28 years become the SFT gold set).</div>
+      </div>
+    </div>
+    <div class="phase">
+      <h4><span class="days">Days 31–60</span> First agent behind a gate</h4>
+      <p class="goal">Deploy the Takeoff Agent on IFC auto-quantities only, behind a hard human approval gate. Start Post-Mortem Agent on 10 closed projects.</p>
+      <div class="friction-pair">
+        <div class="friction"><span class="flbl">Friction</span>Estimators "don't trust the numbers" and double-check everything (override rate spikes).</div>
+        <div class="fde-move"><span class="flbl">FDE move</span>Show a side-by-side diff (agent vs estimator) with a confidence badge; celebrate that overrides are <em>training the model</em>, not failures.</div>
+      </div>
+    </div>
+    <div class="phase">
+      <h4><span class="days">Days 61–90</span> Model factory v1 &amp; compounding loop</h4>
+      <p class="goal">Stand up Model Factory v1: nightly mixture rebuild + LoRA fine-tune + offline A/B eval. Promote the first model. Turn on Rate-Check &amp; Quote Normalizer; Bid Risk in advisory mode.</p>
+      <div class="friction-pair">
+        <div class="friction"><span class="flbl">Friction</span>Ops team resists a new system during live bid season.</div>
+        <div class="fde-move"><span class="flbl">FDE move</span>Run the factory in parallel (shadow mode) — the model prices bids it doesn't influence — and report the divergence. Only after 30 days of shadow-mode green KPIs does the factory go live.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta">
+    <h3>Day 90: the compounding loop is live — and the firm owns it.</h3>
+  </div>
+</section>
+
+</main>
+
+<footer>Estimating Model Factory · interactive artifact · all figures from the FDE content spec</footer>
+
+<div id="modal-backdrop">
+  <div id="modal-card">
+    <div id="modal-head">
+      <h3 id="modal-title"></h3>
+      <button id="modal-close" aria-label="Close">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+const FAMILY_COLOR = {project:'#2DD4BF', document:'#94A3B8', cost:'#F59E0B', outcome:'#22C55E'};
+
+const NODES = [
+  {id:'project', label:'Project', family:'project', x:470, y:58,
+   props:['projectId','name','sector','region','clientType','procurement','gfa_m2','nFloors','geotechReportUrl','bidDueDate'],
+   types:['string','string','enum','string','enum','enum','number','int','url','date'],
+   example:'P-2026-041, "Torre Vitacura 18", commercial, Santiago, private, lump-sum, 12,400 m², 18 floors, 2026-11-15'},
+  {id:'ifc', label:'IFCModel', family:'document', x:200, y:172,
+   props:['modelId','projectId','rev','lod','source','lastSyncTs'],
+   types:['string','ref','int','enum','enum','timestamp'],
+   example:'IFC-v07, rev 3, LOD350'},
+  {id:'takeoff', label:'TakeoffItem', family:'document', x:200, y:300,
+   props:['takeoffId','modelId','elementType','quantity','unit','sourceMethod','confidence'],
+   types:['string','ref','enum','number','enum','enum','float'],
+   example:'concrete_slab_S3, 1,820 m³, auto-IFC, 0.94'},
+  {id:'boq', label:'BOQLine', family:'cost', x:400, y:428,
+   props:['boqId','takeoffId','itemCode','description','quantity','unit','unitRate_clp','wastePct','laborProdFactor'],
+   types:['string','ref','code','string','number','enum','money','percent','float'],
+   example:'H.20.03 Hormigón H-30 bombeado, 1,820 m³, $118,500/m³'},
+  {id:'unitrate', label:'UnitRate', family:'cost', x:118, y:512,
+   props:['rateId','itemCode','unitRate_clp','asOfDate','region','currency','source'],
+   types:['string','code','money','date','string','enum','enum'],
+   example:'Cement H-30, $118,500, 2026-10, RM, CLP, historical-avg'},
+  {id:'subquote', label:'SubcontractorQuote', family:'cost', x:430, y:566,
+   props:['quoteId','scope','vendorId','amount_clp','inclusions[]','exclusions[]','validDays','submittedTs'],
+   types:['string','string','ref','money','list','list','int','timestamp'],
+   example:'Q-0921, "MEP instalaciones", $214M, exclusions: "demoliciones", 30d'},
+  {id:'rfi', label:'RFI', family:'document', x:600, y:252,
+   props:['rfiId','projectId','asker','question','answer','status','affectsBoqLines[]','openedTs','closedTs'],
+   types:['string','ref','string','text','text','enum','list','timestamp','timestamp'],
+   example:'RFI-18, "¿losa postensada o tradicional?", affects H.20.*'},
+  {id:'estimate', label:'Estimate', family:'outcome', x:700, y:128,
+   props:['estimateId','projectId','version','authorEstimatorId','totalCost_clp','marginPct','bidPrice_clp','createdTs','breakdownJson'],
+   types:['string','ref','int','ref','money','percent','money','timestamp','json'],
+   example:'E-2026-041-v3, $8.92B total, 12.0% margin'},
+  {id:'bid', label:'Bid', family:'outcome', x:822, y:240,
+   props:['bidId','projectId','estimateId','bidPrice_clp','submittedTs','status'],
+   types:['string','ref','ref','money','timestamp','enum'],
+   example:'B-041, $9.99B, won'},
+  {id:'bidoutcome', label:'BidOutcome', family:'outcome', x:862, y:362,
+   props:['outcomeId','bidId','won','winningPrice_clp','nBidders','winningBidder','lossReason'],
+   types:['string','ref','bool','money','int','string','enum'],
+   example:'lost, winning $9.51B, 6 bidders, "price 5% high"'},
+  {id:'variance', label:'ActualCostVariance', family:'outcome', x:688, y:542,
+   props:['varianceId','projectId','boqId','budgetedQty','actualQty','budgetedRate','actualRate','qtyVarPct','rateVarPct','rootCause'],
+   types:['string','ref','ref','number','number','money','money','percent','percent','text'],
+   example:'V-077, +11% qty (design change), +3% rate'},
+  {id:'estimator', label:'Estimator', family:'document', x:278, y:640,
+   props:['estimatorId','name','tenureYrs','specialty[]','winRate','avgVarAtCompletionPct','overrideHistory[]'],
+   types:['string','string','int','list','percent','percent','list'],
+   example:'E-07 "Patricio", 28 yrs, concrete, 41% win, −2.1% bias'}
+];
+
+const LINKS = [
+  {id:'l1', from:'project', to:'ifc', verb:'has', card:'1 : N'},
+  {id:'l2', from:'ifc', to:'takeoff', verb:'produces', card:'1 : N'},
+  {id:'l3', from:'takeoff', to:'boq', verb:'feeds', card:'1 : 1'},
+  {id:'l4', from:'boq', to:'unitrate', verb:'pricedBy', card:'N : 1'},
+  {id:'l5', from:'boq', to:'subquote', verb:'supports', card:'N : N'},
+  {id:'l6', from:'rfi', to:'boq', verb:'revises', card:'N : N'},
+  {id:'l7', from:'project', to:'estimate', verb:'generates', card:'1 : N'},
+  {id:'l8', from:'estimate', to:'bid', verb:'submittedAs', card:'1 : 1'},
+  {id:'l9', from:'bid', to:'bidoutcome', verb:'has', card:'1 : 1'},
+  {id:'l10', from:'project', to:'variance', verb:'produces', card:'1 : N'},
+  {id:'l11', from:'variance', to:'boq', verb:'corrects', card:'N : N'},
+  {id:'l12', from:'estimator', to:'estimate', verb:'authors', card:'1 : N'},
+  {id:'l13', from:'estimator', to:'boq', verb:'overrides', card:'1 : N'}
+];
+
+const EPISODES = [
+  {id:'A', title:'Concrete takeoff & pricing', tag:'Imitate · happy-path', tagColor:'green', tone:'good',
+   stages:[
+     {key:'context', title:'Context', cls:'context', c:'#2DD4BF', fields:[
+       {t:'Project', v:'P-2026-041 — commercial tower, 12,400 m² GFA, LOD350 IFC'},
+       {t:'IFCModel', v:'IFC-v07'},
+       {t:'region', v:'RM'},
+       {t:'bidDueDate', v:'2026-11-15'},
+       {t:'geotechReportUrl', v:'firm gravel (no soil risk)'}
+     ]},
+     {key:'action', title:'Action', cls:'action', c:'#94A3B8', fields:[
+       {t:'TakeoffItem', v:'concrete slab S3 = 1,820 m³ (auto-IFC, conf 0.94)'},
+       {t:'BOQLine', v:'H.20.03 @ $118,500/m³ → line total $215.7M'},
+       {t:'Estimate.marginPct', v:'12% → bid $9.99B'}
+     ]},
+     {key:'outcome', title:'Measured Outcome', cls:'outcome good', c:'#22C55E', fields:[
+       {t:'BidOutcome', v:'won'},
+       {t:'ActualCostVariance', v:'qty 1,868 m³ (+2.6%) · rate $121,300/m³ (+2.4%)'},
+       {t:'labels', v:'quantity_error = +2.6% · rate_error = +2.4%'}
+     ]}
+   ],
+   note:'Good episode → reinforces "firm gravel → low waste% on slabs".', noteCls:'green'},
+  {id:'B', title:'Soil surprise', tag:'Contrast · corrective', tagColor:'red', tone:'bad',
+   badges:[{label:'soil_surprise', color:'red'},{label:'DPO pair', color:'amber'}],
+   stages:[
+     {key:'context', title:'Context', cls:'context', c:'#2DD4BF', fields:[
+       {t:'Project', v:'P-2026-037 — industrial warehouse, Valparaíso'},
+       {t:'geotechReportUrl', v:'null (missing — flagged risk)'},
+       {t:'assumption', v:'soil assumed "firm" from region default'}
+     ]},
+     {key:'action', title:'Action', cls:'action', c:'#94A3B8', fields:[
+       {t:'TakeoffItem', v:'excavation priced at "soft dig" $9,200/m³'},
+       {t:'contingency', v:'none for rock'},
+       {t:'Bid', v:'$4.2B — won'}
+     ]},
+     {key:'outcome', title:'Measured Outcome', cls:'outcome bad', c:'#EF4444', fields:[
+       {t:'ActualCostVariance', v:'basalt at −2.1 m · actual rate $24,700/m³ (+168%)'},
+       {t:'rootCause', v:'"unexpected rock"'},
+       {t:'labels', v:'rate_error = +168% · soil_surprise = true'}
+     ]}
+   ],
+   note:"DPO contrast pair: &quot;didn't flag → bad&quot; vs &quot;flagged + contingency → good&quot;.", noteCls:'red'},
+  {id:'C', title:'Never-bid project type', tag:'Explore · GRPO', tagColor:'purple', tone:'bad',
+   badges:[{label:'Explore', color:'purple'}],
+   stages:[
+     {key:'context', title:'Context', cls:'context', c:'#2DD4BF', fields:[
+       {t:'Project', v:'P-2026-052 — first water-treatment plant (sector infra, subtype water)'},
+       {t:'historical', v:'no historical BOQ lines'},
+       {t:'analogs', v:'3 near analogs (pump stations, sewage networks) — low similarity'}
+     ]},
+     {key:'action', title:'Action', cls:'action', c:'#94A3B8', fields:[
+       {t:'synthetic BOQ', v:'assembled from analogs + vendor RFIs'},
+       {t:'strategies', v:'3 candidates: cost-plus-15% · market-minus-8% · hybrid'},
+       {t:'Estimator', v:'picks one'}
+     ]},
+     {key:'outcome', title:'Measured Outcome', cls:'outcome bad', c:'#EF4444', fields:[
+       {t:'BidOutcome', v:'lost — winning $1.9B vs ours $2.05B (8% high)'},
+       {t:'labels', v:'price_gap = +8% vs winner'}
+     ]}
+   ],
+   note:'GRPO reward: penalize high bids on infra/water with weak analogs → learn to bid closer to market.', noteCls:'purple'}
+];
+
+const AGENTS = [
+  {name:'Takeoff Agent',
+   inputs:['IFCModel','DrawingSet','Project'],
+   actions:'Auto-extract quantities from IFC (LOD350); read PDF plans via OCR; output TakeoffItem[] with confidence.',
+   outputs:['TakeoffItem[]','confidence'],
+   gate:'Estimator reviews per-element-type quantities; approves or edits each.',
+   signals:[{t:'SFT', d:'Approved edits → correct qty ↔ correct takeoff'},{t:'DPO', d:'Edit deltas → agent guess vs human correction'}]},
+  {name:'Rate-Check Agent',
+   inputs:['BOQLine[]','CostCatalogItem','historical UnitRate'],
+   actions:'Look up / verify current unit rates per region & date; flag stale rates (older than 90d) and outliers vs 12-mo median.',
+   outputs:['flag stale','flag outlier'],
+   gate:'Estimator approves or overrides flagged rates.',
+   signals:[{t:'DPO', d:'Overrides → preference pairs (stale/outlier rejected, human rate accepted)'},{t:'SFT', d:'Accepted rates update catalog'}]},
+  {name:'Quote Normalizer',
+   inputs:['SubcontractorQuote[]','BOQLine scope'],
+   actions:'Parse vendor quotes (PDF/email), normalize to a common scope matrix, flag exclusions[]/inclusions[] mismatches.',
+   outputs:['scope matrix','excl/incl flags'],
+   gate:'Estimator approves scope-equivalence and final vendor amount.',
+   signals:[{t:'SFT', d:'Approval → parse → structured quote'},{t:'DPO', d:'Correction → mis-normalized vs correct mapping'}]},
+  {name:'Bid Risk Agent',
+   inputs:['Project','BidOutcome (hist)','ActualCostVariance','Estimator'],
+   actions:'Score risk (missing geotech, novel sector, aggressive client); propose margin & contingency band.',
+   outputs:['risk score','margin 14–18%'],
+   gate:'Estimator (or bid committee) approves final margin & bid price.',
+   signals:[{t:'DPO', d:'Margin override → agent margin vs human margin'},{t:'GRPO', d:'Win/loss reward (+1 win, −1 loss weighted by margin)'}]},
+  {name:'Post-Mortem Agent',
+   inputs:['ActualCostVariance[]','BOQLine[]','BidOutcome[]'],
+   actions:'At closeout, reconcile budgeted vs actual per BOQ line; attribute variance to qty vs rate vs design-change.',
+   outputs:['root-cause attribution','outcome labels'],
+   gate:'Estimator confirms root-cause attribution.',
+   signals:[{t:'SFT', d:'Confirmed attribution → outcome labels (Measured Outcome for all Episodes)'},{t:'GRPO', d:'Powers reward & mixture weighting'}]}
+];
+
+const KPIS = [
+  {m:'Takeoff quantity error', f:'mean(abs(actualQty−budgetedQty)/budgetedQty)', g:'< 3%', a:'3–7%', r:'> 7%', c:'monthly'},
+  {m:'Unit-rate deviation', f:'mean(abs(actualRate−budgetedRate)/budgetedRate)', g:'< 5%', a:'5–10%', r:'> 10%', c:'monthly'},
+  {m:'Win rate', f:'wins / submittedBids', g:'> 35%', a:'25–35%', r:'< 25%', c:'monthly'},
+  {m:'Estimate cycle time', f:'median(bidDueDate − estimateStart)', g:'< 4 days', a:'4–7 days', r:'> 7 days', c:'weekly'},
+  {m:'Variance-at-completion', f:'mean(abs(actualCost−budgetedCost)/budgetedCost)', g:'< 8%', a:'8–14%', r:'> 14%', c:'quarterly'},
+  {m:'Gate override rate', f:'overrides / approvedLines', g:'< 10%', a:'10–20%', r:'> 20%', c:'weekly'},
+  {m:'Model factory lift', f:'newModelScore − oldModelScore', g:'positive', a:'flat', r:'negative', c:'per retrain'}
+];
+
+const NODEMAP = {};
+NODES.forEach(function(n){ NODEMAP[n.id] = n; });
+const FAMILY_LABEL = {project:'project', document:'document / record', cost:'cost', outcome:'outcome'};
+
+function rgba(hex, a){
+  const n = parseInt(hex.slice(1), 16);
+  return 'rgba(' + ((n>>16)&255) + ',' + ((n>>8)&255) + ',' + (n&255) + ',' + a + ')';
+}
+const SVGNS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs){
+  const e = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function $(id){ return document.getElementById(id); }
+const tooltip = $('tooltip');
+function showTip(html, x, y){
+  tooltip.innerHTML = html;
+  tooltip.style.display = 'block';
+  const pad = 14;
+  const w = tooltip.offsetWidth, h = tooltip.offsetHeight;
+  let left = x + pad, top = y + pad;
+  if (left + w > window.innerWidth - 8) left = x - w - pad;
+  if (top + h > window.innerHeight - 8) top = y - h - pad;
+  tooltip.style.left = left + 'px';
+  tooltip.style.top = top + 'px';
+}
+function hideTip(){ tooltip.style.display = 'none'; }
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* nav scroll spy */
+const navLinks = document.querySelectorAll('nav a.navlink');
+const sectionEls = ['hero','ontology','episodes','pipeline','factory','plan'].map(function(s){ return $(s); });
+const spy = new IntersectionObserver(function(entries){
+  entries.forEach(function(en){
+    if (en.isIntersecting){
+      const id = en.target.id;
+      navLinks.forEach(function(a){ a.classList.toggle('active', a.getAttribute('href') === '#'+id); });
+    }
+  });
+}, {rootMargin:'-40% 0px -55% 0px'});
+sectionEls.forEach(function(s){ spy.observe(s); });
+
+/* metric flip (touch/click) */
+document.querySelectorAll('.metric').forEach(function(m){
+  m.addEventListener('click', function(){ m.classList.toggle('flipped'); });
+});
+
+/* ---- ontology graph ---- */
+function renderGraph(){
+  const svg = $('onto-svg');
+  svg.innerHTML = '';
+  const defs = svgEl('defs', {});
+  const marker = svgEl('marker', {id:'arrow', viewBox:'0 0 10 10', refX:'9', refY:'5', markerWidth:'7', markerHeight:'7', orient:'auto-start-reverse'});
+  marker.appendChild(svgEl('path', {d:'M0,0 L10,5 L0,10 z', fill:'#6e7681'}));
+  defs.appendChild(marker);
+  svg.appendChild(defs);
+
+  const edgeGroup = svgEl('g', {});
+  svg.appendChild(edgeGroup);
+
+  LINKS.forEach(function(l, i){
+    const s = NODEMAP[l.from], t = NODEMAP[l.to];
+    const x1 = s.x, y1 = s.y, x2 = t.x, y2 = t.y;
+    const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    const off = (i % 2 === 0 ? 1 : -1) * Math.min(40, len * 0.16 + 6);
+    const px = -dy / len, py = dx / len;
+    const cx = mx + px * off, cy = my + py * off;
+    const d = 'M ' + x1 + ' ' + y1 + ' Q ' + cx + ' ' + cy + ' ' + x2 + ' ' + y2;
+
+    const path = svgEl('path', {d:d, class:'edge', 'marker-end':'url(#arrow)', fill:'none', stroke:'#4b5563', 'stroke-width':'1.5'});
+    edgeGroup.appendChild(path);
+
+    const hit = svgEl('path', {d:d, class:'edge-hit', fill:'none', stroke:'transparent', 'stroke-width':'16', cursor:'pointer'});
+    function tipHtml(){
+      return '<div class="tt-title">' + NODEMAP[l.from].label + ' →' + l.verb + '→ ' + NODEMAP[l.to].label + '</div><div class="tt-muted">cardinality ' + l.card + '</div>';
+    }
+    hit.addEventListener('mouseenter', function(ev){
+      path.setAttribute('stroke', '#2DD4BF');
+      path.setAttribute('stroke-width', '2.2');
+      setNodeStroke(l.from, '3');
+      setNodeStroke(l.to, '3');
+      showTip(tipHtml(), ev.clientX, ev.clientY);
+    });
+    hit.addEventListener('mousemove', function(ev){ showTip(tipHtml(), ev.clientX, ev.clientY); });
+    hit.addEventListener('mouseleave', function(){
+      path.setAttribute('stroke', '#4b5563');
+      path.setAttribute('stroke-width', '1.5');
+      setNodeStroke(l.from, '1.5');
+      setNodeStroke(l.to, '1.5');
+      hideTip();
+    });
+    edgeGroup.appendChild(hit);
+
+    const lx = mx + px * off * 0.5, ly = my + py * off * 0.5;
+    const tw = l.verb.length * 5.4 + 10;
+    edgeGroup.appendChild(svgEl('rect', {x:lx - tw/2, y:ly - 8, width:tw, height:16, rx:4, fill:'#0D1117', stroke:'#30363D', 'stroke-width':'0.7'}));
+    const lt = svgEl('text', {x:lx, y:ly + 3.5, 'text-anchor':'middle', fill:'#F59E0B', 'font-family':'JetBrains Mono, monospace', 'font-size':'9.5', 'font-weight':'600'});
+    lt.textContent = l.verb;
+    edgeGroup.appendChild(lt);
+  });
+
+  NODES.forEach(function(n){
+    const g = svgEl('g', {class:'node', 'data-id':n.id, cursor:'pointer'});
+    const w = Math.max(84, n.label.length * 6.1 + 26);
+    const h = 38;
+    const x = n.x - w / 2, y = n.y - h / 2;
+    const rect = svgEl('rect', {x:x, y:y, width:w, height:h, rx:12, fill:rgba(n.color, 0.13), stroke:n.color, 'stroke-width':'1.5'});
+    const text = svgEl('text', {x:n.x, y:n.y + 3.5, 'text-anchor':'middle', fill:'#E6EDF3', 'font-family':'JetBrains Mono, monospace', 'font-size':'10.5'});
+    text.textContent = n.label;
+    g.appendChild(rect);
+    g.appendChild(text);
+    g.addEventListener('click', function(){ selectNode(n.id); });
+    g.addEventListener('mouseenter', function(){ rect.setAttribute('stroke-width', '2.4'); });
+    g.addEventListener('mouseleave', function(){ rect.setAttribute('stroke-width', '1.5'); });
+    svg.appendChild(g);
+  });
+}
+
+function setNodeStroke(id, w){
+  const g = document.querySelector('#onto-svg g.node[data-id="' + id + '"]');
+  if (g){ const rect = g.querySelector('rect'); if (rect) rect.setAttribute('stroke-width', w); }
+}
+
+function selectNode(id){
+  NODES.forEach(function(n){ setNodeStroke(n.id, '1.5'); });
+  setNodeStroke(id, '2.6');
+  document.querySelectorAll('.node-chip').forEach(function(c){ c.classList.toggle('selected', c.dataset.id === id); });
+  switchTab('objects');
+  renderNodeDetail(id);
+}
+
+function renderNodeDetail(id){
+  const n = NODEMAP[id];
+  const d = $('node-detail');
+  let rows = '';
+  n.props.forEach(function(p, i){
+    rows += '<tr><td class="key" title="' + p + '">' + p + '</td><td class="type">' + n.types[i] + '</td></tr>';
+  });
+  d.innerHTML =
+    '<div class="detail-head">' +
+      '<span class="badge" style="color:' + n.color + ';border-color:' + rgba(n.color,.4) + ';background:' + rgba(n.color,.1) + '">' + FAMILY_LABEL[n.family] + '</span>' +
+      '<h4>' + n.label + '</h4>' +
+    '</div>' +
+    '<table class="prop-table"><tr><th>Key property</th><th>Type</th></tr>' + rows + '</table>' +
+    '<div class="example-box">' + escapeHtml(n.example) + '</div>';
+}
+
+function renderNodeGrid(){
+  const grid = $('node-grid');
+  grid.innerHTML = NODES.map(function(n){
+    return '<button class="node-chip" data-id="' + n.id + '" title="' + n.label + ' — ' + FAMILY_LABEL[n.family] + '" style="color:' + n.color + '">' + n.label + '</button>';
+  }).join('');
+  grid.querySelectorAll('.node-chip').forEach(function(b){ b.addEventListener('click', function(){ selectNode(b.dataset.id); }); });
+}
+
+function renderLinks(){
+  const list = $('link-list');
+  list.innerHTML = LINKS.map(function(l){
+    return '<div class="link-row"><span class="n">' + NODEMAP[l.from].label + '</span> <span class="verb">→' + l.verb + '→</span> <span class="n">' + NODEMAP[l.to].label + '</span><span class="cardn">' + l.card + '</span></div>';
+  }).join('');
+}
+
+function buildSchema(){
+  const objects = NODES.map(function(n){
+    const o = {};
+    n.props.forEach(function(p, i){ o[p] = n.types[i]; });
+    return {id:n.id, label:n.label, family:n.family, properties:o, example:n.example};
+  });
+  const links = LINKS.map(function(l){ return {from:l.from, to:l.to, verb:l.verb, cardinality:l.card}; });
+  return JSON.stringify({ontology:'Estimating Model Factory', objects:objects, links:links}, null, 2);
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tabs button').forEach(function(b){ b.classList.toggle('active', b.id === 'tab-'+tab); });
+  $('panel-objects').style.display = tab === 'objects' ? 'block' : 'none';
+  $('panel-links').style.display = tab === 'links' ? 'block' : 'none';
+  $('panel-schema').style.display = tab === 'schema' ? 'block' : 'none';
+}
+
+/* ---- episodes ---- */
+function renderEpisodes(){
+  const cont = $('episodes-cont');
+  cont.innerHTML = EPISODES.map(function(ep){
+    let badgeHtml = (ep.badges || []).map(function(b){ return '<span class="badge ' + b.color + '">' + b.label + '</span>'; }).join('');
+    const stageHtml = ep.stages.map(function(st){
+      const fieldsHtml = st.fields.map(function(f){
+        return '<div class="field"><span class="ft">' + escapeHtml(f.t) + '</span><span class="fv">' + escapeHtml(f.v) + '</span></div>';
+      }).join('');
+      return '<div class="stage ' + st.cls + '" data-stage="' + st.key + '" style="--stagec:' + st.c + '">' +
+        '<div class="stage-title">' + st.title + '</div>' + fieldsHtml + '</div>';
+    }).join('');
+    return '<article class="episode-card" data-ep="' + ep.id + '">' +
+      '<div class="ep-head">' +
+        '<span class="ep-letter">' + ep.id + '</span>' +
+        '<h3>' + ep.title + '</h3>' +
+        '<span class="badge ' + ep.tagColor + '">' + ep.tag + '</span>' +
+        '<div class="ep-badges">' + badgeHtml + '</div>' +
+      '</div>' +
+      '<div class="ep-note ' + ep.noteCls + '">' + ep.note + '</div>' +
+      '<div class="ep-stage-row">' + stageHtml + '</div>' +
+      '<div class="slider-row">' +
+        '<span class="stage-ind"><span class="s s0 on">Context</span><span>→</span><span class="s s1">Action</span><span>→</span><span class="s s2">Outcome</span></span>' +
+        '<input type="range" min="0" max="100" value="0" step="1" aria-label="Episode time slider">' +
+      '</div>' +
+    '</article>';
+  }).join('');
+
+  cont.querySelectorAll('.episode-card').forEach(function(card){
+    const slider = card.querySelector('input[type=range]');
+    const stages = card.querySelectorAll('.stage');
+    const inds = card.querySelectorAll('.stage-ind .s');
+    function apply(v){
+      const stage = v < 33 ? 0 : v < 67 ? 1 : 2;
+      stages.forEach(function(st, i){ st.classList.toggle('active', i === stage); });
+      inds.forEach(function(s, i){ s.classList.toggle('on', i === stage); });
+    }
+    slider.addEventListener('input', function(){ apply(+slider.value); });
+    apply(0);
+  });
+}
+
+/* ---- pipeline ---- */
+function renderPipeline(){
+  const cont = $('pipeline-cont');
+  let html = '';
+  AGENTS.forEach(function(a, i){
+    html += '<div class="agent">' +
+      '<div class="a-head"><span class="a-num">' + (i+1) + '</span><h4>' + a.name + '</h4></div>' +
+      '<div class="io">' +
+        '<span class="lbl">Inputs</span>' +
+        '<div class="chips">' + a.inputs.map(function(x){ return '<span class="chip in">' + escapeHtml(x) + '</span>'; }).join('') + '</div>' +
+        '<span class="lbl">Actions</span>' +
+        '<p class="a-actions">' + a.actions + '</p>' +
+        '<span class="lbl">Outputs</span>' +
+        '<div class="chips">' + a.outputs.map(function(x){ return '<span class="chip out">' + escapeHtml(x) + '</span>'; }).join('') + '</div>' +
+      '</div>' +
+    '</div>';
+    html += '<div class="gate-col"><div class="gate-diamond" data-gate="' + i + '" role="button" aria-label="Gate: ' + a.name + '"></div><span class="gate-label">' + a.name + '</span></div>';
+  });
+  cont.innerHTML = html;
+  cont.querySelectorAll('.gate-diamond').forEach(function(g){
+    g.addEventListener('click', function(){ openGateModal(+g.dataset.gate); });
+  });
+}
+
+function openGateModal(i){
+  const a = AGENTS[i];
+  const sigHtml = a.signals.map(function(s){
+    const cls = s.t === 'SFT' ? 'green' : (s.t === 'DPO' ? 'amber' : 'purple');
+    return '<div class="sig-row"><span class="badge ' + cls + '">' + s.t + '</span><span class="sig-d">' + s.d + '</span></div>';
+  }).join('');
+  openModal(a.name + ' — GATE',
+    '<div class="modal-section"><h5>What the human approves</h5><div class="approve-box">' + a.gate + '</div></div>' +
+    '<div class="modal-section"><h5>Training signal produced</h5>' + sigHtml + '</div>');
+}
+
+/* ---- factory loop ---- */
+const LOOP_NODES = [
+  {id:'mixture', label:'Mixture', color:'#8B5CF6', glow:true},
+  {id:'recipe', label:'Recipe', color:'#94A3B8'},
+  {id:'finetune', label:'Fine-tune', color:'#2DD4BF'},
+  {id:'eval', label:'Eval', color:'#F59E0B'},
+  {id:'promote', label:'Promote', color:'#22C55E'},
+  {id:'gates', label:'Gates', color:'#F59E0B'}
+];
+const LOOP_INFO = {
+  mixture:'The versioned mixture (60% real / 25% synthetic rare-event / 15% cold-start) is rebuilt nightly. Synthetic weight ≤ 0.5 of real unless a rare event.',
+  recipe:'Recipe = base model + technique. Maps each estimation problem to Imitate (SFT), Contrast (DPO), or Explore (GRPO).',
+  finetune:'Nightly LoRA fine-tune updates the model on the latest mixture.',
+  eval:'Offline A/B eval compares the new model against the last 30 days of bids before promotion.',
+  promote:'The winning model is promoted to production — and starts pricing real bids.',
+  gates:'Every estimator edit, margin override, and closeout variance streams back as a new episode.'
+};
+
+function renderFactory(){
+  const svg = $('factory-svg');
+  svg.innerHTML = '';
+  const defs = svgEl('defs', {});
+  const marker = svgEl('marker', {id:'farrow', viewBox:'0 0 10 10', refX:'9', refY:'5', markerWidth:'7', markerHeight:'7', orient:'auto-start-reverse'});
+  marker.appendChild(svgEl('path', {d:'M0,0 L10,5 L0,10 z', fill:'#6e7681'}));
+  defs.appendChild(marker);
+  svg.appendChild(defs);
+
+  const cx = 250, cy = 250, R = 150;
+  const pos = LOOP_NODES.map(function(n, i){
+    const ang = -90 + i * 60;
+    const rad = ang * Math.PI / 180;
+    return {x: cx + R * Math.cos(rad), y: cy + R * Math.sin(rad)};
+  });
+
+  for (let i = 0; i < LOOP_NODES.length; i++){
+    const a = pos[i], b = pos[(i+1) % LOOP_NODES.length];
+    const amx = (a.x + b.x)/2, amy = (a.y + b.y)/2;
+    const adx = b.x - a.x, ady = b.y - a.y, alen = Math.hypot(adx, ady) || 1;
+    const apx = -ady/alen, apy = adx/alen;
+    svg.appendChild(svgEl('path', {
+      d:'M ' + a.x + ' ' + a.y + ' Q ' + (amx + apx*38) + ' ' + (amy + apy*38) + ' ' + b.x + ' ' + b.y,
+      fill:'none', stroke:'#4b5563', 'stroke-width':'1.5', 'marker-end':'url(#farrow)'
+    }));
+  }
+
+  const donutG = svgEl('g', {transform:'rotate(-90 250 250)'});
+  const C = 2 * Math.PI * 48;
+  const seg1 = 0.60 * C, seg2 = 0.25 * C, seg3 = 0.15 * C;
+  donutG.appendChild(svgEl('circle', {cx:250, cy:250, r:48, fill:'none', stroke:'#2DD4BF', 'stroke-width':'18', 'stroke-dasharray': seg1 + ' ' + (C-seg1), 'stroke-dashoffset':'0'}));
+  donutG.appendChild(svgEl('circle', {cx:250, cy:250, r:48, fill:'none', stroke:'#8B5CF6', 'stroke-width':'18', 'stroke-dasharray': seg2 + ' ' + (C-seg2), 'stroke-dashoffset': String(-seg1)}));
+  donutG.appendChild(svgEl('circle', {cx:250, cy:250, r:48, fill:'none', stroke:'#F59E0B', 'stroke-width':'18', 'stroke-dasharray': seg3 + ' ' + (C-seg3), 'stroke-dashoffset': String(-(seg1+seg2))}));
+  svg.appendChild(donutG);
+
+  const t1 = svgEl('text', {x:250, y:240, 'text-anchor':'middle', fill:'#E6EDF3', 'font-family':'Inter, sans-serif', 'font-size':'15', 'font-weight':'700'});
+  t1.textContent = 'Mixture v1.3';
+  const t2 = svgEl('text', {x:250, y:258, 'text-anchor':'middle', fill:'#8B949E', 'font-family':'JetBrains Mono, monospace', 'font-size':'10'});
+  t2.textContent = '60 / 25 / 15';
+  svg.appendChild(t1);
+  svg.appendChild(t2);
+
+  LOOP_NODES.forEach(function(n, i){
+    const p = pos[i];
+    const g = svgEl('g', {class:'loop-node', cursor:'pointer'});
+    if (n.glow){
+      g.appendChild(svgEl('circle', {cx:p.x, cy:p.y, r:34, fill:'rgba(139,92,246,.14)', stroke:'none'}));
+    }
+    const w = n.label.length * 6.2 + 22;
+    const rect = svgEl('rect', {x:p.x - w/2, y:p.y - 15, width:w, height:30, rx:15, fill:rgba(n.color,0.14), stroke:n.color, 'stroke-width':'1.5'});
+    const txt = svgEl('text', {x:p.x, y:p.y + 3.5, 'text-anchor':'middle', fill:'#E6EDF3', 'font-family':'JetBrains Mono, monospace', 'font-size':'10.5'});
+    txt.textContent = n.label;
+    g.appendChild(rect);
+    g.appendChild(txt);
+    g.addEventListener('click', function(){ openLoopModal(n.id); });
+    g.addEventListener('mouseenter', function(){ rect.setAttribute('stroke-width', '2.4'); });
+    g.addEventListener('mouseleave', function(){ rect.setAttribute('stroke-width', '1.5'); });
+    svg.appendChild(g);
+  });
+}
+
+function openLoopModal(id){
+  if (id === 'finetune'){
+    openModal('Fine-tune — hyperparameters',
+      '<div class="modal-section"><h5>LoRA fine-tune</h5>' +
+        '<div class="hp-grid">' +
+          '<div class="hp"><div class="hp-label">LoRA rank</div><div class="hp-val">16</div><div class="hp-sub">low-rank adapter</div></div>' +
+          '<div class="hp"><div class="hp-label">Learning rate</div><div class="hp-val">2e-5</div><div class="hp-sub">AdamW</div></div>' +
+          '<div class="hp"><div class="hp-label">Epochs</div><div class="hp-val">3</div><div class="hp-sub">nightly update</div></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="modal-section"><p style="font-size:13px;color:var(--muted)">Runs nightly against the rebuilt mixture; the new model is A/B tested offline against the last 30 days of bids before promotion.</p></div>');
+  } else if (id === 'eval'){
+    const rows = KPIS.map(function(k){
+      return '<tr><td>' + k.m + '</td><td class="formula">' + k.f + '</td><td class="g">' + k.g + '</td><td class="a">' + k.a + '</td><td class="r">' + k.r + '</td><td class="cad">' + k.c + '</td></tr>';
+    }).join('');
+    openModal('Offline A/B eval — KPI scorecard',
+      '<div class="modal-section"><h5>Green / amber / red thresholds</h5>' +
+        '<table class="kpi-table"><tr><th>Metric</th><th>Formula</th><th>Green</th><th>Amber</th><th>Red</th><th>Cadence</th></tr>' + rows + '</table>' +
+      '</div>' +
+      '<div class="modal-section"><p style="font-size:13px;color:var(--muted)">Iteration cadence: weekly offline eval · monthly production retrain · quarterly mixture version bump · 90-day full-loop review.</p></div>');
+  } else {
+    const node = LOOP_NODES.find(function(n){ return n.id === id; });
+    openModal(node.label, '<div class="modal-section"><div class="approve-box" style="border-color:' + rgba(node.color,.4) + ';color:var(--text)">' + LOOP_INFO[id] + '</div></div>');
+  }
+}
+
+/* ---- modal ---- */
+function openModal(title, bodyHtml){
+  $('modal-title').textContent = title;
+  $('modal-body').innerHTML = bodyHtml;
+  $('modal-backdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(){
+  $('modal-backdrop').classList.remove('show');
+  document.body.style.overflow = '';
+}
+$('modal-close').addEventListener('click', closeModal);
+$('modal-backdrop').addEventListener('click', function(e){ if (e.target === $('modal-backdrop')) closeModal(); });
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
+
+/* ---- counter animation ---- */
+const counterObserver = new IntersectionObserver(function(entries){
+  entries.forEach(function(en){
+    if (!en.isIntersecting) return;
+    counterObserver.unobserve(en.target);
+    animateCounters();
+  });
+}, {threshold:0.3});
+counterObserver.observe($('counter-strip'));
+
+function animateCounters(){
+  animateCounter('c-cycle', 11, 3, 1, ' days');
+  animateCounter('c-var', 14, 8, 1, '±%');
+  animateCounter('c-win', 0, 4, 1, ' pts');
+  const el = $('c-error');
+  let v = 7;
+  const iv = setInterval(function(){
+    v -= 0.5;
+    if (v <= 3){ el.textContent = '< 3%'; clearInterval(iv); }
+    else el.textContent = v.toFixed(1) + '%';
+  }, 60);
+}
+function animateCounter(id, from, to, dec, suffix){
+  const el = $(id);
+  const dur = 1200, start = performance.now();
+  function step(now){
+    const p = Math.min(1, (now - start) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = (from + (to - from) * eased).toFixed(dec) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ---- tabs + json ---- */
+$('tab-objects').addEventListener('click', function(){ switchTab('objects'); });
+$('tab-links').addEventListener('click', function(){ switchTab('links'); });
+$('tab-schema').addEventListener('click', function(){ switchTab('schema'); });
+$('json-toggle').addEventListener('click', function(){
+  const on = $('json-toggle').classList.toggle('on');
+  const pre = $('schema-json');
+  const sum = $('schema-summary');
+  if (on){
+    pre.textContent = buildSchema();
+    pre.style.display = 'block';
+    sum.style.display = 'none';
+  } else {
+    pre.style.display = 'none';
+    sum.style.display = 'block';
+  }
+});
+
+/* ---- init ---- */
+renderGraph();
+renderNodeGrid();
+renderLinks();
+$('schema-summary').innerHTML = '<span class="mono" style="color:var(--cyan)">12 object types</span> · <span class="mono" style="color:var(--amber)">13 link types</span> · toggle <span class="mono">JSON</span> to view the raw schema.';
+renderEpisodes();
+renderPipeline();
+renderFactory();
+selectNode('project');
+</script>
+</body>
+</html>
