@@ -769,6 +769,14 @@ const KPIS = [
   {m:'Model factory lift', f:'newModelScore − oldModelScore', g:'positive', a:'flat', r:'negative', c:'per retrain'}
 ];
 
+const PROBLEM_FIT = [
+  {p:'Expert takeoff / quantity extraction (IFC/PDF → correct quantities)', t:'Imitate (SFT)', w:'A right answer exists and historical model→actual-qty pairs are abundant; the task is copying the expert\'s known mapping.'},
+  {p:'Unit-rate selection when rates conflict (stale catalog vs recent quotes vs override)', t:'Contrast (DPO)', w:'Relative preferences only: the human rejected rate X and chose Y — no absolute truth, just better/worse pairs.'},
+  {p:'Margin & contingency setting under uncertainty (missing geotech, novel sector)', t:'Contrast (DPO) + Explore (GRPO)', w:'Human override gives a preference; optimal margin is only revealed by the win/loss reward signal.'},
+  {p:'Never-bid project types / cold-start pricing (first water plant)', t:'Explore (GRPO)', w:'No labels exist; the model generates candidate bids and learns from the market\'s verdict (win/loss gap).'},
+  {p:'Variance root-cause attribution (qty vs rate vs design change)', t:'Imitate (SFT)', w:'The expert\'s attribution is the ground-truth label; once attributed it becomes training data for risk prediction.'}
+];
+
 const NODEMAP = {};
 NODES.forEach(function(n){ n.color = FAMILY_COLOR[n.family]; NODEMAP[n.id] = n; });
 const FAMILY_LABEL = {project:'project', document:'document / record', cost:'cost', outcome:'outcome'};
@@ -1128,6 +1136,12 @@ function openLoopModal(id){
         '<table class="kpi-table"><tr><th>Metric</th><th>Formula</th><th>Green</th><th>Amber</th><th>Red</th><th>Cadence</th></tr>' + rows + '</table>' +
       '</div>' +
       '<div class="modal-section"><p style="font-size:13px;color:var(--muted)">Iteration cadence: weekly offline eval · monthly production retrain · quarterly mixture version bump · 90-day full-loop review.</p></div>');
+  } else if (id === 'recipe') {
+    openModal('Recipe — problem fit mapping',
+      '<div class="modal-section"><p style="font-size:13px;color:var(--muted);margin-bottom:12px">' + LOOP_INFO.recipe + '</p>' +
+        '<table class="kpi-table"><tr><th>Estimation problem</th><th>Technique</th><th>Why</th></tr>' +
+        PROBLEM_FIT.map(function(r){ return '<tr><td>' + r.p + '</td><td class="cad" style="color:var(--cyan)">' + r.t + '</td><td style="font-size:11.5px;color:var(--muted)">' + r.w + '</td></tr>'; }).join('') +
+        '</table></div>');
   } else {
     const node = LOOP_NODES.find(function(n){ return n.id === id; });
     openModal(node.label, '<div class="modal-section"><div class="approve-box" style="border-color:' + rgba(node.color,.4) + ';color:var(--text)">' + LOOP_INFO[id] + '</div></div>');
