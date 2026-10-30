@@ -770,7 +770,7 @@ const KPIS = [
 ];
 
 const NODEMAP = {};
-NODES.forEach(function(n){ NODEMAP[n.id] = n; });
+NODES.forEach(function(n){ n.color = FAMILY_COLOR[n.family]; NODEMAP[n.id] = n; });
 const FAMILY_LABEL = {project:'project', document:'document / record', cost:'cost', outcome:'outcome'};
 
 function rgba(hex, a){
