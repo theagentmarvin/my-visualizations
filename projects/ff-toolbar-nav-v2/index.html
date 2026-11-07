@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreeField — Toolbar Nav v2 (UX mockup)</title>
+<style>
+  :root{
+    --text:#1b1f24; --text2:#5b626b; --muted:#8a919c;
+    --ring:#2f6fe4; --danger:#d64545; --teal:#0e9488; --amber:#e8a124;
+    --glass:rgba(255,255,255,.72);
+    --glass-strong:rgba(255,255,255,.82);
+    --glass-brd:rgba(255,255,255,.65);
+    --shadow:0 8px 32px rgba(16,24,40,.14), 0 1px 2px rgba(16,24,40,.06);
+    --shadow-sm:0 2px 8px rgba(16,24,40,.12);
+    --r:16px; --r-sm:10px; --r-pill:999px;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,"Helvetica Neue",Arial,sans-serif;
+    --rail:64px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--text);overflow:hidden;height:100vh}
+
+  /* ── far-left module rail — building icon now on TOP ── */
+  #rail{position:fixed;left:0;top:0;bottom:0;width:var(--rail);
+    background:var(--glass-strong);backdrop-filter:blur(18px) saturate(1.4);
+    border-right:1px solid rgba(255,255,255,.5);box-shadow:1px 0 12px rgba(16,24,40,.05);
+    display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;z-index:6}
+  .rail-ic{width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+    border-radius:12px;color:var(--muted);cursor:pointer;position:relative;transition:.12s}
+  .rail-ic:hover{background:rgba(47,111,228,.07);color:var(--text2)}
+  .rail-ic.active{background:var(--ring);color:#fff;box-shadow:0 4px 12px rgba(47,111,228,.35)}
+  .rail-ic svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .rail-sp{flex:1}
+  .rail-div{width:28px;height:1px;background:rgba(27,31,36,.12);margin:6px 0}
+  #railBuilding{color:var(--text)}
+  #railBuilding .dot{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;
+    background:var(--teal);border:2px solid #fff}
+  #railBuilding .cap{position:absolute;bottom:2px;left:0;right:0;text-align:center;
+    font-size:8px;font-weight:700;letter-spacing:.04em;color:var(--muted);text-transform:uppercase;
+    overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 2px}
+
+  /* ── NO header. canvas owns everything right of the rail ── */
+  #stage{position:fixed;left:var(--rail);right:0;top:0;bottom:0;background:
+    radial-gradient(1400px 700px at 68% 28%, #f0f3f6 0%, #e2e6ea 60%, #d8dde3 100%);overflow:hidden}
+  #stage>svg{position:absolute;inset:0;width:100%;height:100%}
+  .elem{cursor:pointer;transition:fill .12s}
+  .elem:hover{fill:#c9d4e4}
+  .elem.selected{fill:var(--ring) !important;fill-opacity:.55}
+
+  .float{position:absolute;background:var(--glass);backdrop-filter:blur(18px) saturate(1.5);
+    border:1px solid var(--glass-brd);border-radius:var(--r);box-shadow:var(--shadow)}
+
+  /* ── top-left nav toolbar — segmented glass pill ── */
+  #nav{top:14px;left:14px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:14px}
+  .nav-btn{display:flex;align-items:center;gap:7px;border:0;background:transparent;
+    font:600 13px var(--font);color:var(--text2);padding:8px 14px;border-radius:var(--r-pill);cursor:pointer;transition:.12s}
+  .nav-btn:hover{color:var(--text)}
+  .nav-btn.active{background:#fff;color:var(--ring);box-shadow:var(--shadow-sm)}
+  .nav-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+  /* ── the ONE panel slot — frosted, floating ── */
+  #panel{top:66px;left:14px;width:320px;height:min(500px,calc(100% - 120px));
+    display:none;flex-direction:column;overflow:hidden}
+  #panel.open{display:flex;animation:drop .14s cubic-bezier(.2,.7,.3,1)}
+  @keyframes drop{from{opacity:0;transform:translateY(-6px) scale(.99)}to{opacity:1;transform:none}}
+  #panelHead{height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+    padding:0 14px;border-bottom:1px solid rgba(27,31,36,.07)}
+  #panelTitle{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text2)}
+  #panelBody{flex:1;overflow-y:auto;padding:8px}
+  .x{border:0;background:transparent;color:var(--muted);width:28px;height:28px;border-radius:8px;
+    font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .x:hover{background:rgba(27,31,36,.06);color:var(--text)}
+
+  .row{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:var(--r-sm);font-size:13px;cursor:pointer}
+  .row:hover{background:rgba(47,111,228,.05)}
+  .row .sub{color:var(--muted);font-size:11px;margin-left:auto;font-family:ui-monospace,monospace}
+  .row .ind{padding-left:22px}
+  .group{font-size:10px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);padding:12px 9px 4px}
+  .sep{border-top:1px solid rgba(27,31,36,.07);margin:8px 6px}
+  .chev{color:var(--muted);font-size:10px;width:12px}
+  .badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--r-pill);background:rgba(47,111,228,.09);color:var(--ring)}
+  .badge.on{background:rgba(14,148,136,.1);color:var(--teal)}
+  .badge.warn{background:rgba(232,161,36,.14);color:#8a5a00}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+  /* modern switch */
+  .sw{position:relative;width:36px;height:21px;flex-shrink:0;margin-left:auto}
+  .sw input{opacity:0;width:0;height:0}
+  .sw i{position:absolute;inset:0;border-radius:var(--r-pill);background:rgba(27,31,36,.18);transition:.15s;cursor:pointer}
+  .sw i::after{content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.15s}
+  .sw input:checked+i{background:var(--ring)}
+  .sw input:checked+i::after{transform:translateX(15px)}
+
+  /* ── properties: selection-only ── */
+  #props{right:14px;bottom:88px;width:320px;max-height:52%;display:none;flex-direction:column;overflow:hidden}
+  #props.open{display:flex;animation:drop .14s cubic-bezier(.2,.7,.3,1)}
+  #propsHead{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid rgba(27,31,36,.07)}
+  #propsHead b{font-size:13px}
+  #propsHead .file{font-size:11px;color:var(--muted);margin-left:auto}
+  #propsBody{overflow-y:auto;padding:10px 14px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px;color:var(--text2)}
+  #propsBody div{padding:4px 0;display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed rgba(27,31,36,.05)}
+  #propsBody div:last-child{border-bottom:0}
+  #propsBody span:last-child{color:var(--text);text-align:right}
+
+  /* ── building dropdown (from rail icon) ── */
+  #towerMenu{left:74px;top:58px;width:230px;display:none;flex-direction:column;padding:6px}
+  #towerMenu.open{display:flex;animation:drop .12s ease-out}
+  #towerMenu .mTitle{font-size:10px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);padding:8px 9px 4px}
+
+  /* ── bottom tool bar (same glass family) ── */
+  #tools{bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:2px;padding:4px;border-radius:14px}
+  .tool{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r-pill);border:0;
+    background:transparent;font:600 13px var(--font);color:var(--text2);cursor:pointer}
+  .tool:hover{color:var(--text)}
+  .tool.active{background:#fff;color:var(--text);box-shadow:var(--shadow-sm)}
+  .tool .caret{font-size:9px;opacity:.5}
+
+  .hint{position:absolute;bottom:16px;left:14px;font-size:11px;color:var(--text2);
+    background:var(--glass);backdrop-filter:blur(10px);padding:7px 11px;border-radius:var(--r-sm);
+    border:1px solid var(--glass-brd);max-width:360px}
+
+  @media (max-width:767px){
+    #rail{top:auto;flex-direction:row;left:0;right:0;height:56px;width:auto;
+      border-right:0;border-top:1px solid rgba(255,255,255,.5)}
+    #stage{top:0;bottom:56px;left:0}
+    #nav{border-radius:14px;max-width:calc(100% - 28px);overflow-x:auto}
+    #panel{top:auto;bottom:0;left:0;width:100%;height:46dvh;border-radius:18px 18px 0 0}
+    #props{right:0;left:0;bottom:0;width:100%;border-radius:18px 18px 0 0}
+    #towerMenu{left:14px;top:auto;bottom:70px}
+    .hint{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- module rail: building switcher now lives ABOVE the module icons -->
+<nav id="rail" aria-label="FreeField navigation">
+  <div class="rail-ic" id="railBuilding" title="Switch building — Data Tower">
+    <svg viewBox="0 0 24 24"><path d="M4 21V8l7-5 7 5v13M4 21h16M9 21v-4h4v4"/></svg>
+    <span class="dot"></span>
+    <span class="cap">Tower</span>
+  </div>
+  <div class="rail-div"></div>
+  <div class="rail-ic active" title="Models"><svg viewBox="0 0 24 24"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2zM12 2v18M4 6.5l8 4.5 8-4.5"/></svg></div>
+  <div class="rail-ic" title="Documents"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM15 2v5h5"/></svg></div>
+  <div class="rail-ic" title="Linkview"><svg viewBox="0 0 24 24"><path d="M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1.5 1.5M14 10a5 5 0 00-7 0l-3 3a5 5 0 007 7L12.5 18.5"/></svg></div>
+  <div class="rail-ic" title="Tasks"><svg viewBox="0 0 24 24"><path d="M3 5l2 2 4-4M3 13l2 2 4-4M3 21l2 2 4-4M13 6h8M13 14h8M13 22h8"/></svg></div>
+  <div class="rail-sp"></div>
+  <div class="rail-ic" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.3l2-1.6-2-3.4-2.4 1a7 7 0 00-2.2-1.3L14 3h-4l-.3 2.4a7 7 0 00-2.2 1.3l-2.4-1-2 3.4 2 1.6A7 7 0 005 12c0 .4 0 .9.1 1.3l-2 1.6 2 3.4 2.4-1a7 7 0 002.2 1.3L10 21h4l.3-2.4a7 7 0 002.2-1.3l2-1.6c.1-.4.1-.9.1-1.3z"/></svg></div>
+</nav>
+
+<div id="stage">
+  <svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet" aria-label="fake BIM canvas">
+    <g transform="translate(330,120)">
+      <g>
+        <polygon class="elem" data-name="Slab L01" data-id="210944" points="0,380 500,300 700,360 200,440" fill="#d7dce2"/>
+        <polygon class="elem" data-name="Slab L02" data-id="210945" points="0,290 500,210 700,270 200,350" fill="#dbe0e6"/>
+        <polygon class="elem" data-name="Slab L03" data-id="210946" points="0,200 500,120 700,180 200,260" fill="#e0e5ea"/>
+      </g>
+      <g fill="#c3cad2">
+        <rect class="elem" data-name="Column HEB-200" data-id="210501" x="60"  y="230" width="14" height="210"/>
+        <rect class="elem" data-name="Column HEB-200" data-id="210502" x="230" y="190" width="14" height="240"/>
+        <rect class="elem" data-name="Column HEB-200" data-id="210503" x="410" y="150" width="14" height="250"/>
+        <rect class="elem" data-name="Column HEB-240" data-id="210504" x="560" y="215" width="14" height="200"/>
+      </g>
+      <g fill="#b7c0ca">
+        <polygon class="elem" data-name="Beam IPE-300" data-id="211201" points="60,235 420,155 420,165 60,245"/>
+        <polygon class="elem" data-name="Beam IPE-300" data-id="211202" points="230,205 570,225 570,235 230,215"/>
+      </g>
+      <g fill="#d64545" fill-opacity=".8">
+        <rect class="elem" data-name="Duct rectangular 600x400" data-id="212001" x="90" y="120" width="480" height="9"/>
+        <rect class="elem" data-name="Pipe DN80 sprinkler" data-id="212002" x="140" y="140" width="380" height="5"/>
+      </g>
+    </g>
+  </svg>
+
+  <nav id="nav" class="float" aria-label="Navigation toolbar">
+    <button class="nav-btn" data-panel="models">
+      <svg viewBox="0 0 24 24"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2zM4 11l8 4.5 8-4.5"/></svg>Models &amp; Levels
+    </button>
+    <button class="nav-btn" data-panel="filters">
+      <svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"/></svg>Filters
+    </button>
+    <button class="nav-btn" data-panel="tasks">
+      <svg viewBox="0 0 24 24"><path d="M3 5l2 2 4-4M3 13l2 2 4-4M13 6h8M13 14h8"/></svg>Tasks
+    </button>
+  </nav>
+
+  <section id="panel" class="float" aria-label="Navigation panel">
+    <div id="panelHead"><span id="panelTitle"></span><button class="x" id="panelX" aria-label="Close">✕</button></div>
+    <div id="panelBody"></div>
+  </section>
+
+  <aside id="props" class="float" aria-label="Properties">
+    <div id="propsHead"><b id="propsName"></b><span class="file" id="propsFile"></span><button class="x" id="propsX">✕</button></div>
+    <div id="propsBody"></div>
+  </aside>
+
+  <div id="towerMenu" class="float">
+    <div class="mTitle">Switch building</div>
+    <div class="row"><span class="dot" style="background:var(--teal)"></span><b>Data Tower</b><span class="badge on">active</span></div>
+    <div class="row"><span class="dot" style="background:var(--muted)"></span>Torre Sur</div>
+    <div class="row"><span class="dot" style="background:var(--muted)"></span>Bodega Norte</div>
+  </div>
+
+  <div id="tools" class="float">
+    <button class="tool active">⌖ Select</button>
+    <button class="tool">📏 Measure <span class="caret">▾</span></button>
+    <button class="tool">📐 Section <span class="caret">▾</span></button>
+  </div>
+
+  <div class="hint"><b>v2:</b> header gone · building switcher = top rail icon · frosted-glass toolbar, panels &amp; switches.</div>
+</div>
+
+<script>
+const sw = (on)=>`<label class="sw"><input type="checkbox" ${on?"checked":""}><i></i></label>`;
+const PANELS = {
+  models: { title: "Models & Levels", html: `
+    <div class="group">Models</div>
+    <div class="row">🧊 sample.ifc ${sw(1)}<span class="sub">4.5 MB</span></div>
+    <div class="row">🧊 MECHANICAL_R.ifc ${sw(1)}<span class="sub">2.1 MB</span></div>
+    <div class="row">🧊 ARCH_R2.ifc ${sw(0)}<span class="sub">6.8 MB</span></div>
+    <div class="sep"></div>
+    <div class="group">Levels</div>
+    <div class="row"><span class="chev">▸</span>Level 01 <span class="sub">IfcSlab ×4</span></div>
+    <div class="row"><span class="chev">▸</span>Level 02 <span class="sub">IfcSlab ×4</span></div>
+    <div class="row"><span class="chev">▾</span>Level 03 <span class="badge on">open</span></div>
+    <div class="row ind">Slab L03 ${sw(1)}</div>
+    <div class="row ind">Columns L03 ${sw(1)}</div>
+    <div class="row"><span class="chev">▸</span>Roof</div>` },
+  filters: { title: "Custom filters", html: `
+    <div class="group">Structure</div>
+    <div class="row">📁 Structure <span class="sub">3</span></div>
+    <div class="row ind">Columns HEB <span class="sub">128</span> ${sw(1)}</div>
+    <div class="row ind">Beams IPE <span class="sub">94</span> ${sw(0)}</div>
+    <div class="row ind">Slabs <span class="sub">12</span> ${sw(1)}</div>
+    <div class="group">MEP</div>
+    <div class="row">📁 MEP <span class="sub">6</span></div>
+    <div class="row ind">Sprinkler DN80 <span class="badge">hidden</span> ${sw(1)}</div>
+    <div class="sep"></div>
+    <div class="row" style="color:var(--ring);font-weight:600">＋ New filter</div>` },
+  tasks: { title: "Tasks · Data Tower", html: `
+    <div class="group">Open</div>
+    <div class="row"><span class="dot" style="background:var(--danger)"></span>#142 Column clash L03 grid C-4 <span class="badge warn">today</span></div>
+    <div class="row"><span class="dot" style="background:var(--ring)"></span>#138 Duct support inspection <span class="sub">R. Zepeda</span></div>
+    <div class="row"><span class="dot" style="background:var(--muted)"></span>#131 Slab edge rework L02 <span class="sub">J. Pérez</span></div>
+    <div class="group">Done this week</div>
+    <div class="row" style="opacity:.55"><span class="dot" style="background:var(--teal)"></span>#127 Beam pairing audit</div>
+    <div class="row" style="opacity:.55"><span class="dot" style="background:var(--teal)"></span>#124 Level rename L01</div>
+    <div class="sep"></div>
+    <div class="row" style="color:var(--ring);font-weight:600">＋ New task</div>` }
+};
+
+const nav = document.getElementById('nav');
+const panel = document.getElementById('panel');
+const pTitle = document.getElementById('panelTitle');
+const pBody = document.getElementById('panelBody');
+const props = document.getElementById('props');
+const menu = document.getElementById('towerMenu');
+let active = null;
+
+function setPanel(id){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.panel===id));
+  if(id && id!==active){ pTitle.textContent = PANELS[id].title; pBody.innerHTML = PANELS[id].html; }
+  active = id;
+  panel.classList.toggle('open', !!id);
+}
+nav.addEventListener('click', e=>{
+  const btn = e.target.closest('.nav-btn'); if(!btn) return;
+  setPanel(btn.dataset.panel===active ? null : btn.dataset.panel);
+});
+document.getElementById('panelX').onclick = ()=>setPanel(null);
+
+// rail building icon → dropdown
+document.getElementById('railBuilding').onclick = e=>{ e.stopPropagation(); menu.classList.toggle('open'); };
+menu.addEventListener('click', e=>{
+  const row = e.target.closest('.row'); if(!row) return;
+  menu.querySelector('b').textContent = row.textContent.trim().replace('active','');
+  menu.classList.remove('open');
+});
+
+// selection → properties only
+const propsName = document.getElementById('propsName');
+const propsFile = document.getElementById('propsFile');
+const propsBody = document.getElementById('propsBody');
+let sel = null;
+document.getElementById('stage').addEventListener('click', e=>{
+  if(e.target.closest('.float')) return;
+  const el = e.target.closest('.elem');
+  if(sel) sel.classList.remove('selected');
+  if(!el){ props.classList.remove('open'); sel=null; return; }
+  sel = el; el.classList.add('selected');
+  propsName.textContent = el.dataset.name;
+  propsFile.textContent = (el.dataset.name.includes('Duct')||el.dataset.name.includes('Pipe')) ? 'MECHANICAL_R.ifc' : 'sample.ifc';
+  propsBody.innerHTML = `
+    <div><span>Express ID</span><span>${el.dataset.id}</span></div>
+    <div><span>IfcType</span><span>${el.dataset.name.startsWith('Slab')?'IfcSlab':el.dataset.name.startsWith('Column')?'IfcColumn':el.dataset.name.startsWith('Beam')?'IfcBeam':'IfcDuctSegment'}</span></div>
+    <div><span>Level</span><span>Level 0${1+(parseInt(el.dataset.id.slice(-1))%3)}</span></div>
+    <div><span>Material</span><span>AISI 1008/1015 Steel</span></div>
+    <div><span>Load bearing</span><span>TRUE</span></div>`;
+  props.classList.add('open');
+});
+document.getElementById('propsX').onclick = ()=>{ props.classList.remove('open'); if(sel){sel.classList.remove('selected');sel=null;} };
+
+document.addEventListener('click', e=>{ if(!e.target.closest('#railBuilding')&&!e.target.closest('#towerMenu')) menu.classList.remove('open'); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ setPanel(null); menu.classList.remove('open'); document.getElementById('propsX').click(); } });
+
+const q = new URLSearchParams(location.search);
+const wantPanel = q.get('panel');
+if(wantPanel && wantPanel !== 'none') setPanel(wantPanel);
+if(q.get('select')) document.querySelector('.elem[data-id="210502"]').dispatchEvent(new MouseEvent('click',{bubbles:true}));
+if(q.get('tower')) menu.classList.add('open');
+</script>
+</body>
+</html>
