@@ -52,11 +52,11 @@
 
   /* ── top-left nav toolbar — segmented glass pill ── */
   #nav{top:14px;left:14px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:14px}
-  .nav-btn{display:flex;align-items:center;gap:7px;border:0;background:transparent;
-    font:600 13px var(--font);color:var(--text2);padding:8px 14px;border-radius:var(--r-pill);cursor:pointer;transition:.12s}
+  .nav-btn{display:flex;align-items:center;justify-content:center;width:38px;height:34px;border:0;background:transparent;
+    color:var(--text2);border-radius:var(--r-pill);cursor:pointer;transition:.12s}
   .nav-btn:hover{color:var(--text)}
   .nav-btn.active{background:#fff;color:var(--ring);box-shadow:var(--shadow-sm)}
-  .nav-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .nav-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8}
 
   /* ── the ONE panel slot — frosted, floating ── */
   #panel{top:66px;left:14px;width:320px;height:min(500px,calc(100% - 120px));
@@ -92,14 +92,12 @@
   .sw input:checked+i{background:var(--ring)}
   .sw input:checked+i::after{transform:translateX(15px)}
 
-  /* ── properties: selection-only ── */
-  #props{right:14px;bottom:88px;width:320px;max-height:52%;display:none;flex-direction:column;overflow:hidden}
-  #props.open{display:flex;animation:drop .14s cubic-bezier(.2,.7,.3,1)}
-  #propsHead{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid rgba(27,31,36,.07)}
-  #propsHead b{font-size:13px}
-  #propsHead .file{font-size:11px;color:var(--muted);margin-left:auto}
-  #propsBody{overflow-y:auto;padding:10px 14px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px;color:var(--text2)}
-  #propsBody div{padding:4px 0;display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed rgba(27,31,36,.05)}
+  /* ── properties now shares the ONE panel slot — no separate geometry ── */
+  #propsMeta{display:flex;align-items:center;gap:8px;padding:10px 10px 2px}
+  #propsMeta b{font-size:13px}
+  #propsMeta .file{font-size:11px;color:var(--muted);margin-left:auto;font-family:ui-monospace,monospace}
+  #propsBody{padding:6px 10px 10px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px;color:var(--text2)}
+  #propsBody div{padding:5px 0;display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed rgba(27,31,36,.05)}
   #propsBody div:last-child{border-bottom:0}
   #propsBody span:last-child{color:var(--text);text-align:right}
 
@@ -176,14 +174,14 @@
   </svg>
 
   <nav id="nav" class="float" aria-label="Navigation toolbar">
-    <button class="nav-btn" data-panel="models">
-      <svg viewBox="0 0 24 24"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2zM4 11l8 4.5 8-4.5"/></svg>Models &amp; Levels
+    <button class="nav-btn" data-panel="models" title="Models & Levels">
+      <svg viewBox="0 0 24 24"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2zM4 11l8 4.5 8-4.5"/></svg>
     </button>
-    <button class="nav-btn" data-panel="filters">
-      <svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"/></svg>Filters
+    <button class="nav-btn" data-panel="filters" title="Filters">
+      <svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"/></svg>
     </button>
-    <button class="nav-btn" data-panel="tasks">
-      <svg viewBox="0 0 24 24"><path d="M3 5l2 2 4-4M3 13l2 2 4-4M13 6h8M13 14h8"/></svg>Tasks
+    <button class="nav-btn" data-panel="tasks" title="Tasks">
+      <svg viewBox="0 0 24 24"><path d="M3 5l2 2 4-4M3 13l2 2 4-4M13 6h8M13 14h8"/></svg>
     </button>
   </nav>
 
@@ -191,11 +189,6 @@
     <div id="panelHead"><span id="panelTitle"></span><button class="x" id="panelX" aria-label="Close">✕</button></div>
     <div id="panelBody"></div>
   </section>
-
-  <aside id="props" class="float" aria-label="Properties">
-    <div id="propsHead"><b id="propsName"></b><span class="file" id="propsFile"></span><button class="x" id="propsX">✕</button></div>
-    <div id="propsBody"></div>
-  </aside>
 
   <div id="towerMenu" class="float">
     <div class="mTitle">Switch building</div>
@@ -210,7 +203,7 @@
     <button class="tool">📐 Section <span class="caret">▾</span></button>
   </div>
 
-  <div class="hint"><b>v2:</b> header gone · building switcher = top rail icon · frosted-glass toolbar, panels &amp; switches.</div>
+  <div class="hint"><b>v3:</b> icon-only toolbar · Properties now opens in the <b>same</b> floating panel slot (top-left, same size) · click an element to see it.</div>
 </div>
 
 <script>
@@ -256,13 +249,12 @@ const nav = document.getElementById('nav');
 const panel = document.getElementById('panel');
 const pTitle = document.getElementById('panelTitle');
 const pBody = document.getElementById('panelBody');
-const props = document.getElementById('props');
 const menu = document.getElementById('towerMenu');
 let active = null;
 
 function setPanel(id){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.panel===id));
-  if(id && id!==active){ pTitle.textContent = PANELS[id].title; pBody.innerHTML = PANELS[id].html; }
+  if(id && id!=='props' && id!==active){ pTitle.textContent = PANELS[id].title; pBody.innerHTML = PANELS[id].html; }
   active = id;
   panel.classList.toggle('open', !!id);
 }
@@ -270,7 +262,7 @@ nav.addEventListener('click', e=>{
   const btn = e.target.closest('.nav-btn'); if(!btn) return;
   setPanel(btn.dataset.panel===active ? null : btn.dataset.panel);
 });
-document.getElementById('panelX').onclick = ()=>setPanel(null);
+document.getElementById('panelX').onclick = ()=>{ setPanel(null); if(sel){sel.classList.remove('selected');sel=null;} };
 
 // rail building icon → dropdown
 document.getElementById('railBuilding').onclick = e=>{ e.stopPropagation(); menu.classList.toggle('open'); };
@@ -280,31 +272,31 @@ menu.addEventListener('click', e=>{
   menu.classList.remove('open');
 });
 
-// selection → properties only
-const propsName = document.getElementById('propsName');
-const propsFile = document.getElementById('propsFile');
-const propsBody = document.getElementById('propsBody');
+// selection → Properties in the SAME panel slot
 let sel = null;
 document.getElementById('stage').addEventListener('click', e=>{
   if(e.target.closest('.float')) return;
   const el = e.target.closest('.elem');
   if(sel) sel.classList.remove('selected');
-  if(!el){ props.classList.remove('open'); sel=null; return; }
+  if(!el){ setPanel(null); sel=null; return; }
   sel = el; el.classList.add('selected');
-  propsName.textContent = el.dataset.name;
-  propsFile.textContent = (el.dataset.name.includes('Duct')||el.dataset.name.includes('Pipe')) ? 'MECHANICAL_R.ifc' : 'sample.ifc';
-  propsBody.innerHTML = `
-    <div><span>Express ID</span><span>${el.dataset.id}</span></div>
-    <div><span>IfcType</span><span>${el.dataset.name.startsWith('Slab')?'IfcSlab':el.dataset.name.startsWith('Column')?'IfcColumn':el.dataset.name.startsWith('Beam')?'IfcBeam':'IfcDuctSegment'}</span></div>
-    <div><span>Level</span><span>Level 0${1+(parseInt(el.dataset.id.slice(-1))%3)}</span></div>
-    <div><span>Material</span><span>AISI 1008/1015 Steel</span></div>
-    <div><span>Load bearing</span><span>TRUE</span></div>`;
-  props.classList.add('open');
+  const file = (el.dataset.name.includes('Duct')||el.dataset.name.includes('Pipe')) ? 'MECHANICAL_R.ifc' : 'sample.ifc';
+  const ifc = el.dataset.name.startsWith('Slab')?'IfcSlab':el.dataset.name.startsWith('Column')?'IfcColumn':el.dataset.name.startsWith('Beam')?'IfcBeam':'IfcDuctSegment';
+  pTitle.textContent = "Properties";
+  pBody.innerHTML = `
+    <div id="propsMeta"><b>${el.dataset.name}</b><span class="file">${file}</span></div>
+    <div id="propsBody">
+      <div><span>Express ID</span><span>${el.dataset.id}</span></div>
+      <div><span>IfcType</span><span>${ifc}</span></div>
+      <div><span>Level</span><span>Level 0${1+(parseInt(el.dataset.id.slice(-1))%3)}</span></div>
+      <div><span>Material</span><span>AISI 1008/1015 Steel</span></div>
+      <div><span>Load bearing</span><span>TRUE</span></div>
+    </div>`;
+  setPanel('props');
 });
-document.getElementById('propsX').onclick = ()=>{ props.classList.remove('open'); if(sel){sel.classList.remove('selected');sel=null;} };
 
 document.addEventListener('click', e=>{ if(!e.target.closest('#railBuilding')&&!e.target.closest('#towerMenu')) menu.classList.remove('open'); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ setPanel(null); menu.classList.remove('open'); document.getElementById('propsX').click(); } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ setPanel(null); menu.classList.remove('open'); if(sel){sel.classList.remove('selected');sel=null;} } });
 
 const q = new URLSearchParams(location.search);
 const wantPanel = q.get('panel');
