@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreeField — Toolbar Nav v1 (UX mockup)</title>
+<style>
+  :root{
+    --surface:#ffffff; --bg:#f6f7f9; --canvas:#e8ebee;
+    --border:#e7e9ec; --border-strong:#d6dbe1;
+    --text:#1b1f24; --text2:#5b626b; --muted:#8a919c;
+    --primary:#181c22; --on-primary:#fff;
+    --ring:#2f6fe4; --ring-tint:rgba(47,111,228,0.08); --ring-line:rgba(47,111,228,0.22);
+    --danger:#d64545; --teal:#0e9488;
+    --r-sm:8px; --r-md:12px; --r-pill:999px;
+    --shadow-raised:0 6px 20px rgba(16,24,40,0.10);
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--text);background:var(--canvas);overflow:hidden;height:100vh}
+
+  /* ── header ────────────────────────── */
+  header{height:48px;display:flex;align-items:center;padding:0 16px;background:var(--bg);
+    border-bottom:1px solid var(--border);font-weight:600}
+
+  /* ── canvas = FULL screen ───────────── */
+  #stage{position:absolute;inset:48px 0 0 0;background:
+    radial-gradient(1200px 600px at 70% 30%, #eef1f4 0%, var(--canvas) 70%);overflow:hidden}
+  #stage svg{position:absolute;inset:0;width:100%;height:100%}
+  .elem{cursor:pointer;transition:fill .12s}
+  .elem:hover{fill:#c9d4e4}
+  .elem.selected{fill:var(--ring) !important;fill-opacity:.55}
+
+  /* ── floating chrome shared ─────────── */
+  .float{position:absolute;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r-md);box-shadow:var(--shadow-raised)}
+
+  /* ── top-left nav toolbar ───────────── */
+  #nav{top:12px;left:12px;display:flex;align-items:center;gap:4px;padding:4px;border-radius:var(--r-pill)}
+  .nav-btn{display:flex;align-items:center;gap:7px;border:1px solid transparent;background:transparent;
+    font:600 13px var(--font);color:var(--text2);padding:7px 12px;border-radius:var(--r-pill);cursor:pointer}
+  .nav-btn:hover{background:var(--bg);color:var(--text)}
+  .nav-btn.active{background:var(--ring-tint);border-color:var(--ring-line);color:var(--ring)}
+  .nav-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
+  #towerName{font-weight:600;color:var(--text)}
+
+  /* ── the ONE panel slot (same for all buttons) ── */
+  #panel{top:60px;left:12px;width:320px;height:min(480px,calc(100% - 100px));
+    display:none;flex-direction:column;overflow:hidden}
+  #panel.open{display:flex;animation:drop .12s ease-out}
+  @keyframes drop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+  #panelHead{height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+    padding:0 12px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;
+    letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+  #panelBody{flex:1;overflow-y:auto;padding:8px}
+  .x{border:0;background:transparent;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 6px;border-radius:6px}
+  .x:hover{background:var(--bg);color:var(--text)}
+
+  .row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--r-sm);font-size:13px;cursor:pointer}
+  .row:hover{background:var(--bg)}
+  .row .sub{color:var(--muted);font-size:11px;margin-left:auto;font-family:ui-monospace,monospace}
+  .group{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:10px 8px 4px}
+  input[type=checkbox]{accent-color:var(--ring);width:14px;height:14px}
+  .badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:var(--r-pill);background:var(--ring-tint);color:var(--ring)}
+  .badge.on{background:#e6f6f0;color:var(--teal)}
+
+  /* ── properties: only on selection ──── */
+  #props{right:12px;bottom:84px;width:320px;max-height:50%;display:none;flex-direction:column;overflow:hidden}
+  #props.open{display:flex;animation:drop .14s ease-out}
+  #propsHead{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border)}
+  #propsHead b{font-size:13px}
+  #propsHead .file{font-size:11px;color:var(--muted);margin-left:auto}
+  #propsBody{overflow-y:auto;padding:10px 12px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px;color:var(--text2)}
+  #propsBody div{padding:2px 0;display:flex;justify-content:space-between;gap:12px}
+  #propsBody span:last-child{color:var(--text);text-align:right}
+
+  /* ── bottom tool bar (unchanged, reference) ── */
+  #tools{bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:2px;padding:4px;border-radius:var(--r-pill)}
+  .tool{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:var(--r-pill);border:0;
+    background:transparent;font:600 13px var(--font);color:var(--text2);cursor:pointer}
+  .tool:hover{background:var(--bg)}
+  .tool.active{background:var(--primary);color:var(--on-primary)}
+  .tool .caret{font-size:9px;opacity:.6}
+
+  .hint{position:absolute;bottom:16px;left:12px;font-size:11px;color:var(--muted);
+    background:rgba(255,255,255,.75);padding:6px 10px;border-radius:var(--r-sm)}
+  .hint b{color:var(--text2)}
+
+  /* mobile */
+  @media (max-width:767px){
+    #nav{border-radius:14px;max-width:calc(100% - 24px);overflow-x:auto}
+    #panel{top:auto;bottom:0;left:0;width:100%;height:45dvh;border-radius:14px 14px 0 0}
+    #props{right:0;left:0;bottom:0;width:100%;border-radius:14px 14px 0 0}
+    .hint{display:none}
+  }
+</style>
+</head>
+<body>
+<header>FreeField <span style="font-weight:400;color:var(--muted);font-size:12px;margin-left:10px">Models · toolbar-nav v1 mockup</span></header>
+
+<div id="stage">
+  <svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet" aria-label="fake BIM canvas">
+    <g id="model" transform="translate(330,120)">
+      <!-- floors -->
+      <g class="floor">
+        <polygon class="elem" data-name="Slab L01" data-id="210944" points="0,380 500,300 700,360 200,440" fill="#d7dce2"/>
+        <polygon class="elem" data-name="Slab L02" data-id="210945" points="0,290 500,210 700,270 200,350" fill="#dbe0e6"/>
+        <polygon class="elem" data-name="Slab L03" data-id="210946" points="0,200 500,120 700,180 200,260" fill="#e0e5ea"/>
+      </g>
+      <!-- columns -->
+      <g fill="#c3cad2">
+        <rect class="elem" data-name="Column HEB-200" data-id="210501" x="60"  y="230" width="14" height="210"/>
+        <rect class="elem" data-name="Column HEB-200" data-id="210502" x="230" y="190" width="14" height="240"/>
+        <rect class="elem" data-name="Column HEB-200" data-id="210503" x="410" y="150" width="14" height="250"/>
+        <rect class="elem" data-name="Column HEB-240" data-id="210504" x="560" y="215" width="14" height="200"/>
+      </g>
+      <!-- beams -->
+      <g fill="#b7c0ca">
+        <polygon class="elem" data-name="Beam IPE-300" data-id="211201" points="60,235 420,155 420,165 60,245"/>
+        <polygon class="elem" data-name="Beam IPE-300" data-id="211202" points="230,205 570,225 570,235 230,215"/>
+      </g>
+      <!-- MEP (red) -->
+      <g fill="#d64545" fill-opacity=".8">
+        <rect class="elem" data-name="Duct rectangular 600x400" data-id="212001" x="90" y="120" width="480" height="9"/>
+        <rect class="elem" data-name="Pipe DN80 sprinkler" data-id="212002" x="140" y="140" width="380" height="5"/>
+      </g>
+    </g>
+  </svg>
+
+  <!-- top-left nav toolbar -->
+  <nav id="nav" class="float" aria-label="Navigation toolbar">
+    <button class="nav-btn" data-panel="tower">
+      <svg viewBox="0 0 24 24"><path d="M4 21V8l7-5 7 5v13M4 21h16M9 21v-4h4v4"/></svg>
+      <span id="towerName">Data Tower</span><span class="caret">▾</span>
+    </button>
+    <button class="nav-btn" data-panel="filters">
+      <svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"/></svg>Filters
+    </button>
+    <button class="nav-btn" data-panel="models">
+      <svg viewBox="0 0 24 24"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2zM12 2v18M4 6.5l8 4.5 8-4.5"/></svg>Models
+    </button>
+    <button class="nav-btn" data-panel="levels">
+      <svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5M3 17.5l9 5 9-5"/></svg>Levels
+    </button>
+  </nav>
+
+  <!-- the single fixed panel slot -->
+  <section id="panel" class="float" aria-label="Navigation panel">
+    <div id="panelHead"><span id="panelTitle">Filters</span><button class="x" id="panelX" aria-label="Close">✕</button></div>
+    <div id="panelBody"></div>
+  </section>
+
+  <!-- properties: only when an element is selected -->
+  <aside id="props" class="float" aria-label="Properties">
+    <div id="propsHead"><b id="propsName"></b><span class="file" id="propsFile"></span><button class="x" id="propsX">✕</button></div>
+    <div id="propsBody"></div>
+  </aside>
+
+  <!-- bottom tool bar: unchanged -->
+  <div id="tools" class="float">
+    <button class="tool active">⌖ Select</button>
+    <button class="tool">📏 Measure <span class="caret">▾</span></button>
+    <button class="tool">📐 Section <span class="caret">▾</span></button>
+  </div>
+
+  <div class="hint"><b>Try it:</b> open each toolbar button (same panel slot) · click a column/beam/slab to get Properties · ✕ or Esc to close</div>
+</div>
+
+<script>
+const PANELS = {
+  tower: { title: "Tower", html: `
+    <div class="group">Buildings</div>
+    <div class="row"><input type="radio" name="b" checked><b>Data Tower</b><span class="badge on">active</span></div>
+    <div class="row"><input type="radio" name="b">Torre Sur</div>
+    <div class="row"><input type="radio" name="b">Bodega Norte</div>
+    <div class="group">Project · El Mirador</div>` },
+  filters: { title: "Custom filters", html: `
+    <div class="group">Custom</div>
+    <div class="row"><input type="checkbox" checked>📁 Structure <span class="sub">3</span></div>
+    <div class="row" style="padding-left:26px"><input type="checkbox" checked>Columns HEB <span class="sub">128</span></div>
+    <div class="row" style="padding-left:26px"><input type="checkbox">Beams IPE <span class="sub">94</span></div>
+    <div class="row" style="padding-left:26px"><input type="checkbox" checked>Slabs <span class="sub">12</span></div>
+    <div class="row"><input type="checkbox">📁 MEP <span class="sub">6</span></div>
+    <div class="row" style="padding-left:26px"><input type="checkbox" checked>Sprinkler DN80 <span class="badge">hidden</span></div>
+    <div class="row">＋ New filter</div>` },
+  models: { title: "Models", html: `
+    <div class="group">Auto · managed</div>
+    <div class="row"><input type="checkbox" checked>🧊 sample.ifc <span class="sub">4.5 MB</span></div>
+    <div class="row"><input type="checkbox" checked>🧊 MECHANICAL_R.ifc <span class="sub">2.1 MB</span></div>
+    <div class="row"><input type="checkbox">🧊 ARCH_R2.ifc <span class="sub">6.8 MB</span></div>` },
+  levels: { title: "Levels", html: `
+    <div class="group">Auto · managed</div>
+    <div class="row">▸ Level 01 <span class="sub">IfcSlab ×4</span></div>
+    <div class="row">▸ Level 02 <span class="sub">IfcSlab ×4</span></div>
+    <div class="row">▾ Level 03 <span class="badge on">open</span></div>
+    <div class="row" style="padding-left:26px"><input type="checkbox" checked>Slab L03</div>
+    <div class="row" style="padding-left:26px"><input type="checkbox" checked>Columns L03</div>
+    <div class="row">▸ Roof</div>` }
+};
+
+const nav = document.getElementById('nav');
+const panel = document.getElementById('panel');
+const pTitle = document.getElementById('panelTitle');
+const pBody = document.getElementById('panelBody');
+const props = document.getElementById('props');
+let active = null;
+
+function setPanel(id){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.panel===id));
+  if(id && id!==active){ pTitle.textContent = PANELS[id].title; pBody.innerHTML = PANELS[id].html; }
+  active = id;
+  panel.classList.toggle('open', !!id);
+}
+nav.addEventListener('click', e=>{
+  const btn = e.target.closest('.nav-btn'); if(!btn) return;
+  setPanel(btn.dataset.panel===active ? null : btn.dataset.panel);
+});
+document.getElementById('panelX').onclick = ()=>setPanel(null);
+
+// selection → properties only
+const propsName = document.getElementById('propsName');
+const propsFile = document.getElementById('propsFile');
+const propsBody = document.getElementById('propsBody');
+let sel = null;
+document.getElementById('stage').addEventListener('click', e=>{
+  const el = e.target.closest('.elem');
+  if(sel){ sel.classList.remove('selected'); }
+  if(!el){ props.classList.remove('open'); sel=null; return; }
+  sel = el; el.classList.add('selected');
+  propsName.textContent = el.dataset.name;
+  propsFile.textContent = el.dataset.name.includes('Duct')||el.dataset.name.includes('Pipe') ? 'MECHANICAL_R.ifc' : 'sample.ifc';
+  propsBody.innerHTML = `
+    <div><span>Express ID</span><span>${el.dataset.id}</span></div>
+    <div><span>IfcType</span><span>${el.dataset.name.startsWith('Slab')?'IfcSlab':el.dataset.name.startsWith('Column')?'IfcColumn':el.dataset.name.startsWith('Beam')?'IfcBeam':'IfcDuctSegment'}</span></div>
+    <div><span>Level</span><span>Level 0${1+ (parseInt(el.dataset.id.slice(-1))%3)}</span></div>
+    <div><span>Material</span><span>AISI 1008/1015 Steel</span></div>
+    <div><span>Load bearing</span><span>TRUE</span></div>`;
+  props.classList.add('open');
+});
+document.getElementById('propsX').onclick = ()=>{ props.classList.remove('open'); if(sel){sel.classList.remove('selected');sel=null;} };
+
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ setPanel(null); document.getElementById('propsX').click(); } });
+setPanel('filters'); // start with one open so the shape is obvious
+</script>
+</body>
+</html>
