@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FreeField · Tasks module — UI refresh v1 (mockup)</title>
+<style>
+/* ── design tokens — identical to packages/ff-tasks-react/src/formStyles.ts
+   and the :root block of docs/ux/task-form-v2.html (spec of record). ── */
+:root{
+  --canvas:#e8ebee; --bg:#f6f7f9; --surface:#ffffff; --surface-2:#fafbfc;
+  --border:#e7e9ec; --border-strong:#d6dbe1;
+  --text:#1b1f24; --text-2:#5b626b; --muted:#8a919c;
+  --primary:#181c22; --primary-hover:#272d35; --on-primary:#ffffff;
+  --focus-ring:#2f6fe4; --danger:#d64545;
+  --st-blue:#2f6fe4; --st-amber:#e8a124; --st-red:#d64545; --st-orange:#e8791f;
+  --st-teal:#0e9488; --st-green:#22a558; --st-gray:#7a828c; --st-amber-ink:#2b1a00;
+  --focus-ring-tint:rgba(47,111,228,.08); --focus-ring-line:rgba(47,111,228,.22); --focus-ring-ink:#2a5bb8;
+  --offline-bg:#fbf0dd; --offline-ink:#8a5a00; --scrim:rgba(16,20,26,.42);
+  --shadow-popup:0 -10px 30px rgba(16,24,40,.22);
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-pill:999px;
+  --card:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.06);
+  --raised:0 6px 20px rgba(16,24,40,.10);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);color:var(--text);background:var(--canvas);font-size:14px}
+button{font-family:inherit;cursor:pointer}
+svg{display:block}
+
+/* ── app frame: 64px rail + content ─────────────────────────────── */
+.app{display:flex;height:100vh;overflow:hidden}
+.rail{width:64px;flex:none;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px}
+.rail .sw{width:40px;height:40px;border-radius:10px;background:var(--primary);color:var(--on-primary);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.rail .cap{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:2px}
+.rail .entry{display:flex;flex-direction:column;align-items:center;padding:4px 0}
+.rail .ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-2);border:none;background:transparent}
+.rail .ico:hover{background:var(--bg)}
+.rail .ico.active{background:var(--focus-ring-tint);color:var(--focus-ring)}
+.rail .div{width:32px;height:1px;background:var(--border);margin:8px 0}
+.rail .grow{flex:1}
+.rail .me{width:32px;height:32px;border-radius:50%;background:var(--st-teal);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0;padding:16px 18px;gap:12px;overflow:hidden}
+body[data-mobile="1"] .main{padding:12px}
+
+/* ── header band ────────────────────────────────────────────────── */
+.hd{display:flex;align-items:center;gap:12px;flex:none}
+.hd h1{font-size:18px;font-weight:600;margin:0;letter-spacing:-.01em}
+.scope-chip{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:var(--r-pill);
+  border:1px solid var(--focus-ring-line);background:var(--focus-ring-tint);color:var(--focus-ring-ink);
+  font-weight:600;font-size:12px}
+.scope-chip svg{opacity:.8}
+.scope-chip .car{font-size:10px;opacity:.7}
+.hd .spacer{flex:1}
+.scope-toggle{display:inline-flex;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-pill);padding:3px;gap:2px}
+.scope-toggle button{border:none;background:transparent;border-radius:var(--r-pill);padding:4px 12px;font-size:12px;font-weight:600;color:var(--text-2)}
+.scope-toggle button.on{background:var(--focus-ring-tint);color:var(--focus-ring-ink);box-shadow:inset 0 0 0 1px var(--focus-ring-line)}
+
+/* ── toolbar card (V1 floating card, V2 segmented pill, V8 views, V9 ⌘K) ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--raised);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.toolbar{display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.trow{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;min-width:0}
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--border-strong);border-radius:var(--r-md);padding:3px}
+.seg button{border:none;background:transparent;border-radius:9px;padding:5px 14px;font-size:13px;font-weight:600;color:var(--text-2);display:inline-flex;align-items:center;gap:6px}
+.seg button.on{background:var(--surface);color:var(--text);box-shadow:var(--card)}
+.views-btn{height:34px;padding:0 12px;border-radius:var(--r-md);border:1px solid var(--border-strong);background:var(--surface);font-size:13px;font-weight:600;color:var(--text-2);display:inline-flex;align-items:center;gap:7px}
+.views-btn:hover{border-color:var(--muted)}
+.search{flex:1;min-width:120px;height:34px;display:flex;align-items:center;gap:8px;padding:0 10px;border:1px solid var(--border-strong);border-radius:var(--r-md);background:var(--surface);color:var(--muted);font-size:13px}
+.search .kbd{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text-2);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:1px 6px}
+.btn-ghost{height:34px;padding:0 12px;border-radius:var(--r-md);border:1px solid transparent;background:transparent;font-size:13px;font-weight:600;color:var(--text-2)}
+.btn-ghost:hover{background:var(--bg)}
+.btn-primary{height:34px;padding:0 14px;border-radius:var(--r-md);border:1px solid var(--primary);background:var(--primary);color:var(--on-primary);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--card)}
+.btn-primary:hover{background:var(--primary-hover)}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.chip{border:1px solid var(--border-strong);background:var(--surface);border-radius:var(--r-pill);padding:5px 13px;font-size:12px;font-weight:600;color:var(--text-2);white-space:nowrap}
+.chip .n{opacity:.55;margin-left:5px;font-variant-numeric:tabular-nums}
+.chip.on{background:var(--focus-ring-tint);border-color:var(--focus-ring-line);color:var(--focus-ring-ink)}
+
+/* ── table (V3 soft status · V4 groups · V5 avatars · V6 relative · V7 hover actions · V10 mono) ── */
+.tbl{flex:1;overflow:auto;min-height:0}
+table{border-collapse:separate;border-spacing:0;width:100%}
+thead th{position:sticky;top:0;z-index:3;background:var(--surface-2);border-bottom:1px solid var(--border);
+  font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;
+  text-align:left;padding:8px 12px;white-space:nowrap}
+thead th .fun{opacity:.45;margin-left:4px}
+.grp td{background:var(--surface-2);border-bottom:1px solid var(--border);border-top:1px solid var(--border);
+  padding:7px 12px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-2)}
+.grp .dot{margin-right:7px}
+.grp .cnt{color:var(--muted);font-weight:600;margin-left:6px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);padding:0 7px;font-size:11px;letter-spacing:0}
+tr.row{height:44px;border-bottom:1px solid var(--border)}
+tr.row td{padding:0 12px;border-bottom:1px solid var(--border);background:var(--surface);white-space:nowrap}
+tr.row:hover td{background:var(--bg)}
+tr.row.sel td{background:var(--focus-ring-tint)}
+td.num{font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:600}
+td.num b{color:var(--text-2);font-weight:700}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex:none}
+.st{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--text-2);font-weight:500}
+.t-title{font-weight:500;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.loc{font-size:11px;color:var(--muted);margin-top:1px;font-weight:500}
+.tchip{border:1px solid var(--border-strong);border-radius:var(--r-pill);padding:2px 10px;font-size:11px;font-weight:600;color:var(--text-2);background:var(--surface)}
+.av{width:22px;height:22px;border-radius:50%;color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:7px;vertical-align:middle}
+.who{font-size:13px;color:var(--text-2)}
+.dl{font-size:13px;font-weight:600;color:var(--text-2)}
+.dl.late{color:var(--danger)}
+.dl.late .od{background:var(--danger);color:#fff;border-radius:var(--r-pill);font-size:10px;font-weight:700;padding:1px 7px;margin-left:6px}
+.meta-i{color:var(--muted);font-size:12px;display:inline-flex;align-items:center;gap:4px;margin-right:12px;vertical-align:middle}
+/* V7 hover actions — revealed on row hover (or forced via ?hover=1) */
+.acts{visibility:hidden;display:inline-flex;gap:4px}
+tr.row:hover .acts,tr.row.forcehov .acts{visibility:visible}
+.act{width:26px;height:26px;border-radius:8px;border:1px solid var(--border-strong);background:var(--surface);color:var(--text-2);display:inline-flex;align-items:center;justify-content:center;font-size:12px;padding:0}
+.act:hover{border-color:var(--focus-ring);color:var(--focus-ring)}
+.pending td{background:repeating-linear-gradient(45deg,var(--surface),var(--surface) 8px,var(--surface-2) 8px,var(--surface-2) 16px)}
+.pending .wip{font-size:11px;color:var(--muted)}
+.failed td{background:#fdf3f3}
+.failed .err{color:var(--danger);font-size:12px;font-weight:600}
+.retry{border:1px solid var(--danger);color:var(--danger);background:#fff;border-radius:var(--r-pill);font-size:11px;font-weight:700;padding:2px 10px}
+
+/* ── board view ─────────────────────────────────────────────────── */
+.board{flex:1;display:flex;gap:12px;padding:14px;overflow-x:auto;min-height:0}
+.col{width:270px;flex:none;display:flex;flex-direction:column;min-height:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-md)}
+.col h3{margin:0;padding:10px 12px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-2);display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--border)}
+.col h3 .cnt{margin-left:auto;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);padding:0 7px;font-size:11px;letter-spacing:0}
+.bcards{overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:8px}
+.bcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--card);padding:10px 11px;cursor:pointer}
+.bcard:hover{border-color:var(--focus-ring-line);box-shadow:var(--raised)}
+.bcard .bnum{font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:600}
+.bcard .btitle{font-size:13px;font-weight:600;margin:4px 0 8px;line-height:1.35}
+.bcard .brow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bcard .bmeta{margin-left:auto;font-size:12px;color:var(--muted)}
+
+/* ── sheets (compose/detail) — reuse task-form-v2 anatomy ─────── */
+.overlay{position:fixed;inset:0;background:var(--scrim);display:flex;align-items:center;justify-content:center;z-index:40}
+.sheet{width:460px;max-height:88vh;display:flex;flex-direction:column;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-popup);overflow:hidden}
+.s-top{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);flex:none}
+.s-top .x{width:30px;height:30px;border-radius:8px;border:none;background:transparent;font-size:15px;color:var(--text-2)}
+.s-top .x:hover{background:var(--bg)}
+.s-top .tno{font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:700}
+.s-top .ttl{font-weight:700;font-size:14px}
+.s-top .act-btn{margin-left:auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border-strong);background:var(--surface);border-radius:var(--r-pill);padding:4px 11px;font-size:12px;font-weight:600;color:var(--text-2)}
+.s-top .act-btn .cnt{width:16px;height:16px;border-radius:50%;background:var(--focus-ring);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center}
+.offline{background:var(--offline-bg);color:var(--offline-ink);font-size:12px;font-weight:600;padding:6px 14px;flex:none;text-align:center}
+.s-body{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.band{height:4px;border-radius:2px;flex:none}
+.fcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--card);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.ml{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:3px}
+.mv{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.kv{display:flex;justify-content:space-between;font-size:12px;color:var(--text-2)}
+.kv b{color:var(--text);font-weight:600}
+.proj-chip{background:var(--focus-ring-tint);border:1px solid var(--focus-ring-line);color:var(--focus-ring-ink);border-radius:var(--r-pill);padding:2px 10px;font-size:12px;font-weight:700}
+.new-flag{background:var(--st-green);color:#fff;border-radius:var(--r-pill);font-size:9px;font-weight:800;padding:2px 8px;letter-spacing:.06em;text-transform:uppercase;margin-left:8px;vertical-align:2px}
+.bl-row{display:flex;gap:7px;flex-wrap:wrap}
+.bl-row .chip.on{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.inp,textarea.inp,select.inp{width:100%;border:1px solid var(--border-strong);border-radius:var(--r-md);padding:9px 11px;font-size:14px;font-family:inherit;color:var(--text);background:var(--surface);outline:none}
+.inp:focus{border-color:var(--focus-ring);box-shadow:0 0 0 3px var(--focus-ring-line)}
+.req{color:var(--danger)}
+.quick{display:flex;gap:6px}
+.type-chips{display:flex;gap:6px;flex-wrap:wrap}
+.locard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);position:relative;overflow:hidden;box-shadow:var(--card)}
+.locimg{height:120px;background:linear-gradient(135deg,#dfe4ea 0%,#cfd6de 55%,#e8ebee 100%);position:relative}
+.locimg .pin{position:absolute;left:50%;top:46%;width:22px;height:22px;border-radius:50%;background:var(--focus-ring);border:3px solid #fff;box-shadow:var(--raised);transform:translate(-50%,-50%)}
+.locard .chev{position:absolute;right:10px;bottom:10px;background:rgba(255,255,255,.9);border-radius:var(--r-pill);padding:4px 10px;font-size:11px;font-weight:700;color:var(--focus-ring-ink);box-shadow:var(--card)}
+.att-grid{display:flex;gap:8px}
+.att{width:56px;height:56px;border-radius:10px;background:linear-gradient(160deg,#cfd6de,#e8ebee);border:1px solid var(--border);position:relative;display:flex;align-items:center;justify-content:center}
+.att.ring svg{position:absolute;inset:0;width:100%;height:100%}
+.s-foot{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border);flex:none;background:var(--surface);box-shadow:0 -6px 16px rgba(16,24,40,.08)}
+.s-foot .btn-ghost{border:1px solid var(--border-strong);background:var(--surface)}
+.s-foot .btn-primary{margin-left:auto;height:38px}
+
+/* activity popup variant */
+.popup{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;width:460px;max-height:62vh;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-popup);z-index:41;display:flex;flex-direction:column;overflow:hidden}
+.popup .grab{width:36px;height:4px;border-radius:2px;background:var(--border-strong);margin:8px auto 4px}
+.popup h4{margin:2px 14px 8px;font-size:13px}
+.tl{overflow-y:auto;padding:0 14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.tl .ev{display:flex;gap:9px;font-size:12px;color:var(--text-2)}
+.tl .ev .av{width:20px;height:20px}
+.tl .ev b{color:var(--text)}
+.composer{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--border)}
+.composer .inp{border-radius:var(--r-pill);height:36px}
+
+/* ── skeleton / empty ──────────────────────────────────────────── */
+.sk{height:44px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 12px}
+.sk i{display:block;height:12px;border-radius:6px;background:var(--bg);animation:p 1.1s ease-in-out infinite}
+@keyframes p{50%{opacity:.5}}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);padding:60px}
+.empty .big{font-size:34px}
+.empty h3{margin:0;color:var(--text-2);font-size:15px}
+
+/* ── mobile frame ──────────────────────────────────────────────── */
+body[data-mobile="1"] .app{display:none}
+body[data-mobile="1"] .phone{display:flex}
+.phone{display:none;width:375px;height:760px;margin:auto;background:var(--canvas);border:1px solid var(--border-strong);border-radius:26px;box-shadow:var(--shadow-popup);overflow:hidden;flex-direction:column}
+.m-hd{padding:12px 14px 8px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.m-hd h1{font-size:17px;margin:0}
+.m-strip{display:flex;gap:6px;padding:8px 12px;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);scrollbar-width:none}
+.m-body{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.mcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--card);padding:10px 12px;display:flex;gap:10px;align-items:center}
+.mcard .mdot{width:8px;height:8px;border-radius:50%;flex:none;align-self:flex-start;margin-top:6px}
+.mcard .mtitle{font-size:13px;font-weight:600;line-height:1.35}
+.mcard .mmeta{font-size:11px;color:var(--muted);margin-top:3px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.m-tabs{display:flex;background:var(--surface);border-top:1px solid var(--border);flex:none}
+.m-tabs button{flex:1;border:none;background:transparent;padding:9px 0 11px;color:var(--muted);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px}
+.m-tabs button.on{color:var(--focus-ring)}
+.note{position:fixed;left:74px;bottom:10px;font-size:11px;color:var(--muted);background:rgba(255,255,255,.85);border:1px solid var(--border);border-radius:var(--r-pill);padding:4px 12px;z-index:50}
+body[data-mobile="1"] .note{display:none}
+</style>
+</head>
+<body>
+<div class="note">FreeField Tasks · UI refresh v1 — spec: <b>docs/ux/tasks-ui-refresh-v1.md</b> · states via URL params</div>
+
+<div class="app">
+  <!-- 64px module rail (LeftRail.tsx language, wave 35/39) -->
+  <nav class="rail" id="rail"></nav>
+  <div class="main" id="main"></div>
+</div>
+
+<!-- mobile phone frame -->
+<div class="phone" id="phone"></div>
+
+<div id="sheet-root"></div>
+
+<script>
+// ── state from URL search params (each state screenshot-able) ──
+const P = new URLSearchParams(location.search);
+const st = {
+  view: P.get('view') || 'table',           // table|board
+  group: P.get('group') || 'status',        // none|status|building|assignee
+  chip: P.get('chip') || 'all',             // all|open|10|20|40|60|closed
+  scope: P.get('scope') || 'building',      // building|all
+  hover: P.get('hover') || '',
+  sheet: P.get('sheet') || '',              // ''|compose|detail|activity
+  offline: P.get('offline') === '1',
+  empty: P.get('empty') === '1',
+  skel: P.get('skeleton') === '1',
+  mobile: P.get('mobile') === '1',
+};
+function go(patch){ const q=new URLSearchParams(location.search); for(const k in patch) q.set(k,patch[k]); history.pushState({},'', '?'+q); render(); }
+
+// ── fixtures ──
+const STATUS = {
+  10:{label:'Inbox',bg:'var(--st-blue)',ink:'#fff'},
+  20:{label:'Ongoing',bg:'var(--st-orange)',ink:'#fff'},
+  40:{label:'Awaiting',bg:'var(--st-amber)',ink:'var(--st-amber-ink)'},
+  60:{label:'Follow-up',bg:'var(--st-teal)',ink:'#fff'},
+  65:{label:'Approved',bg:'var(--st-green)',ink:'#fff'},
+  80:{label:'Closed',bg:'var(--st-gray)',ink:'#fff'},
+};
+const PPL={RZ:['Ricardo Zepeda','#0e9488'],MM:['Marta M.','#2f6fe4'],JP:['J. Pizarro','#e8791f'],AK:['A. Khan','#7a828c']};
+const TASKS=[
+ {num:'T-0141',title:'Sprinkler main clashes with transfer beam',type:'Defect',status:20,who:'RZ',due:{t:'in 2 days'},ph:3,cm:4,bld:'North Tower',lvl:'Level 3 · grid C/7',new:true},
+ {num:'T-0140',title:'Curtain wall embed spacing — RFI to facade engineer',type:'RFI',status:40,who:'JP',due:{t:'Tomorrow'},ph:1,cm:6,bld:'North Tower',lvl:'Level 9 · east façade'},
+ {num:'T-0138',title:'Rebar cover below spec on slab pour B/4',type:'Snag',status:20,who:'MM',due:{t:'Nov 3',late:3,od:'Overdue'},ph:5,cm:9,bld:'North Tower',lvl:'Podium · slab B/4'},
+ {num:'T-0137',title:'Open edge protection missing near core',type:'Safety',status:10,who:null,due:{t:'Today'},ph:2,cm:0,bld:'North Tower',lvl:'Level 2 · core west'},
+ {num:'T-0136',title:'Confirm fire-rating for shaft doors',type:'Info',status:10,who:'AK',due:{t:'Nov 14'},ph:0,cm:1,bld:'Podium',lvl:'Level 1 · shaft S4'},
+ {num:'T-0133',title:'Pump room curb height vs. drawing R307',type:'Snag',status:60,who:'JP',due:{t:'re-verify Nov 12'},ph:4,cm:7,bld:'Podium',lvl:'Plant room · L0'},
+ {num:'T-0129',title:'Landscading gully invert levels sign-off',type:'RFI',status:65,who:'RZ',due:{t:'done Nov 1'},ph:2,cm:3,bld:'Podium',lvl:'Site · north yard'},
+ {num:'T-0124',title:'Lift pit dewatering log — final entry',type:'Other',status:80,who:'MM',due:{t:'closed Oct 28'},ph:1,cm:5,bld:'North Tower',lvl:'Level B1 · lift 2'},
+ {num:'T-0142',title:'Draft: stair soffit form-oil residue',type:'Snag',status:20,who:null,due:{t:'in 5 days'},ph:0,cm:0,bld:'North Tower',lvl:'Level 4 · stair S2',pending:true},
+ {num:'T-0143',title:'Queued: beam cap crack photo set',type:'Defect',status:10,who:'RZ',due:{t:'—'},ph:6,cm:0,bld:'North Tower',lvl:'Level 6 · grid D/3',failed:true},
+];
+const BUILDINGS=['North Tower','Podium'];
+const GROUP_ORDER=['status',10,20,40,60,'terminal'];
+
+function scopedTasks(){
+  let t=TASKS.filter(x=>st.scope==='all'||x.bld==='North Tower');
+  if(st.chip==='open') t=t.filter(x=>[10,20,40,60].includes(x.status));
+  else if(st.chip==='closed') t=t.filter(x=>[65,80].includes(x.status));
+  else if(st.chip!=='all') t=t.filter(x=>x.status==+st.chip);
+  return t;
+}
+
+// ── rail ──
+function icon(name,size){
+  const s=size||18;
+  const P_={
+    box:'M21 8l-9-5-9 5v8l9 5 9-5V8z M3 8l9 5 9-5 M12 13v8',
+    page:'M6 2h9l5 5v15H6z M14 2v6h6',
+    link:'M10 14a5 5 0 007.07 0l2.12-2.12a5 5 0 00-7.07-7.07L11 6.65 M14 10a5 5 0 00-7.07 0l-2.12 2.12a5 5 0 007.07 7.07L13 17.35',
+    check:'M9 11l3 3L22 4 M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11',
+    settings:'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.6 1.6 0 00.32 1.77l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.6 1.6 0 00-1.77-.32 1.6 1.6 0 00-.96 1.47V21a2 2 0 11-4 0v-.1A1.6 1.6 0 007.1 19.4a1.6 1.6 0 00-1.77.32l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.6 1.6 0 003.6 15a1.6 1.6 0 00-1.47-.96H2a2 2 0 110-4h.1A1.6 1.6 0 003.6 7.1a1.6 1.6 0 00-.32-1.77l-.06-.06a2 2 0 112.83-2.83l.06.06A1.6 1.6 0 009 3.6h.43A1.6 1.6 0 0010.4 2.13V2a2 2 0 114 0v.1a1.6 1.6 0 00.96 1.51 1.6 1.6 0 001.77-.32l.06-.06a2 2 0 112.83 2.83l-.06.06a1.6 1.6 0 00-.32 1.77V8a1.6 1.6 0 001.51.96H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5.96z',
+    group:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 11a4 4 0 100-8 4 4 0 000 8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75',
+    bld:'M3 21h18 M5 21V7l7-4 7 4v14 M9 21v-6h6v6',
+  };
+  return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${P_[name]}"/></svg>`;
+}
+function renderRail(){
+  const items=[['box','Models'],['page','Documents'],['link','Linkview'],['check','Tasks']];
+  document.getElementById('rail').innerHTML=
+    `<div class="entry"><div class="sw">N</div><div class="cap">NORTH</div></div>
+     <div class="entry"><button class="ico" title="Switch building">${icon('bld',17)}</button><div class="cap">${st.scope==='building'?'TOWER':'ALL'}</div></div>
+     <div class="div"></div>`
+    +items.map(([n,l])=>`<div class="entry"><button class="ico ${n==='check'?'active':''}" title="${l}">${icon(n)}</button></div>`)
+    +`<div class="grow"></div><div class="div"></div>
+      <div class="entry"><button class="ico">${icon('settings')}</button></div>
+      <div class="entry"><button class="ico">${icon('group')}</button></div>
+      <div class="me">RZ</div>`;
+}
+
+// ── header + toolbar ──
+const CHIPS=[['all','All'],['open','Open'],['10','Inbox'],['20','Ongoing'],['40','Awaiting'],['60','Follow-up'],['closed','Closed']];
+function header(){
+  return `<div class="hd">
+    <h1>Tasks</h1>
+    <button class="scope-chip" onclick="go({})">${icon('bld',14)} ${st.scope==='building'?'North Tower':'All buildings'} <span class="car">▾</span></button>
+    <div class="spacer"></div>
+    <div class="scope-toggle">
+      <button class="${st.scope==='building'?'on':''}" onclick="go({scope:'building'})">This building</button>
+      <button class="${st.scope==='all'?'on':''}" onclick="go({scope:'all'})">All buildings</button>
+    </div>
+  </div>`;
+}
+function toolbar(){
+  return `<div class="card"><div class="toolbar">
+    <div class="trow">
+      <div class="seg">
+        <button class="${st.view==='table'?'on':''}" onclick="go({view:'table'})">☰ Table</button>
+        <button class="${st.view==='board'?'on':''}" onclick="go({view:'board'})">▥ Board</button>
+      </div>
+      <button class="views-btn">★ My tasks <span style="opacity:.5">▾</span></button>
+      <div class="search"><span style="font-size:14px">⌕</span><span>Search title, number, assignee…</span><span class="kbd">⌘K</span></div>
+      <button class="btn-ghost" onclick="go({group:'${st.group==='none'?'status':'none'}'})">Group ▾</button>
+      <button class="btn-ghost">Columns ▾</button>
+      <button class="btn-primary" onclick="go({sheet:'compose'})">+ New task</button>
+    </div>
+    <div class="trow"><div class="chips">${CHIPS.map(([id,l])=>{
+        const n=(!TASKS.length)?0:0;
+        return `<button class="chip ${st.chip===id?'on':''}" onclick="go({chip:'${id}'})">${l}</button>`;
+      }).join('')}</div>
+      <div style="margin-left:auto;font-size:12px;color:var(--muted)">${scopedTasks().length} tasks${st.scope==='building'?' · North Tower':''}</div>
+    </div>
+  </div>${st.view==='board'?boardBody():tableBody()}</div>`;
+}
+
+// ── table ──
+function avatar(uid){ if(!uid) return `<span class="av" style="background:var(--border-strong);color:var(--text-2)">–</span>`;
+  const [n,c]=PPL[uid]; return `<span class="av" style="background:${c}" title="${n}">${uid}</span>`; }
+function due(x){ const d=x.due; return `<span class="dl ${d.late?'late':''}">${d.t}${d.od?`<span class="od">${d.od}</span>`:''}</span>`; }
+function groupsOf(t){
+  if(st.group==='none') return [[null,t]];
+  if(st.group==='building') return BUILDINGS.map(b=>[b,'',t.filter(x=>x.bld===b)]).filter(([,_,a])=>a.length);
+  if(st.group==='assignee'){ const us=[...new Set(t.map(x=>x.who||'Unassigned'))]; return us.map(u=>[u,'',t.filter(x=>(x.who||'Unassigned')===u)]); }
+  return GROUP_ORDER.filter(g=>g!=='status').map(g=>{
+      if(g==='terminal'){const a=t.filter(x=>[65,80].includes(x.status));return a.length?[['Done','var(--st-green)',a]]:[];}
+      const a=t.filter(x=>x.status===g); return a.length?[[STATUS[g].label,STATUS[g].bg,a]]:[];
+    }).flat();
+}
+function statusSoft(x){ const s=STATUS[x.status]; return `<span class="st"><span class="dot" style="background:${s.bg}"></span>${s.label}</span>`; }
+function row(x){
+  return `<tr class="row ${x.pending?'pending':''} ${x.failed?'failed':''} ${st.hover===x.num?'forcehov':''}" onclick="go({sheet:'detail'})">
+    <td class="num"><b>${x.num}</b></td>
+    <td><span class="t-title">${x.title}</span><span class="loc">${icon('bld',10)} ${x.bld} · ${x.lvl}</span></td>
+    <td><span class="tchip">${x.type}</span></td>
+    <td>${x.pending?'<span class="wip">⋯ sending…</span>':x.failed?'<span class="err">⚠ failed</span>':statusSoft(x)}</td>
+    <td>${x.failed?'<button class="retry">Retry</button>':avatar(x.who)+(x.who?`<span class="who">${PPL[x.who][0]}</span>`:'<span class="who" style="color:var(--muted)">Unassigned</span>')}</td>
+    <td>${due(x)}</td>
+    <td><span class="meta-i">🖼 ${x.ph}</span><span class="meta-i">💬 ${x.cm}</span></td>
+    <td style="text-align:right;width:96px"><span class="acts">
+      <button class="act" title="Locate in model">⌖</button>
+      <button class="act" title="Advance status">✓</button>
+      <button class="act" title="More">⋯</button></span></td>
+  </tr>`;
+}
+function tableBody(){
+  if(st.skel) return `<div class="tbl"><table><thead><tr>
+    ${['#','Title','Type','Status','Assignee','Deadline','',''].map(h=>`<th>${h}</th>`).join('')}
+    </tr></thead><tbody>${Array.from({length:6},()=>`<tr class="sk"><td><i style="width:44px"></i></td><td><i style="width:220px"></i></td><td><i style="width:52px"></i></td><td><i style="width:70px"></i></td><td><i style="width:90px"></i></td><td><i style="width:60px"></i></td><td><i style="width:40px"></i></td><td></td></tr>`).join('')}</tbody></table></div>`;
+  const t=scopedTasks();
+  if(st.empty||!t.length) return `<div class="empty"><div class="big">🗂</div><h3>No tasks match</h3><div>Try clearing filters — or create the first task for ${st.scope==='building'?'this building':'the project'}.</div><button class="btn-primary" style="margin-top:6px" onclick="go({sheet:'compose'})">+ New task</button></div>`;
+  const cols=['#','Title','Type','Status','Assignee','Deadline','<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>',''];
+  return `<div class="tbl"><table><thead><tr>${cols.map(c=>`<th>${c}<span class="fun">▾</span></th>`).join('')}</tr></thead><tbody>
+    ${groupsOf(t).map(([g,dot,a])=> g===null? a.map(row).join('') :
+      `<tr class="grp"><td colspan="8">${dot?`<span class="dot" style="background:${dot}"></span>`:''}${g}<span class="cnt">${a.length}</span><span style="float:right;letter-spacing:0;text-transform:none;font-weight:600;color:var(--muted)">sort ▾</span></td></tr>${a.map(row).join('')}`
+    ).join('')}
+  </tbody></table></div>`;
+}
+
+// ── board ──
+function boardBody(){
+  const t=scopedTasks();
+  const cols=[[10,'Inbox'],[20,'Ongoing'],[40,'Awaiting approval'],[60,'Follow-up'],[65,'Done']];
+  return `<div class="board">${cols.map(([s,l])=>{
+    const a=t.filter(x=>s===65?[65,80].includes(x.status):x.status===s);
+    return `<div class="col"><h3><span class="dot" style="background:${STATUS[s].bg}"></span>${l}<span class="cnt">${a.length}</span></h3>
+      <div class="bcards">${a.map(x=>`<div class="bcard" onclick="go({sheet:'detail'})">
+        <span class="bnum">${x.num}</span><span class="tchip" style="float:right;font-size:10px">${x.type}</span>
+        <div class="btitle">${x.title}</div>
+        <div class="brow">${avatar(x.who)}<span style="font-size:11px;color:var(--muted)">${icon('bld',10)} ${x.bld}</span>
+        <span class="bmeta ${x.due.late?'dl late':'dl'}">${x.due.t}${x.due.od?` · <span style="color:var(--danger);font-weight:700">${x.due.od}</span>`:''}</span></div>
+      </div>`).join('')||'<div style="font-size:12px;color:var(--muted);padding:8px">Nothing here — drop or create</div>'}</div></div>`;
+  }).join('')}</div>`;
+}
+
+// ── sheets ──
+function sheetTop(tno,label,btns){
+  return `<div class="s-top"><button class="x" onclick="go({sheet:''})">✕</button>
+    <span class="tno">${tno}</span><span class="ttl">${label}</span>${btns||''}</div>`;
+}
+function composeSheet(){
+  return `<div class="overlay" onclick="if(event.target===this)go({sheet:''})"><div class="sheet">
+    ${sheetTop('T-0144','New task',`<span style="margin-left:auto;font-size:11px;color:var(--muted)">Draft · autosaved</span>`)}
+    ${st.offline?'<div class="offline">Offline — changes queue automatically</div>':''}
+    <div class="band" style="background:var(--st-blue)"></div>
+    <div class="s-body">
+      <div class="fcard">
+        <div><div class="ml">Project</div><div class="mv"><span class="proj-chip">North Gateway · Phase 2</span></div></div>
+        <div><div class="ml">Building <span class="new-flag">new</span></div>
+          <div class="bl-row">${BUILDINGS.map(b=>`<button class="chip ${b==='North Tower'?'on':''}" onclick="">${b==='North Tower'?'⌒ ':''}${b}</button>`).join('')}<button class="chip">Whole site</button></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:5px">Inherited from the module rail switcher — one tap to override.</div></div>
+        <div class="kv"><span>Created by <b>Ricardo Zepeda</b></span><span>Today · 11:47</span></div>
+      </div>
+      <div class="locard"><div class="locimg"><span class="pin"></span></div><span class="chev">Level 3 · grid C/7 ↗</span></div>
+      <div class="fcard">
+        <div><div class="ml">Title <span class="req">*</span></div><input class="inp" value="Sprinkler main clashes with transfer beam"></div>
+        <div><div class="ml">Description</div><textarea class="inp" rows="2">Main DN150 at +4.20 intersects 600-deep beam. Propose reroute via ceiling zone…</textarea></div>
+        <div><div class="ml">Type</div><div class="type-chips">${['Defect','RFI','Snag','Safety','Info','Other'].map(t=>`<button class="chip ${t==='Defect'?'on':''}">${t}</button>`).join('')}</div></div>
+        <div><div class="ml">Assignee</div><div class="mv">${avatar('MM')}Marta M.<button class="chip" style="margin-left:auto">Assign to me</button></div></div>
+        <div><div class="ml">Deadline</div><div class="quick"><button class="chip">Today</button><button class="chip on">Tomorrow</button><button class="chip">+1 week</button></div>
+          <input class="inp" style="margin-top:7px" value="2026-11-10"></div>
+      </div>
+      <div class="fcard"><div class="ml" style="margin-bottom:0">Attachments <span style="text-transform:none;letter-spacing:0">· 2/10</span></div>
+        <div class="att-grid">
+          <div class="att">🖼</div>
+          <div class="att ring">🖼<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="24" fill="rgba(255,255,255,.7)"/><circle cx="28" cy="28" r="24" fill="none" stroke="var(--focus-ring)" stroke-width="4" stroke-dasharray="150" stroke-dashoffset="60" stroke-linecap="round" transform="rotate(-90 28 28)"/></svg></div>
+          <div class="att" style="color:var(--muted);font-size:18px">+</div>
+        </div></div>
+    </div>
+    <div class="s-foot"><button class="btn-ghost" onclick="go({sheet:''})">Cancel</button><button class="btn-primary">Create task</button></div>
+  </div></div>`;
+}
+function detailSheet(){
+  return `<div class="overlay" onclick="if(event.target===this)go({sheet:''})"><div class="sheet">
+    ${sheetTop('T-0138','Rebar cover below spec',`<button class="act-btn" onclick="go({sheet:'activity'})">🕐<span class="cnt">9</span></button><button class="act-btn" style="margin-left:6px">🖨</button>`)}
+    <div class="band" style="background:var(--st-orange)"></div>
+    <div class="s-body">
+      <div class="fcard">
+        <div class="kv"><span>Status</span><b style="display:flex;align-items:center;gap:6px">${statusSoft(TASKS[2])}</b></div>
+        <div><div class="ml">Project / Building <span class="new-flag">new</span></div>
+          <div class="mv"><span class="proj-chip">North Gateway · Phase 2</span><span style="font-weight:600;font-size:13px">${icon('bld',12)} North Tower</span></div></div>
+        <div class="kv"><span>Created by <b>Marta M.</b></span><span>Nov 1, 09:12</span></div>
+        <div class="kv"><span>Updated by <b>J. Pizarro</b></span><span>Today, 08:40</span></div>
+        <div class="kv"><span>Deadline</span><span class="dl late">${TASKS[2].due.t}<span class="od">Overdue</span></span></div>
+      </div>
+      <div class="locard"><div class="locimg"><span class="pin"></span></div><span class="chev">Podium · slab B/4 ↗</span></div>
+      <div class="fcard">
+        <div class="ml">Type / Assignee</div>
+        <div class="mv" style="gap:12px"><span class="tchip">Snag</span>${avatar('MM')}Marta M.</div>
+      </div>
+      <div class="fcard"><div class="ml">Description</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.5">Cover measured 25–30 mm vs. 40 mm spec on grid B/4 slab (12 of 40 checks). Requesting engineer disposition — prop options taped.</div></div>
+      <div class="fcard"><div class="ml">Attachments · 5</div><div class="att-grid"><div class="att">🖼</div><div class="att">🖼</div><div class="att">🖼</div><div class="att">+</div></div></div>
+    </div>
+    <div class="s-foot">
+      <button class="btn-ghost">⌖ Locate</button>
+      <button class="btn-ghost">Reassign</button>
+      <button class="btn-primary" onclick="go({sheet:''})">Mark ready ▸</button>
+    </div>
+  </div></div>`;
+}
+function activityPopup(){
+  return detailSheet()+`<div class="popup"><div class="grab"></div><h4>Activity · T-0138</h4>
+    <div class="tl">
+      <div class="ev">${avatar('JP')}<div><b>J. Pizarro</b> commented<br>Proposed: local patch + prop grid at 1.2 m. Sketch attached.</div></div>
+      <div class="ev">${avatar('MM')}<div><b>Marta M.</b> attached 2 photos <span style="color:var(--muted)">· Yesterday 17:02</span></div></div>
+      <div class="ev"><span class="av" style="background:var(--st-orange);color:#fff">→</span><div><b>status</b> Inbox → Ongoing <span style="color:var(--muted)">· Yesterday 16:41</span></div></div>
+      <div class="ev">${avatar('RZ')}<div><b>Ricardo Zepeda</b> assigned <b>Marta M.</b></div></div>
+    </div>
+    <div class="composer"><input class="inp" placeholder="Comment…"><button class="btn-primary" style="height:36px">Send</button></div></div>`;
+}
+
+// ── mobile ──
+function renderPhone(){
+  const t=scopedTasks();
+  document.getElementById('phone').innerHTML=`
+    <div class="m-hd"><h1>Tasks</h1><span class="scope-chip" style="height:28px;font-size:11px">${icon('bld',12)} North Tower ▾</span></div>
+    <div class="m-strip">${CHIPS.map(([id,l])=>`<button class="chip ${st.chip===id?'on':''}">${l}</button>`).join('')}</div>
+    ${st.offline?'<div class="offline">Offline — changes queue automatically</div>':''}
+    <div class="m-body">${t.map(x=>`<div class="mcard">
+      <span class="mdot" style="background:${STATUS[x.status].bg}"></span>
+      <div style="min-width:0"><div class="mtitle">${x.title}</div>
+        <div class="mmeta"><span style="font-family:var(--mono)">${x.num}</span><span>${icon('bld',10)} ${x.bld} · ${x.lvl.split('·')[0]}</span><span class="${x.due.late?'dl late':''}">${x.due.t}</span></div>
+      </div>
+      <span style="margin-left:auto">${avatar(x.who)}</span></div>`).join('')}</div>
+    <div class="m-tabs">
+      <button>${icon('box',16)}Models</button><button>${icon('page',16)}Docs</button>
+      <button class="on">${icon('check',16)}Tasks</button><button>＋ New</button><button>${icon('settings',16)}More</button>
+    </div>`;
+}
+
+function render(){
+  document.body.dataset.mobile=st.mobile?'1':'0';
+  renderRail();
+  document.getElementById('main').innerHTML=header()+toolbar();
+  document.getElementById('sheet-root').innerHTML=
+    st.sheet==='compose'?composeSheet():st.sheet==='detail'?detailSheet():st.sheet==='activity'?activityPopup():'';
+  if(st.mobile) renderPhone();
+}
+render();
+</script>
+</body>
+</html>
