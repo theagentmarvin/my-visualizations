@@ -1,0 +1,2374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ontology Pipeline — Interactive Study Lab · Talisman 2026</title>
+<meta name="description" content="An interactive study lab for the six-stage Ontology Pipeline: overview, stage panels, an interactive TBox graph, a competency-question drill, a standards toolbox, a glossary, a study path and sources." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+<style>
+:root{
+  --bg:#0B0E13;
+  --panel:#11151C;
+  --panel-2:#161B24;
+  --elevated:#1B222E;
+  --border:#242C39;
+  --border-strong:#303B4D;
+  --text:#E7ECF3;
+  --text-dim:#98A2B3;
+  --text-faint:#5B6675;
+  --accent:#35E0CF;
+  --accent-2:#E8A33D;
+  --rose:#F470A0;
+  --danger:#FF6B6B;
+  --glow:rgba(53,224,207,0.16);
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --nav-h:56px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nav-h) + 16px)}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:var(--sans);font-size:16px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+img,svg{max-width:100%}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+::selection{background:rgba(53,224,207,.28);color:var(--text)}
+h1,h2,h3,h4{
+  text-transform:uppercase;letter-spacing:.04em;font-weight:600;
+  margin:0 0 10px;line-height:1.25;
+}
+p{margin:0 0 14px;color:var(--text-dim)}
+strong{color:var(--text);font-weight:600}
+code,kbd,.mono{font-family:var(--mono)}
+code{font-size:.88em;color:var(--accent)}
+hr.rule{border:0;border-top:1px solid var(--border);margin:0}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip-link{
+  position:absolute;left:-9999px;top:0;z-index:2000;background:var(--accent);color:#04100E;
+  padding:12px 18px;font-weight:600;border-radius:0 0 6px 0;
+}
+.skip-link:focus{left:0}
+
+/* ---------------- NAV ---------------- */
+.nav{
+  position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:1000;
+  background:rgba(17,21,28,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:18px;padding:0 20px;
+}
+.brand{display:flex;flex-direction:column;justify-content:center;min-width:0;flex:0 0 auto}
+.brand .wordmark{
+  font-family:var(--mono);font-size:14px;font-weight:600;color:var(--accent);
+  text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;line-height:1.15;
+}
+.brand .subtitle{
+  font-family:var(--mono);font-size:9.5px;color:var(--text-faint);
+  text-transform:uppercase;letter-spacing:.12em;white-space:nowrap;line-height:1.3;overflow:hidden;text-overflow:ellipsis
+}
+.nav-items{display:flex;align-items:center;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+.nav-items::-webkit-scrollbar{display:none}
+.nav-items a{
+  display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-dim);border-bottom:2px solid transparent;white-space:nowrap;
+  transition:color .15s ease,border-color .15s ease,background .15s ease;
+}
+.nav-items a:hover{color:var(--text);text-decoration:none;background:rgba(53,224,207,.05)}
+.nav-items a.active{color:var(--accent);border-bottom-color:var(--accent);text-shadow:0 0 12px var(--glow)}
+.nav-items a .badge{
+  font-size:9px;line-height:1;padding:2px 4px;border:1px solid var(--border-strong);
+  border-radius:3px;color:var(--text-faint);background:var(--panel-2)
+}
+.nav-items a.active .badge{color:var(--accent);border-color:rgba(53,224,207,.45);background:rgba(53,224,207,.08)}
+.chipbar{display:none}
+
+/* ---------------- LAYOUT ---------------- */
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+main{padding-top:var(--nav-h)}
+section.section{padding:52px 0;border-top:1px solid var(--border)}
+section.section:first-of-type{border-top:0}
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 16px;margin-bottom:8px}
+.sec-num{font-family:var(--mono);font-size:12px;color:var(--text-faint);letter-spacing:.14em}
+.sec-title{font-size:20px;margin:0}
+.sec-sub{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.13em;text-transform:uppercase;margin-bottom:24px}
+.sect-lead{color:var(--text-dim);max-width:74ch}
+
+/* ---------------- QUOTE / EPIGRAPH ---------------- */
+.quote-band{
+  font-family:var(--mono);font-size:17px;line-height:1.55;color:var(--text);
+  border-left:3px solid var(--accent);background:var(--panel);
+  box-shadow:0 0 0 1px var(--border), 0 0 24px var(--glow);
+  padding:20px 24px;margin:0 0 26px;border-radius:0 8px 8px 0;
+}
+.epigraph{
+  font-family:var(--mono);font-size:13.5px;line-height:1.6;color:var(--text);
+  border-left:3px solid var(--accent-2);background:var(--panel-2);
+  padding:14px 18px;margin:0 0 18px;border-radius:0 6px 6px 0;
+}
+.callout{
+  border:1px solid var(--border);border-left:3px solid var(--accent);background:var(--panel);
+  padding:14px 18px;border-radius:0 8px 8px 0;margin:0 0 24px;color:var(--text-dim);font-size:14px;
+}
+.callout.rose{border-left-color:var(--rose)}
+.callout.amber{border-left-color:var(--accent-2)}
+.callout.danger{border-left-color:var(--danger)}
+.callout strong{color:var(--text)}
+
+/* ---------------- TABLES ---------------- */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:8px;background:var(--panel);margin-bottom:26px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+table.master{min-width:640px}
+table th{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--text-faint);text-align:left;font-weight:500;
+  padding:12px 14px;border-bottom:1px solid var(--border-strong);background:var(--panel-2);white-space:nowrap;
+}
+table td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text-dim);line-height:1.5}
+table tbody tr:nth-child(odd) td{background:var(--panel-2)}
+table tbody tr:nth-child(even) td{background:var(--panel)}
+table tbody tr:last-child td{border-bottom:0}
+table td.stagenum{font-family:var(--mono);color:var(--accent);font-weight:600}
+table td .stage-name{color:var(--text);font-weight:600}
+table td code{font-size:12.5px}
+tr.hl td{box-shadow:inset 3px 0 0 var(--accent)}
+td .mono{font-family:var(--mono);font-size:12.5px}
+
+/* ---------------- GATE CARDS ---------------- */
+.gate-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.gate{
+  background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px;
+  display:flex;flex-direction:column;gap:10px;transition:background .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.gate:hover{background:var(--elevated);box-shadow:0 0 0 1px var(--accent),0 0 28px var(--glow)}
+.gate-head{display:flex;align-items:center;gap:12px}
+.gate-num{
+  width:28px;height:28px;flex:0 0 28px;display:grid;place-items:center;
+  font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent);
+  background:rgba(53,224,207,.10);border:1px solid rgba(53,224,207,.35);border-radius:5px;
+}
+.gate-name{font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--text);font-weight:600}
+.gate-q{font-size:14px;color:var(--text);margin:0}
+.gate-art{font-size:13px;color:var(--text-dim);margin:0}
+.gate-art b{color:var(--text-faint);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:3px}
+.gate-prevents{
+  margin-top:auto;padding-top:12px;border-top:1px solid var(--border);
+  font-size:13px;color:var(--danger);line-height:1.55;
+}
+.gate-prevents b{color:var(--danger);font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+
+/* ---------------- STAGE PANELS ---------------- */
+details.stage{
+  background:var(--panel);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;overflow:hidden;
+}
+details.stage[open]{border-color:var(--border-strong);box-shadow:0 0 0 1px var(--border),0 0 24px var(--glow)}
+details.stage>summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;
+  padding:16px 18px;min-height:56px;
+}
+details.stage>summary::-webkit-details-marker{display:none}
+details.stage>summary:hover{background:var(--elevated)}
+.stage-head-label{font-family:var(--mono);font-size:12.5px;color:var(--accent);letter-spacing:.09em;white-space:nowrap}
+.stage-head-name{font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--text);font-weight:600}
+.chev{
+  margin-left:auto;width:10px;height:10px;border-right:1.5px solid var(--text-dim);border-bottom:1.5px solid var(--text-dim);
+  transform:rotate(-45deg);transition:transform .15s ease;flex:0 0 auto;
+}
+details.stage[open] .chev{transform:rotate(45deg)}
+.stage-body{padding:4px 18px 20px;border-top:1px solid var(--border)}
+.stage-body h4{font-size:12px;letter-spacing:.1em;color:var(--text-faint);margin:18px 0 8px;font-family:var(--mono);text-transform:uppercase}
+.stage-body ol,.stage-body ul{margin:0 0 12px;padding-left:22px;color:var(--text-dim);font-size:14px}
+.stage-body li{margin-bottom:7px}
+.stage-body li b,.stage-body li strong{color:var(--text)}
+.stage-body .prevents{
+  border-left:3px solid var(--danger);background:rgba(255,107,107,.06);padding:10px 14px;margin:16px 0 0;
+  font-size:13.5px;color:var(--danger);border-radius:0 6px 6px 0;
+}
+.stage-body .prevents b{color:var(--danger);font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-right:6px}
+.mini-chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}
+.chip{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+  border:1px solid var(--border-strong);border-radius:999px;padding:5px 11px;color:var(--text-dim);background:var(--panel-2);
+}
+.chip.accent{border-color:rgba(53,224,207,.45);color:var(--accent);background:rgba(53,224,207,.08)}
+.chip.amber{border-color:rgba(232,163,61,.45);color:var(--accent-2);background:rgba(232,163,61,.08)}
+.chip.rose{border-color:rgba(244,112,160,.45);color:var(--rose);background:rgba(244,112,160,.08)}
+
+/* ---------------- CODE WELLS ---------------- */
+.codewell{
+  background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;
+  font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--text-dim);
+  overflow-x:auto;white-space:pre;position:relative;-webkit-overflow-scrolling:touch;margin:0 0 18px;
+}
+.codewell .k{color:var(--accent)}
+.codewell .s{color:var(--accent-2)}
+.codewell .p{color:var(--rose)}
+.codewell .c{color:var(--text-faint)}
+.copy-btn{
+  position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  background:var(--panel);border:1px solid var(--border-strong);color:var(--text-dim);
+  border-radius:5px;padding:5px 9px;cursor:pointer;min-height:26px;
+}
+.copy-btn:hover{color:var(--accent);border-color:rgba(53,224,207,.5)}
+.copy-btn.done{color:var(--accent);border-color:var(--accent)}
+
+/* ---------------- GRAPH ---------------- */
+.graph-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:24px}
+.graph-toolbar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--panel-2);
+}
+.graph-toolbar .legend{margin-right:auto;display:flex;flex-wrap:wrap;gap:14px}
+.legend-item{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;color:var(--text-faint);letter-spacing:.05em}
+.legend-swatch{width:26px;height:0;border-top-width:1.5px;border-top-style:solid;display:inline-block}
+.tool-btn{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  background:var(--panel);border:1px solid var(--border-strong);color:var(--text-dim);
+  border-radius:5px;padding:8px 11px;cursor:pointer;min-height:34px;
+}
+.tool-btn:hover{color:var(--accent);border-color:rgba(53,224,207,.5);background:var(--elevated)}
+.tool-btn[aria-pressed="true"]{color:var(--accent);border-color:var(--accent);background:rgba(53,224,207,.10)}
+.graph-stage{position:relative;min-height:560px;background:
+  radial-gradient(circle at 18% 22%, rgba(53,224,207,.05), transparent 42%),
+  radial-gradient(circle at 82% 78%, rgba(244,112,160,.05), transparent 45%),
+  var(--bg);}
+.graph-stage svg{display:block;width:100%;height:auto;min-height:560px;touch-action:none;cursor:grab}
+.graph-stage svg.dragging{cursor:grabbing}
+.gnode{cursor:pointer}
+.gnode rect.gbox{transition:filter .15s ease}
+.gnode:hover rect.gbox,.gnode.sel rect.gbox{filter:drop-shadow(0 0 8px var(--glow))}
+.gnode text{pointer-events:none;user-select:none}
+.gedge{transition:stroke-width .15s ease,opacity .15s ease}
+.gedge:hover{stroke-width:2.5px}
+.gedge-label{font-family:var(--mono);font-size:10px;fill:var(--text-dim);pointer-events:none;user-select:none;paint-order:stroke fill;stroke:#0B0E13;stroke-width:3px;stroke-linejoin:round}
+.gedge-label.hot{fill:var(--accent)}
+.gedge-hit{fill:transparent;cursor:pointer}
+.gedge-hit:hover + .gedge-label{fill:var(--accent)}
+.cluster-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;fill:var(--text-faint);text-transform:uppercase;pointer-events:none}
+.chip-node{cursor:pointer}
+.inspector{
+  position:absolute;top:0;right:0;width:320px;height:100%;background:var(--elevated);
+  border-left:1px solid var(--border-strong);box-shadow:-18px 0 40px rgba(0,0,0,.45);
+  transform:translateX(101%);transition:transform .2s ease;z-index:5;
+  display:flex;flex-direction:column;
+}
+.inspector.open{transform:translateX(0)}
+.inspector-head{
+  display:flex;align-items:flex-start;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--panel);
+}
+.inspector-kind{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-faint);margin-bottom:4px}
+.inspector-title{font-family:var(--mono);font-size:14px;color:var(--accent);line-height:1.35;word-break:break-word}
+.inspector-close{
+  margin-left:auto;background:transparent;border:1px solid var(--border-strong);color:var(--text-dim);
+  border-radius:5px;width:30px;height:30px;cursor:pointer;font-size:16px;line-height:1;flex:0 0 30px;
+}
+.inspector-close:hover{color:var(--danger);border-color:var(--danger)}
+.inspector-body{padding:16px;overflow-y:auto;flex:1}
+.inspector-body .meta{margin-bottom:12px}
+.inspector-body .meta div{display:flex;gap:10px;font-family:var(--mono);font-size:11px;padding:4px 0;border-bottom:1px dashed var(--border)}
+.inspector-body .meta span:first-child{color:var(--text-faint);min-width:78px;flex:0 0 78px;text-transform:uppercase;letter-spacing:.07em}
+.inspector-body .meta span:last-child{color:var(--text-dim);word-break:break-word}
+.inspector-comment{font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--text-dim);white-space:pre-wrap;word-break:break-word}
+.inspector-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);margin:0 0 6px}
+
+/* ---------------- CQ DRILL ---------------- */
+.progress-wrap{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.progress-bar{flex:1;height:3px;background:var(--panel-2);border-radius:2px;overflow:hidden;border:1px solid var(--border)}
+.progress-fill{height:100%;width:0;background:var(--accent);box-shadow:0 0 10px var(--glow);transition:width .25s ease}
+.progress-count{font-family:var(--mono);font-size:11.5px;color:var(--accent);letter-spacing:.08em;white-space:nowrap}
+.cq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+.cq{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column}
+.cq-head{display:flex;align-items:flex-start;gap:12px;padding:16px 16px 14px}
+.cq-id{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.08em;flex:0 0 auto;padding-top:2px}
+.cq-q{font-family:var(--mono);font-size:13px;color:var(--text);line-height:1.55;margin:0;flex:1}
+.cq-reveal-btn{
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  background:transparent;border:1px solid var(--accent);color:var(--accent);
+  border-radius:5px;padding:8px 12px;cursor:pointer;min-height:34px;flex:0 0 auto;
+}
+.cq-reveal-btn:hover{background:rgba(53,224,207,.12)}
+.cq-body{padding:0 16px 16px;display:none;border-top:1px solid var(--border)}
+.cq.open .cq-body{display:block;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.cq-block{margin-top:14px}
+.cq-block .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-faint);margin-bottom:7px}
+.cq-hint{
+  font-family:var(--mono);font-size:11.5px;color:var(--text-dim);background:var(--panel-2);
+  border:1px solid var(--border);border-left:2px solid var(--accent-2);border-radius:0 6px 6px 0;padding:9px 12px;
+  overflow-x:auto;white-space:pre-wrap;word-break:break-word;
+}
+.cq .codewell{margin-bottom:0;font-size:11.5px;white-space:pre-wrap;word-break:break-word}
+
+/* ---------------- GLOSSARY ---------------- */
+.gloss-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.flip{perspective:1200px;height:150px;cursor:pointer;background:none;border:0;padding:0;text-align:left}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform .3s ease;transform-style:preserve-3d}
+.flip.flipped .flip-inner{transform:rotateY(180deg)}
+.flip-face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border:1px solid var(--border);border-radius:8px;background:var(--panel);
+  padding:14px;display:flex;flex-direction:column;justify-content:center;
+}
+.flip-back{transform:rotateY(180deg);background:var(--panel-2);border-color:var(--border-strong);overflow:auto}
+.flip-front .term{font-family:var(--mono);font-size:13.5px;color:var(--text);letter-spacing:.03em;word-break:break-word}
+.flip-front .hint{margin-top:8px;font-family:var(--mono);font-size:9.5px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase}
+.flip-back .def{font-size:13px;color:var(--text-dim);line-height:1.5}
+.flip:hover .flip-face{border-color:var(--border-strong)}
+.flip:hover .flip-front{box-shadow:0 0 0 1px var(--accent),0 0 28px var(--glow)}
+
+/* ---------------- STUDY PATH ---------------- */
+.study-list{list-style:none;counter-reset:step;padding:0;margin:0 0 24px}
+.study-list li{
+  counter-increment:step;position:relative;padding:14px 0 14px 46px;
+  border-bottom:1px solid var(--border);color:var(--text-dim);font-size:14.5px;
+}
+.study-list li::before{
+  content:counter(step);position:absolute;left:0;top:12px;width:28px;height:28px;
+  display:grid;place-items:center;font-family:var(--mono);font-size:12px;color:var(--accent);
+  background:rgba(53,224,207,.09);border:1px solid rgba(53,224,207,.32);border-radius:5px;
+}
+.study-list li strong{color:var(--text)}
+.sources{list-style:none;padding:0;margin:0 0 26px}
+.sources li{position:relative;padding:9px 0 9px 22px;color:var(--text-dim);font-size:14.5px;border-bottom:1px dashed var(--border)}
+.sources li::before{content:"—";position:absolute;left:0;color:var(--accent)}
+.sources .mono{font-size:12.5px;color:var(--accent);word-break:break-all}
+.sources em{color:var(--text-dim)}
+.footer-bar{border-top:1px solid var(--border);background:var(--panel);padding:22px 20px}
+.footer-inner{max-width:1180px;margin:0 auto;font-family:var(--mono);font-size:12px;color:var(--text-faint);line-height:1.7}
+.footer-inner .isbn{color:var(--accent)}
+
+/* ---------------- REVEAL ANIMATION ---------------- */
+.reveal{opacity:0;transform:translateY(8px)}
+.reveal.in{opacity:1;transform:none;transition:opacity .18s ease-out,transform .18s ease-out}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none}
+  .reveal.in{transition:none}
+  .flip-inner,.cq.open .cq-body,.inspector,.progress-fill{transition:none!important;animation:none!important}
+  .cq.open .cq-body{animation:none}
+  *{scroll-behavior:auto!important}
+}
+
+/* ---------------- MOBILE ---------------- */
+@media (max-width:767px){
+  :root{--nav-h:104px}
+  .nav{height:auto;min-height:var(--nav-h);flex-direction:column;align-items:stretch;gap:0;padding:8px 14px 6px}
+  .brand{flex-direction:row;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .brand .wordmark{font-size:13px}
+  .brand .subtitle{font-size:8.5px}
+  .nav-items{display:none}
+  .chipbar{
+    display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    padding-bottom:2px;
+  }
+  .chipbar::-webkit-scrollbar{display:none}
+  .chipbar a{
+    flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);
+    border:1px solid var(--border);border-radius:999px;background:var(--panel-2);white-space:nowrap;
+  }
+  .chipbar a.active{color:var(--accent);border-color:var(--accent);background:rgba(53,224,207,.10)}
+  .chipbar a .badge{font-size:8.5px;padding:1px 3px}
+  section.section{padding:36px 0}
+  .sec-title{font-size:17px}
+  .quote-band{font-size:14.5px;padding:16px}
+  .gate-grid{grid-template-columns:1fr}
+  .cq-grid{grid-template-columns:1fr}
+  .cq-head{flex-wrap:wrap}
+  .cq-reveal-btn{width:100%;margin-top:8px}
+  .graph-stage{height:70vh;min-height:70vh;overflow:hidden}
+  .graph-stage svg{width:100%;height:100%;min-height:0}
+  .gedge-label{display:none}
+  .graph-stage.has-sel .gedge-label{display:block}
+  .inspector{
+    position:fixed;top:auto;bottom:0;left:0;right:0;width:100%;max-height:50vh;height:auto;
+    border-left:0;border-top:1px solid var(--border-strong);border-radius:12px 12px 0 0;
+    transform:translateY(101%);
+  }
+  .inspector.open{transform:translateY(0)}
+  .graph-toolbar .legend{width:100%;margin-bottom:6px}
+  /* 44px tap targets on touch */
+  .tool-btn{min-height:44px;padding:11px 14px}
+  .cq-reveal-btn{min-height:44px;padding:12px 16px}
+  .copy-btn{min-height:44px;padding:12px 14px;top:4px;right:4px}
+  .inspector-close{width:44px;height:44px;flex:0 0 44px;font-size:20px}
+  .chipbar a{position:relative}
+  .chipbar a::after{content:"";position:absolute;left:0;right:0;top:-6px;bottom:-6px}
+  .flossary,.gloss-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .flip{height:160px}
+  .table-wrap{margin-left:-4px;margin-right:-4px}
+  .wrap{padding:0 14px}
+}
+@media (min-width:768px){ .mobile-only{display:none!important} }
+@media (max-width:767px){ .desktop-only{display:none!important} }
+</style>
+<noscript><style>.reveal{opacity:1 !important;transform:none !important}</style></noscript>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav" role="banner">
+  <div class="brand">
+    <span class="wordmark">ONTOLOGY PIPELINE</span>
+    <span class="subtitle">Interactive Study Lab · Talisman 2026</span>
+  </div>
+  <nav class="nav-items" id="nav-items" aria-label="Section navigation">
+    <a href="#overview" data-target="overview">Overview</a>
+    <a href="#stages" data-target="stages">Stages <span class="badge">1–6</span></a>
+    <a href="#graph" data-target="graph">Graph</a>
+    <a href="#cq-drill" data-target="cq-drill">CQ Drill</a>
+    <a href="#toolbox" data-target="toolbox">Toolbox</a>
+    <a href="#glossary" data-target="glossary">Glossary</a>
+    <a href="#study-path" data-target="study-path">Study Path</a>
+    <a href="#sources" data-target="sources">Sources</a>
+  </nav>
+  <nav class="chipbar" id="chipbar" aria-label="Section navigation (compact)">
+    <a href="#overview" data-target="overview">Overview</a>
+    <a href="#stages" data-target="stages">Stages <span class="badge">1–6</span></a>
+    <a href="#graph" data-target="graph">Graph</a>
+    <a href="#cq-drill" data-target="cq-drill">CQ Drill</a>
+    <a href="#toolbox" data-target="toolbox">Toolbox</a>
+    <a href="#glossary" data-target="glossary">Glossary</a>
+    <a href="#study-path" data-target="study-path">Study Path</a>
+    <a href="#sources" data-target="sources">Sources</a>
+  </nav>
+</header>
+
+<main id="main">
+
+<!-- ===================== SECTION 1 · OVERVIEW ===================== -->
+<section class="section" id="overview" aria-labelledby="overview-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">1 ·</span>
+      <h2 class="sec-title" id="overview-title">Pipeline Overview</h2>
+      <span class="sec-sub">The six-stage gating journey</span>
+    </div>
+
+    <blockquote class="quote-band">"Each stage of the Ontology Pipeline prepares us for the next stage of building and provides a repeatable and measurable process for organizing information and knowledge."</blockquote>
+
+    <p class="sect-lead">Semantic knowledge systems (taxonomies → ontologies → knowledge graphs) have become the substrate for reliable AI: RAG grounding, entity management, information retrieval. Yet most organizations build them as a <strong>black box</strong> — no way to scope, estimate, or measure the investment.</p>
+
+    <p class="sect-lead">Talisman's answer, derived from <strong>Library and Information Science (LIS) workflows</strong>, is to codify the build into six ordered, measurable stages. Each stage produces a concrete artifact that the next stage consumes, so the whole system can be scoped, staffed, priced, and incrementally validated — "positioned as both a product and a unique domain of expertise."</p>
+
+    <p class="sect-lead">The anti-pattern she names: relying on out-of-the-box public taxonomies (e.g. Google Product Taxonomy) produces "homogenous knowledge ecosystems — a cookie-cutter approach that fails to meet the needs of a domain or business."</p>
+
+    <div class="table-wrap">
+      <table class="master" id="master-table">
+        <caption class="sr-only">The six pipeline stages, their questions, artifacts and standards</caption>
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Stage</th>
+            <th scope="col">The question it answers</th>
+            <th scope="col">Main artifact</th>
+            <th scope="col">Key vocabularies / standards</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="stagenum">1</td>
+            <td><span class="stage-name">Controlled vocabulary</span></td>
+            <td>What words do we use, and what do they mean?</td>
+            <td>Approved term list + governance</td>
+            <td>SKOS concepts, style guide</td>
+          </tr>
+          <tr>
+            <td class="stagenum">2</td>
+            <td><span class="stage-name">Metadata schema (MAP)</span></td>
+            <td>How do we describe a record?</td>
+            <td>Dublin Core-based application profile with constraints</td>
+            <td>Dublin Core Terms (dcterms)</td>
+          </tr>
+          <tr>
+            <td class="stagenum">3</td>
+            <td><span class="stage-name">Taxonomy</span></td>
+            <td>How do approved terms hierarchize?</td>
+            <td>Concept scheme(s), parent–child tree, Is-a tested</td>
+            <td>SKOS, ISO 25964-1/-2, NISO Z39.19</td>
+          </tr>
+          <tr>
+            <td class="stagenum">4</td>
+            <td><span class="stage-name">Thesaurus</span></td>
+            <td>What associative and cross-vocabulary relations are missing?</td>
+            <td>skos:related, scope notes, mappings, collections, notation</td>
+            <td>SKOS, SKOS-XL</td>
+          </tr>
+          <tr>
+            <td class="stagenum">5</td>
+            <td><span class="stage-name">Ontology</span></td>
+            <td>What must the system be able to <em>reason</em> about?</td>
+            <td>CBox → TBox → ABox + constraints</td>
+            <td>RDFS, thin OWL frame, SHACL, reused standards (PROV-O, FOAF, Schema.org, DCAT)</td>
+          </tr>
+          <tr>
+            <td class="stagenum">6</td>
+            <td><span class="stage-name">Knowledge graph</span></td>
+            <td>Does it answer the questions we promised?</td>
+            <td>SPARQL over everything produced by stages 1–5</td>
+            <td>RDF, SPARQL, Turtle / N-Triples / JSON-LD</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <strong>Gating rule.</strong> Each stage <strong>unlocks</strong> the next — a later stage stays locked until the earlier one has progressed far enough.
+    </div>
+
+    <blockquote class="quote-band">"We will use the Turtle serialization format for all RDF examples. Turtle is the most human-readable RDF syntax… If you can read a spreadsheet, you can read Turtle."</blockquote>
+
+    <div class="gate-grid" id="gate-grid">
+      <article class="gate reveal">
+        <div class="gate-head"><span class="gate-num">1</span><span class="gate-name">Controlled vocabulary</span></div>
+        <p class="gate-q">What words do we use, and what do they mean?</p>
+        <p class="gate-art"><b>Artifact</b>Approved term list + governance</p>
+        <p class="gate-prevents"><b>Prevents:</b> synonyms and near-duplicates propagating through everything downstream ("deduplication involves reconciling synonymous terms").</p>
+      </article>
+
+      <article class="gate reveal">
+        <div class="gate-head"><span class="gate-num">2</span><span class="gate-name">Metadata schema (MAP)</span></div>
+        <p class="gate-q">How do we describe a record?</p>
+        <p class="gate-art"><b>Artifact</b>Dublin Core-based application profile with constraints</p>
+        <p class="gate-prevents"><b>Prevents:</b> entity-value chaos; the MAP is the "architectural blueprint" the taxonomy later fills with material.</p>
+      </article>
+
+      <article class="gate reveal">
+        <div class="gate-head"><span class="gate-num">3</span><span class="gate-name">Taxonomy</span></div>
+        <p class="gate-q">How do approved terms hierarchize?</p>
+        <p class="gate-art"><b>Artifact</b>Concept scheme(s), parent–child tree, Is-a tested</p>
+        <p class="gate-prevents"><b>Prevents:</b> "the introduction of faulty logic, even within a base structure like taxonomy, can lead to the proliferation of errors throughout semantic knowledge systems."</p>
+      </article>
+
+      <article class="gate reveal">
+        <div class="gate-head"><span class="gate-num">4</span><span class="gate-name">Thesaurus</span></div>
+        <p class="gate-q">What associative and cross-vocabulary relations are missing?</p>
+        <p class="gate-art"><b>Artifact</b>skos:related, scope notes, mappings, collections, notation</p>
+        <p class="gate-prevents"><b>Prevents:</b> a pure hierarchy that cannot express associative or cross-vocabulary relations — the missing relations that make it "the crucial first step toward building a semantic, ontology-based knowledge management system."</p>
+      </article>
+
+      <article class="gate reveal">
+        <div class="gate-head"><span class="gate-num">5</span><span class="gate-name">Ontology</span></div>
+        <p class="gate-q">What must the system be able to <em>reason</em> about?</p>
+        <p class="gate-art"><b>Artifact</b>CBox → TBox → ABox + constraints</p>
+        <p class="gate-prevents"><b>Prevents:</b> unstated concept boundaries ("if a definition cannot be stated clearly, the concept boundary is not yet understood well enough to model") and errors surfacing late — "the errors that surface at the RDFS level are the cheapest to fix." Rules the frame cannot state live in SHACL, not in over-thick OWL.</p>
+      </article>
+
+      <article class="gate reveal">
+        <div class="gate-head"><span class="gate-num">6</span><span class="gate-name">Knowledge graph</span></div>
+        <p class="gate-q">Does it answer the questions we promised?</p>
+        <p class="gate-art"><b>Artifact</b>SPARQL over everything produced by stages 1–5</p>
+        <p class="gate-prevents"><b>Prevents:</b> vague business objectives or KPIs mistaken for questions — a competency question is "a question with a definite answer that the graph either can or cannot return."</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SECTION 2 · STAGES ===================== -->
+<section class="section" id="stages" aria-labelledby="stages-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">2 ·</span>
+      <h2 class="sec-title" id="stages-title">Stage-by-Stage Detail</h2>
+    </div>
+
+    <details class="stage reveal" open>
+      <summary><span class="stage-head-label">STAGE 1</span><span class="stage-head-name">Controlled vocabulary</span><span class="chev"></span></summary>
+      <div class="stage-body">
+        <blockquote class="epigraph">"A controlled vocabulary deliberately stays small and pragmatic: it is the approved set of words and the governance that keeps them stable."</blockquote>
+        <h4>Work to do</h4>
+        <ol>
+          <li><b>Purpose and scope</b> — what decisions the vocabulary supports (search, tagging, analytics, routing); state <b>in scope / out of scope</b> explicitly "so the effort does not sprawl."</li>
+          <li><b>Sources</b> — where the words come from (style guides, ontologies, systems, logs), with provenance recorded per term.</li>
+          <li><b>Style guide</b> — five decisions: capitalization (sentence vs Title Case), abbreviations (spell out, acronym as alternative label), number (singular unless inherently plural), multi-word punctuation (spaces / hyphens / camelCase), word order (natural vs inverted for sorting).</li>
+          <li><b>Terms</b> — one <b>preferred term</b> per concept, alternative + hidden labels (e.g. catching the misspelling "Reprot"), and a definition in <b>genus–differentia</b> form ("X <em>is a</em> Y <em>that</em> Z").</li>
+        </ol>
+        <p class="prevents"><b>Prevents:</b> synonyms and near-duplicates propagating through everything downstream.</p>
+      </div>
+    </details>
+
+    <details class="stage reveal">
+      <summary><span class="stage-head-label">STAGE 2</span><span class="stage-head-name">Metadata application profile (MAP)</span><span class="chev"></span></summary>
+      <div class="stage-body">
+        <blockquote class="epigraph">"A metadata application profile (MAP) is, at its core, a declaration of the metadata terms an organization uses, how it uses them, and the constraints that apply in specific contexts."</blockquote>
+        <ul>
+          <li>Choose the Dublin Core elements each record type needs; per element declare <b>obligation</b> (required / recommended / optional), <b>max occurrence</b>, <b>encoding</b> (free text, ISO 8601 date, controlled-vocabulary value, IRI), and <b>guidelines</b>.</li>
+          <li>Build the <b>systems crosswalk</b>: which field in which system holds each element (e.g. profile <code>title</code> ↔ DMS "document title" ↔ Jira "summary" ↔ catalog "dataset name").</li>
+          <li>Metadata elements fall into <b>structural</b> (machine readability), <b>descriptive</b> (context), <b>administrative</b> (maintenance/lineage) — the essay adds provenance and social as extensions.</li>
+        </ul>
+        <p class="prevents"><b>Prevents:</b> entity-value chaos; the MAP is the "architectural blueprint" the taxonomy later fills with material.</p>
+      </div>
+    </details>
+
+    <details class="stage reveal">
+      <summary><span class="stage-head-label">STAGE 3</span><span class="stage-head-name">Taxonomy</span><span class="chev"></span></summary>
+      <div class="stage-body">
+        <blockquote class="epigraph">"Metadata schemas serve as architectural blueprints for the taxonomy, while controlled vocabularies provide the material from which we construct it."</blockquote>
+        <ul>
+          <li>Write <b>use cases</b> first (problem → how the taxonomy solves it → priority → owner).</li>
+          <li>Define a <b>coverage model</b>: what topics, how deep, what granularity, what comparable orgs/standards cover.</li>
+          <li>Create <b>concept scheme(s)</b> and place every approved term with its parent — or document why it's excluded.</li>
+          <li>Every parent edge must pass the <b>Is-a test</b>.</li>
+        </ul>
+        <p>Design decisions the essay flags: how many levels; granularity; localization; whether the CV stays alive after deployment; how new terms enter. Validation should follow ISO 25964-1/2 and ANSI/NISO Z39.19.</p>
+        <p class="prevents"><b>Prevents:</b> "the introduction of faulty logic, even within a base structure like taxonomy, can lead to the proliferation of errors throughout semantic knowledge systems."</p>
+      </div>
+    </details>
+
+    <details class="stage reveal">
+      <summary><span class="stage-head-label">STAGE 4</span><span class="stage-head-name">Thesaurus</span><span class="chev"></span></summary>
+      <div class="stage-body">
+        <blockquote class="epigraph">"Beyond the taxonomic structure, a thesaurus adds skos:related (associative), and joins across concept schemes through the mapping properties."</blockquote>
+        <p>Adds what a pure hierarchy cannot say:</p>
+        <ul>
+          <li><b>Associative relations</b> (<code>skos:related</code>) — e.g. <em>Under Review</em> ↔ <em>Compliance</em> category.</li>
+          <li><b>Scope notes, examples, editorial and history notes.</b></li>
+          <li><b>Mappings</b> to outside vocabularies (interoperability; classic BT/NT/UF terminology comes from this tradition).</li>
+          <li><b>Collections</b> — groups for display, <em>never</em> hierarchy; ordered or not (e.g. a lifecycle list Draft → Under Review → Active → Deprecated).</li>
+          <li><b>Notation</b> codes (e.g. <code>WS-01</code>) and optional <b>SKOS-XL labels</b> (labels as addressable entities with their own provenance).</li>
+        </ul>
+        <h4>Why taxonomy → thesaurus before ontology</h4>
+        <p>"it is the crucial first step toward building a semantic, ontology-based knowledge management system."</p>
+      </div>
+    </details>
+
+    <details class="stage reveal">
+      <summary><span class="stage-head-label">STAGE 5</span><span class="stage-head-name">Ontology (CBox · TBox · ABox · Check)</span><span class="chev"></span></summary>
+      <div class="stage-body">
+        <blockquote class="epigraph">"The CBox comes first, which surprises most people who expect to start with classes and properties. The CBox is the administrative and governance layer."</blockquote>
+        <div class="mini-chips">
+          <span class="chip accent">CBox</span><span class="chip accent">TBox</span><span class="chip amber">SHACL</span><span class="chip accent">ABox</span><span class="chip rose">Check</span>
+        </div>
+        <ul>
+          <li><b>CBox (before any axioms):</b> competency questions, the three namespaces (concept / schema / individuals), the ontology's own Dublin Core record (title, description, creator, license, rights, version in MAJOR.MINOR.PATCH), and the <code>owl:imports</code> declarations for SKOS and each reused standard.</li>
+          <li><b>TBox:</b> reuse standards <b>before</b> defining custom terms; then classes (hierarchy first — "make a class from a concept / promote"), then properties.</li>
+          <li><b>Label-and-comment rule (verbatim):</b> "The label and comment are written before the axioms — if a definition cannot be stated clearly, the concept boundary is not yet understood well enough to model."</li>
+          <li><b>The thin OWL frame + SHACL:</b> the OWL layer stays deliberately thin (typing, domains, transitive/functional/inverse declarations). Rules that classes and properties <em>cannot</em> state live in <b>SHACL shapes</b>.</li>
+          <li><b>Shape definition (verbatim):</b> A shape "picks a class, optionally a condition, and then a path of one or two properties whose values must be of a class or carry a value, at least and at most so many times. The Check applies every shape to the test ABox and reports each individual that breaks one."</li>
+          <li><b>ABox (verbatim):</b> "Before deploying an ontology, build a representative set of ABox instances that exercises every class, every property, and every constraint available in the TBox."</li>
+          <li><b>Check (verbatim):</b> "Populate a test ABox early, and run an RDFS-aware inference engine over it before you ever introduce OWL axioms. The errors that surface at the RDFS level are the cheapest to fix."</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="stage reveal">
+      <summary><span class="stage-head-label">STAGE 6</span><span class="stage-head-name">Knowledge graph</span><span class="chev"></span></summary>
+      <div class="stage-body">
+        <blockquote class="epigraph">"A competency question is a natural-language question that the knowledge graph must be able to answer. It is not a vague business objective or a KPI. It is a question with a definite answer that the graph either can or cannot return."</blockquote>
+        <ul>
+          <li>Run <b>SPARQL</b> over everything stages 1–5 built — one query per competency question; the graph is "essentially a knowledge management tool" and the pipeline's visualization layer.</li>
+          <li><b>Graph-reading conventions (verbatim):</b> solid arrows = hierarchy (<code>rdfs:subClassOf</code>, <code>skos:broader</code>, <code>rdf:type</code>); dashed = properties; dotted = scheme membership and term definition.</li>
+          <li>Exports: Turtle, N-Triples, JSON-LD, spreadsheet CSV.</li>
+        </ul>
+      </div>
+    </details>
+
+    <h3 style="margin-top:34px">The book's worked example</h3>
+    <div class="table-wrap">
+      <table class="master" id="worked-example">
+        <caption class="sr-only">The book's worked example, stage by stage</caption>
+        <thead><tr><th scope="col">Stage</th><th scope="col">Artifact in the example</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="stagenum">1 CV</td>
+            <td>4 concept schemes, ~30 concepts, e.g. status <em>Draft / Active / Under Review / Deprecated</em> with genus-differentia definitions, notation <code>WS-01…</code>, hidden label catching "Reprot", alternative "In review"; style: Title Case, spell out abbreviations, singular, spaces</td>
+          </tr>
+          <tr>
+            <td class="stagenum">2 MAP</td>
+            <td>"Workflow record profile" over ~32 Dublin Core elements (title required/1; dates ISO 8601…), crosswalked to Document management, Engineering tracker (Jira), Data catalog</td>
+          </tr>
+          <tr>
+            <td class="stagenum">3 Tax</td>
+            <td>Use cases (steps in order; who approves; human vs AI vs automated), coverage model: coarse, one level deep, benchmarked against ITIL states and PROV-O's activity/entity split</td>
+          </tr>
+          <tr>
+            <td class="stagenum">4 Thes</td>
+            <td>Cross-scheme <code>skos:related</code> (Under Review ↔ Compliance), 3 collections: WorkflowLifecycle (ordered), EscalationAuthorities, ProductionDeploymentPath (ordered)</td>
+          </tr>
+          <tr class="hl">
+            <td class="stagenum">5 Ont</td>
+            <td><strong>9 classes, 15 object properties, 5 datatype properties, 55 test individuals</strong>; reuses PROV-O, Schema.org, FOAF, DCAT</td>
+          </tr>
+          <tr>
+            <td class="stagenum">6 KG</td>
+            <td>8 competency questions with runnable SPARQL (OPTIONAL, FILTER, property paths, COUNT)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <p style="margin:0 0 8px"><b>Domain:</b> operational workflows across Engineering, Legal, Finance, Operations — steps, approval gates, roles, human/AI/automated agents, artifacts, consumed datasets.</p>
+      <p style="margin:0 0 8px"><b>Purpose:</b> answer <strong>eight leadership questions</strong> (CQ Drill section).</p>
+      <p style="margin:0"><b>Steward / authority:</b> Data Architecture Team / Workflow governance.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SECTION 3 · TBOX GRAPH ===================== -->
+<section class="section" id="graph" aria-labelledby="graph-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">3 ·</span>
+      <h2 class="sec-title" id="graph-title">TBox Graph — Special Solutions</h2>
+      <span class="sec-sub">9 classes · 15 object properties · 5 datatype properties · 55 test individuals</span>
+    </div>
+
+    <div class="graph-card">
+      <div class="graph-toolbar">
+        <div class="legend" role="list" aria-label="Graph legend">
+          <span class="legend-item" role="listitem"><span class="legend-swatch" style="border-top-color:#35E0CF;border-top-style:solid"></span> solid = hierarchy (rdfs:subClassOf / rdf:type)</span>
+          <span class="legend-item" role="listitem"><span class="legend-swatch" style="border-top-color:#E8A33D;border-top-style:dashed"></span> dashed = properties (object + datatype)</span>
+          <span class="legend-item" role="listitem"><span class="legend-swatch" style="border-top-color:#F470A0;border-top-style:dotted"></span> dotted = scheme membership / term definition</span>
+          <span class="legend-item" role="listitem"><span class="legend-swatch" style="border-top-color:#35E0CF;border-top-style:solid"></span> teal = custom NTWF</span>
+          <span class="legend-item" role="listitem"><span class="legend-swatch" style="border-top-color:#E8A33D;border-top-style:solid"></span> amber = reused standards</span>
+          <span class="legend-item" role="listitem"><span class="legend-swatch" style="border-top-color:#F470A0;border-top-style:solid"></span> rose = SKOS schemes / seam</span>
+          <span class="legend-item" role="listitem"><span class="legend-swatch" style="border-top-color:#98A2B3;border-top-style:solid"></span> gray = xsd datatypes</span>
+        </div>
+        <button class="tool-btn" id="zoom-in" type="button" aria-label="Zoom in">+ Zoom</button>
+        <button class="tool-btn" id="zoom-out" type="button" aria-label="Zoom out">− Zoom</button>
+        <button class="tool-btn" id="zoom-reset" type="button">Reset</button>
+        <button class="tool-btn" id="zoom-fit" type="button">Fit</button>
+        <button class="tool-btn" id="schemes-toggle" type="button" aria-pressed="true">Collapse schemes</button>
+      </div>
+      <div class="graph-stage" id="graph-stage">
+        <svg id="tbox-svg" viewBox="0 0 1620 1160" role="img" aria-label="Interactive TBox graph: 9 custom NTWF classes, 11 reused standard classes, 4 concept schemes and 3 xsd datatypes, joined by hierarchy, property and membership edges.">
+          <defs>
+            <marker id="arrow-hier" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#35E0CF"></path>
+            </marker>
+            <marker id="arrow-prop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M1,1 L9,5 L1,9" fill="none" stroke="#E8A33D" stroke-width="1.4"></path>
+            </marker>
+            <marker id="arrow-membership" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <circle cx="5" cy="5" r="3.4" fill="none" stroke="#F470A0" stroke-width="1.4"></circle>
+            </marker>
+            <marker id="arrow-datatype" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M5,1 L9,5 L5,9 L1,5 z" fill="none" stroke="#E8A33D" stroke-width="1.3"></path>
+            </marker>
+          </defs>
+          <g id="viewport">
+            <g id="edge-layer"></g>
+            <g id="label-layer"></g>
+            <g id="node-layer"></g>
+          </g>
+        </svg>
+        <aside class="inspector" id="inspector" aria-live="polite" aria-label="Node inspector">
+          <div class="inspector-head">
+            <div>
+              <div class="inspector-kind" id="inspector-kind">NODE</div>
+              <div class="inspector-title" id="inspector-title">—</div>
+            </div>
+            <button class="inspector-close" id="inspector-close" type="button" aria-label="Close inspector">×</button>
+          </div>
+          <div class="inspector-body" id="inspector-body"></div>
+        </aside>
+      </div>
+    </div>
+
+    <p class="sect-lead" style="font-size:13.5px">Drag a node to reposition · drag the background to pan · scroll or pinch to zoom (0.4×–2.5×) · click a class, a scheme, a concept chip or a property label to read its verbatim comment.</p>
+
+    <div class="callout amber">
+      <p class="inspector-label" style="margin-bottom:6px">PROV-O alignment</p>
+      <p style="margin:0">Workflow ⊂ <code>prov:Plan</code> · WorkflowStep ⊂ <code>prov:Activity</code> · WorkflowArtifact ⊂ <code>prov:Entity</code> · HumanAgent ⊂ <code>prov:Agent</code> · AIAgent / AutomatedPipeline ⊂ <code>prov:SoftwareAgent</code> · <code>filledBy</code> range <code>prov:Agent</code> · <code>producesArtifact</code> ↔ <code>prov:generated</code> · <code>requiresArtifact</code> ↔ <code>prov:used</code> · <code>consumesDataset</code> kept <strong>separate</strong> to preserve DCAT semantics.</p>
+    </div>
+
+    <div class="callout rose">
+      <p class="inspector-label" style="margin-bottom:6px">SKOS↔OWL seam</p>
+      <p style="margin:0"><code>workflowStatus</code> (Workflow → skos:Concept) and <code>hasCapability</code> (Role → skos:Concept) link individuals to concepts in the stage-3/4 schemes — "the pipeline's layers stay connected, not duplicated."</p>
+    </div>
+
+    <div class="callout">
+      <p class="inspector-label" style="margin-bottom:6px">CBox · namespaces</p>
+      <div class="codewell" style="margin-bottom:0"><code>concept  ntwfc: &lt;https://ontology.specialsolutions.example.com/workflow/concept/&gt;
+schema   ntwf:  &lt;https://ontology.specialsolutions.example.com/workflow#&gt;
+indivs   ss:    &lt;https://data.specialsolutions.example.com/instances/&gt;</code></div>
+    </div>
+
+    <h3 style="margin-top:26px">Ontology DC record (CBox)</h3>
+    <div class="table-wrap">
+      <table class="master" id="dc-record">
+        <caption class="sr-only">The ontology's own Dublin Core record</caption>
+        <thead><tr><th scope="col">Element</th><th scope="col">Value</th></tr></thead>
+        <tbody>
+          <tr><td class="stagenum">title</td><td>Special Solutions Workflow Ontology</td></tr>
+          <tr><td class="stagenum">creator</td><td>Ontology Pipeline / Special Solutions Data Architecture Team</td></tr>
+          <tr><td class="stagenum">publisher</td><td>Special Solutions</td></tr>
+          <tr><td class="stagenum">created</td><td>2025-01-01</td></tr>
+          <tr><td class="stagenum">modified</td><td>2025-06-01</td></tr>
+          <tr><td class="stagenum">license</td><td class="mono">https://jesstalisman-ia.github.io/ontology-pipeline/LICENSE.txt</td></tr>
+          <tr><td class="stagenum">rights</td><td>Copyright © 2026 by Jessica Talisman. Part of the book Ontology Pipeline: A Framework for Knowledge Engineering (Technics Publications, 2026; ISBN 9798898161392; Library of Congress Control Number 2026945272) and covered by the book's copyright. All rights reserved.</td></tr>
+          <tr><td class="stagenum">identifier</td><td>ntwf</td></tr>
+          <tr><td class="stagenum">version</td><td>1.3.0</td></tr>
+          <tr><td class="stagenum">lang</td><td>en</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <p class="inspector-label" style="margin-bottom:6px">Test ABox</p>
+      <p style="margin:0">three workflows — <code>workflow-production-deployment</code>, <code>workflow-quarterly-business-review</code>, <code>workflow-vendor-onboarding</code> — spanning Engineering, Legal, Finance, Operations; roles <code>role-release-manager</code>, <code>role-vp-engineering</code>, <code>role-ai-risk-reviewer</code>, <code>role-legal-compliance</code>, <code>role-cfo-approval</code>, …; human agents <code>agent-maria-gonzalez</code> (Release Manager), <code>agent-james-chen</code>, <code>agent-priya-sharma</code>, <code>agent-david-park</code>, <code>agent-sarah-okonkwo</code>, <code>agent-tom-vasquez</code>; AI/pipeline agents <code>agent-risk-analysis-ai</code>, <code>agent-summary-ai</code>, <code>agent-deploy-pipeline</code>, <code>agent-etl-pipeline</code>, <code>agent-provisioning-pipeline</code>; datasets <code>dataset-system-metrics</code>, <code>dataset-quarterly-financials</code>, <code>dataset-operational-kpis</code>; 55 individuals total.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SECTION 4 · CQ DRILL ===================== -->
+<section class="section" id="cq-drill" aria-labelledby="cq-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">4 ·</span>
+      <h2 class="sec-title" id="cq-title">Competency-Question Drill</h2>
+      <span class="sec-sub">The book's eight, verbatim · reveal answers, artifacts, SPARQL</span>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="cq-progress-fill"></div></div>
+      <span class="progress-count" id="cq-progress-count">0/8 revealed</span>
+      <button class="tool-btn" id="cq-toggle-all" type="button">Reveal all</button>
+    </div>
+
+    <p class="inspector-label" style="margin-bottom:6px">Shared PREFIX block</p>
+    <div class="codewell" id="prefix-well">
+      <button class="copy-btn" type="button" data-copy="prefix">Copy</button>
+      <code><span class="k">PREFIX</span> ntwf:    &lt;https://ontology.specialsolutions.example.com/workflow#&gt;
+<span class="k">PREFIX</span> ntwfc:   &lt;https://ontology.specialsolutions.example.com/workflow/concept/&gt;
+<span class="k">PREFIX</span> ss:      &lt;https://data.specialsolutions.example.com/instances/&gt;
+<span class="k">PREFIX</span> skos:    &lt;http://www.w3.org/2004/02/skos/core#&gt;
+<span class="k">PREFIX</span> rdfs:    &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+<span class="k">PREFIX</span> dcterms: &lt;http://purl.org/dc/terms/&gt;
+<span class="k">PREFIX</span> prov:    &lt;http://www.w3.org/ns/prov#&gt;
+<span class="k">PREFIX</span> foaf:    &lt;http://xmlns.com/foaf/0.1/&gt;
+<span class="k">PREFIX</span> schema:  &lt;https://schema.org/&gt;
+<span class="k">PREFIX</span> dcat:    &lt;http://www.w3.org/ns/dcat#&gt;</code>
+    </div>
+
+    <div class="cq-grid" id="cq-grid"></div>
+  </div>
+</section>
+
+<!-- ===================== SECTION 5 ===================== -->
+<section class="section" id="toolbox" aria-labelledby="toolbox-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">5a ·</span>
+      <h2 class="sec-title" id="toolbox-title">Standards Toolbox</h2>
+      <span class="sec-sub">Surveyed in stage 5 before defining custom terms</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="master" id="toolbox-table">
+        <caption class="sr-only">Standards surveyed before defining custom terms</caption>
+        <thead><tr><th scope="col">Standard</th><th scope="col">Prefix</th><th scope="col">Role in the pipeline</th></tr></thead>
+        <tbody>
+          <tr><td>Dublin Core Terms</td><td class="mono">dcterms:</td><td>Metadata elements of the MAP; ontology-record properties</td></tr>
+          <tr><td>SKOS</td><td class="mono">skos:</td><td>Concepts, schemes, broader/narrower/related, scope notes, collections</td></tr>
+          <tr><td>SKOS-XL</td><td class="mono">skosxl:</td><td>Labels as first-class entities with provenance</td></tr>
+          <tr><td>RDFS</td><td class="mono">rdfs:</td><td>Cheap, early inference; the entailment check</td></tr>
+          <tr><td>OWL</td><td class="mono">owl:</td><td><em>Thin</em> frame: typing, transitive/functional/inverse axioms, imports</td></tr>
+          <tr><td>SHACL</td><td class="mono">sh:</td><td>Business rules the frame cannot express</td></tr>
+          <tr><td>PROV-O</td><td class="mono">prov:</td><td>Activities, agents, entities, attribution/derivation backbone</td></tr>
+          <tr><td>FOAF</td><td class="mono">foaf:</td><td>People and their organizational ties</td></tr>
+          <tr><td>Schema.org</td><td class="mono">schema:</td><td>Organizations, software, creative works — search-engine legibility</td></tr>
+          <tr><td>DCAT</td><td class="mono">dcat:</td><td>Datasets and their access distributions</td></tr>
+          <tr><td>SPARQL</td><td class="mono">—</td><td>The stage-6 query layer</td></tr>
+          <tr><td>ISO 25964-1/-2, NISO Z39.19</td><td class="mono">—</td><td>Thesaurus construction &amp; interoperability; monolingual CV guidelines</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="inspector-label" style="margin-bottom:6px">Standard prefixes</p>
+    <div class="codewell" id="prefixes-well">
+      <button class="copy-btn" type="button" data-copy="prefixes">Copy</button>
+      <code>dcterms: &lt;http://purl.org/dc/terms/&gt;
+skos:    &lt;http://www.w3.org/2004/02/skos/core#&gt;
+skosxl:  &lt;http://www.w3.org/2008/05/skos-xl#&gt;
+rdfs:    &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+owl:     &lt;http://www.w3.org/2002/07/owl#&gt;
+sh:      &lt;http://www.w3.org/ns/shacl#&gt;
+prov:    &lt;http://www.w3.org/ns/prov#&gt;
+foaf:    &lt;http://xmlns.com/foaf/0.1/&gt;
+schema:  &lt;https://schema.org/&gt;
+dcat:    &lt;http://www.w3.org/ns/dcat#&gt;
+xsd:     &lt;http://www.w3.org/2001/XMLSchema#&gt;
+ntwf:    &lt;https://ontology.specialsolutions.example.com/workflow#&gt;
+ntwfc:   &lt;https://ontology.specialsolutions.example.com/workflow/concept/&gt;
+ss:      &lt;https://data.specialsolutions.example.com/instances/&gt;</code>
+    </div>
+
+    <div class="callout">
+      <p class="inspector-label" style="margin-bottom:6px">Reuse principle</p>
+      <p style="margin:0">"each class and property carries the book's reason for it" — define a custom term only where no standard fits, and align it (e.g. <code>producesArtifact</code> aligned to <code>prov:generated</code>).</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="glossary" aria-labelledby="glossary-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">5b ·</span>
+      <h2 class="sec-title" id="glossary-title">Glossary</h2>
+      <span class="sec-sub">Studio vocabulary · flashcards</span>
+    </div>
+    <div style="margin-bottom:18px"><button class="tool-btn" id="flip-all" type="button">Flip all</button></div>
+    <div class="gloss-grid" id="glossary-grid"></div>
+  </div>
+</section>
+
+<section class="section" id="study-path" aria-labelledby="study-path-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">5c ·</span>
+      <h2 class="sec-title" id="study-path-title">Suggested Study Path</h2>
+    </div>
+    <ol class="study-list">
+      <li>Read §1–§3 for the argument and stage mechanics.</li>
+      <li>Open the <strong>Studio project 1</strong> and walk stages 1→6 in order, reading each "line from the book" and running each stage's checklist; edit nothing yet.</li>
+      <li>Read §4 alongside it, then export the Turtle (each stage prints "See the RDF") and read it — the same content in three serializations.</li>
+      <li>Re-answer the eight competency questions from §6 by hand, then run them in the Studio's Query tab.</li>
+      <li>Open <strong>project 2 (music tourism)</strong> and verify you can predict the shape of each stage before opening it — that is transfer of the method.</li>
+      <li>Buy the book (links below) for the prose and full chapter checklists; the companion site is interactive, not the text.</li>
+    </ol>
+
+    <div class="callout rose">
+      <p class="inspector-label" style="margin-bottom:6px">Transfer check · method-transfer note</p>
+      <p style="margin:0">"Music tourism — venues and events" in the harbour city of Marlow Bay — tourists finding and booking events; Schema.org reused; ~6 schemes, profile crosswalked to a listings system and a ticketing platform, 6 competency questions. Same method, a domain <em>not</em> in the book.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="sources" aria-labelledby="sources-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">5d ·</span>
+      <h2 class="sec-title" id="sources-title">Sources &amp; ISBN</h2>
+    </div>
+    <ul class="sources">
+      <li>Ontology Pipeline Studio (the book's official interactive companion): <span class="mono">jesstalisman-ia.github.io/ontology-pipeline</span> · <span class="mono">ontologypipeline.com/studio</span></li>
+      <li>Jessica Talisman, "The Ontology Pipeline® — A Semantic Knowledge Management Framework", <em>Intentional Arrangement</em> (Substack), May 26 2025 — framework rationale, LIS derivation, standards mapping</li>
+      <li>Book record: <em>Ontology Pipeline: A Framework for Knowledge Engineering</em>, Technics Publications, 2026 — <span class="mono">ISBN 9798898161392</span> · <span class="mono">LCCN 2026945272</span> (buy from author or Amazon)</li>
+      <li>Author: semantic engineer (Adobe RDF knowledge graph, Amazon IA/taxonomy); founder of Contextually LLC and The Knowledge Graph Academy; 25+ years in enterprise architecture and knowledge management</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<footer class="footer-bar">
+  <div class="footer-inner">
+    <div>Ontology Pipeline: A Framework for Knowledge Engineering — Jessica Talisman, MLS · Technics Publications, 2026 · <span class="isbn">ISBN 9798898161392</span> · <span class="isbn">LCCN 2026945272</span></div>
+    <div>Study scaffold compiled 15 Nov 2026; quotations are short excerpts used for study reference, © 2026 Jessica Talisman.</div>
+  </div>
+</footer>
+
+<script>
+/* =====================================================================
+   Ontology Pipeline — Interactive Study Lab
+   Vanilla JS · inline SVG · no framework · no build step
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  var SVGNS = 'http://www.w3.org/2000/svg';
+
+  /* ---------- tiny DOM helpers ---------- */
+  function $(id) { var e = document.getElementById(id); return e ? e : null; }
+  function qsa(sel, root) {
+    var list = (root || document).querySelectorAll(sel);
+    return Array.prototype.slice.call(list);
+  }
+  function svgEl(tag, attrs) {
+    var e = document.createElementNS(SVGNS, tag);
+    if (attrs) {
+      for (var k in attrs) {
+        if (Object.prototype.hasOwnProperty.call(attrs, k)) {
+          e.setAttribute(k, String(attrs[k]));
+        }
+      }
+    }
+    return e;
+  }
+  function htmlEl(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== null && text !== undefined) e.textContent = text;
+    return e;
+  }
+  function on(node, ev, fn, opts) {
+    if (!node) return;
+    if (node.addEventListener) node.addEventListener(ev, fn, opts || false);
+  }
+  function reducedMotion() {
+    try {
+      return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch (e) { return false; }
+  }
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  /* =====================================================================
+     PALETTE + FAMILY MAP  (colors are derived at build time so that
+     render functions never read an undefined family)
+     ===================================================================== */
+  var FAMILY = {
+    custom:    '#35E0CF',  /* teal   — custom NTWF terms            */
+    standard:  '#E8A33D',  /* amber  — reused standards             */
+    scheme:    '#F470A0',  /* rose   — SKOS concept schemes         */
+    seam:      '#F470A0',  /* rose   — SKOS↔OWL seam node            */
+    datatype:  '#98A2B3'   /* gray   — xsd datatypes                */
+  };
+  var FAMILY_LABEL = {
+    custom: 'CUSTOM NTWF TERM',
+    standard: 'REUSED STANDARD',
+    scheme: 'CONCEPT SCHEME',
+    seam: 'SKOS↔OWL SEAM',
+    datatype: 'XSD DATATYPE'
+  };
+
+  /* =====================================================================
+     GRAPH DATA — nodes (27 classes/schemes/datatypes)
+     ===================================================================== */
+  var NODES = [
+    /* Group A — custom NTWF classes (9) */
+    { id: 'Workflow',          label: 'Workflow',          family: 'custom',   x: 640,  y: 95  },
+    { id: 'WorkflowStep',      label: 'WorkflowStep',      family: 'custom',   x: 870,  y: 215 },
+    { id: 'ApprovalGate',      label: 'ApprovalGate',      family: 'custom',   x: 1080, y: 330 },
+    { id: 'WorkflowArtifact',  label: 'WorkflowArtifact',  family: 'custom',   x: 640,  y: 330 },
+    { id: 'Role',              label: 'Role',              family: 'custom',   x: 870,  y: 470 },
+    { id: 'HumanAgent',        label: 'HumanAgent',        family: 'custom',   x: 1090, y: 560 },
+    { id: 'AIAgent',           label: 'AIAgent',           family: 'custom',   x: 870,  y: 650 },
+    { id: 'AutomatedPipeline', label: 'AutomatedPipeline', family: 'custom',   x: 640,  y: 570 },
+    { id: 'Department',        label: 'Department',        family: 'custom',   x: 640,  y: 790 },
+
+    /* Group B — reused standard classes (11) */
+    { id: 'prov:Plan',               label: 'prov:Plan',               family: 'standard', x: 95,  y: 95  },
+    { id: 'prov:Activity',           label: 'prov:Activity',           family: 'standard', x: 95,  y: 250 },
+    { id: 'prov:Entity',             label: 'prov:Entity',             family: 'standard', x: 95,  y: 405 },
+    { id: 'prov:Agent',              label: 'prov:Agent',              family: 'standard', x: 95,  y: 560 },
+    { id: 'prov:SoftwareAgent',      label: 'prov:SoftwareAgent',      family: 'standard', x: 95,  y: 715 },
+    { id: 'foaf:Person',             label: 'foaf:Person',             family: 'standard', x: 335, y: 175 },
+    { id: 'schema:CreativeWork',     label: 'schema:CreativeWork',     family: 'standard', x: 335, y: 340 },
+    { id: 'schema:Organization',     label: 'schema:Organization',     family: 'standard', x: 335, y: 505 },
+    { id: 'schema:SoftwareApplication', label: 'schema:SoftwareApplication', family: 'standard', x: 335, y: 670 },
+    { id: 'dcat:Dataset',            label: 'dcat:Dataset',            family: 'standard', x: 335, y: 900 },
+    { id: 'skos:Concept',            label: 'skos:Concept',            family: 'seam',     x: 1160, y: 930, shape: 'circle', r: 42 },
+
+    /* Group C — concept schemes (4) — rendered as containers */
+    { id: 'WorkflowStatusScheme',   label: 'WorkflowStatusScheme',   family: 'scheme', x: 1400, y: 120, shape: 'container', w: 360, h: 150 },
+    { id: 'ArtifactTypeScheme',     label: 'ArtifactTypeScheme',     family: 'scheme', x: 1400, y: 350, shape: 'container', w: 360, h: 230 },
+    { id: 'AgentCapabilityScheme',  label: 'AgentCapabilityScheme',  family: 'scheme', x: 1400, y: 590, shape: 'container', w: 360, h: 230 },
+    { id: 'WorkflowCategoryScheme', label: 'WorkflowCategoryScheme', family: 'scheme', x: 1400, y: 810, shape: 'container', w: 360, h: 190 },
+
+    /* Group D — xsd datatypes (3) */
+    { id: 'xsd:integer', label: 'xsd:integer', family: 'datatype', x: 700,  y: 1040, shape: 'datatype' },
+    { id: 'xsd:boolean', label: 'xsd:boolean', family: 'datatype', x: 900,  y: 1080, shape: 'datatype' },
+    { id: 'xsd:string',  label: 'xsd:string',  family: 'datatype', x: 1090, y: 1040, shape: 'datatype' }
+  ];
+
+  /* =====================================================================
+     GRAPH DATA — concept schemes and their 30 members
+     ===================================================================== */
+  var SCHEMES = [
+    {
+      id: 'WorkflowStatusScheme',
+      members: [
+        { label: 'Draft',       notation: 'WS-01' },
+        { label: 'Active',      notation: 'WS-02' },
+        { label: 'Under Review', notation: 'WS-03', alt: 'In review' },
+        { label: 'Deprecated',  notation: 'WS-04' }
+      ],
+      comment: 'Links a Workflow to a skos:Concept from the WorkflowStatusScheme describing its current operational status. Declared owl:FunctionalProperty: each workflow has exactly one current status. Bridges the CBox WorkflowStatusScheme into the TBox. The worked example carries the four status concepts — Draft / Active / Under Review / Deprecated — with genus-differentia definitions and notation WS-01….'
+    },
+    {
+      id: 'ArtifactTypeScheme',
+      members: [
+        { label: 'Report',          notation: 'AT-01', hidden: 'Reprot' },
+        { label: 'Approval Record', notation: 'AT-02' },
+        { label: 'Dataset',         notation: 'AT-03' },
+        { label: 'Log',             notation: 'AT-04', alt: 'Audit log' },
+        { label: 'Decision Record', notation: 'AT-05' },
+        { label: 'Specification',   notation: 'AT-06' },
+        { label: 'Summary',         notation: 'AT-07' },
+        { label: 'Document' },
+        { label: 'Record' },
+        { label: 'Data artifact' }
+      ],
+      comment: 'Concept scheme for artifact types — ten members, notation AT-01…AT-07. Report carries the hidden label "Reprot"; Log carries the alternative label "Audit log".'
+    },
+    {
+      id: 'AgentCapabilityScheme',
+      members: [
+        { label: 'Risk Analysis' },
+        { label: 'Legal Review' },
+        { label: 'Deployment Execution', alt: 'Deploy' },
+        { label: 'Release Management',    alt: 'Release sign-off' },
+        { label: 'Executive Authority' },
+        { label: 'Financial Analysis' },
+        { label: 'Narrative Synthesis' },
+        { label: 'Judgment capability' },
+        { label: 'Analytical capability' },
+        { label: 'Execution capability' }
+      ],
+      comment: 'Links a Role to a skos:Concept from the AgentCapabilityScheme describing the capability required to fill the role. Bridges the CBox controlled vocabulary into the TBox property layer. The CBox capability scheme existed before this property was declared — the three-box sequence ensured vocabulary was ready when the TBox needed it.'
+    },
+    {
+      id: 'WorkflowCategoryScheme',
+      members: [
+        { label: 'Engineering' },
+        { label: 'Legal' },
+        { label: 'Finance' },
+        { label: 'Cross-Departmental' },
+        { label: 'Compliance' },
+        { label: 'Operations' }
+      ],
+      comment: 'Concept scheme for workflow categories — Engineering, Legal, Finance, Cross-Departmental, Compliance, Operations. Stage 1 CV (WorkflowCategoryScheme).'
+    }
+  ];
+
+  /* =====================================================================
+     GRAPH DATA — edges
+     kind: 'hierarchy' | 'object' | 'datatype' | 'membership'
+     ===================================================================== */
+  var EDGES = [
+    /* --- solid — hierarchy (rdfs:subClassOf) --- */
+    { kind: 'hierarchy', from: 'Workflow',          to: 'prov:Plan' },
+    { kind: 'hierarchy', from: 'Workflow',          to: 'schema:CreativeWork' },
+    { kind: 'hierarchy', from: 'WorkflowStep',      to: 'prov:Activity' },
+    { kind: 'hierarchy', from: 'ApprovalGate',      to: 'WorkflowStep' },
+    { kind: 'hierarchy', from: 'WorkflowArtifact',  to: 'prov:Entity' },
+    { kind: 'hierarchy', from: 'WorkflowArtifact',  to: 'schema:CreativeWork' },
+    { kind: 'hierarchy', from: 'HumanAgent',        to: 'foaf:Person' },
+    { kind: 'hierarchy', from: 'HumanAgent',        to: 'prov:Agent' },
+    { kind: 'hierarchy', from: 'AIAgent',           to: 'prov:SoftwareAgent' },
+    { kind: 'hierarchy', from: 'AutomatedPipeline', to: 'prov:SoftwareAgent' },
+    { kind: 'hierarchy', from: 'AutomatedPipeline', to: 'schema:SoftwareApplication' },
+    { kind: 'hierarchy', from: 'Department',        to: 'schema:Organization' },
+
+    /* --- dashed — object properties (domain → range) --- */
+    { kind: 'object', prop: 'hasStep',          from: 'Workflow',         to: 'WorkflowStep',      flags: 'inverse isStepOf',          bend: -70 },
+    { kind: 'object', prop: 'isStepOf',         from: 'WorkflowStep',     to: 'Workflow',          flags: 'inverse hasStep',           bend: 70 },
+    { kind: 'object', prop: 'precedesStep',     from: 'WorkflowStep',     to: 'WorkflowStep',      flags: 'transitive (self-loop)',   self: true },
+    { kind: 'object', prop: 'assignedRole',     from: 'WorkflowStep',     to: 'Role',              flags: 'functional; inverse isRoleFor', bend: -60, lo: 40 },
+    { kind: 'object', prop: 'isRoleFor',        from: 'Role',             to: 'WorkflowStep',      flags: 'inverse assignedRole',      bend: 170 },
+    { kind: 'object', prop: 'filledBy',         from: 'Role',             to: 'prov:Agent',        flags: 'inverse fills' },
+    { kind: 'object', prop: 'fills',            from: 'prov:Agent',       to: 'Role',              flags: 'inverse filledBy',          bend: -60 },
+    { kind: 'object', prop: 'ownedBy',          from: 'Role',             to: 'Department',        flags: 'functional' },
+    { kind: 'object', prop: 'delegatesTo',      from: 'Role',             to: 'Role',              flags: '(self-loop)',              self: true },
+    { kind: 'object', prop: 'hasCapability',    from: 'Role',             to: 'skos:Concept',      flags: 'SKOS↔OWL seam' },
+    { kind: 'object', prop: 'producesArtifact', from: 'WorkflowStep',     to: 'WorkflowArtifact',  flags: 'inverse isProducedBy; aligned prov:generated', bend: -60 },
+    { kind: 'object', prop: 'isProducedBy',     from: 'WorkflowArtifact', to: 'WorkflowStep',      flags: 'inverse producesArtifact',  bend: 60 },
+    { kind: 'object', prop: 'requiresArtifact', from: 'WorkflowStep',     to: 'WorkflowArtifact',  flags: 'aligned prov:used',         bend: -130 },
+    { kind: 'object', prop: 'consumesDataset',  from: 'WorkflowStep',     to: 'dcat:Dataset',      flags: 'preserves DCAT semantics',  bend: 40 },
+    { kind: 'object', prop: 'workflowStatus',   from: 'Workflow',         to: 'skos:Concept',      flags: 'functional; SKOS↔OWL seam', bend: -160 },
+
+    /* --- dashed — datatype properties (domain → xsd literal) --- */
+    { kind: 'datatype', prop: 'sequencePosition',       from: 'WorkflowStep', to: 'xsd:integer', flags: 'functional',  bend: 150 },
+    { kind: 'datatype', prop: 'requiresHumanApproval',   from: 'WorkflowStep', to: 'xsd:boolean', flags: 'functional',  bend: 110 },
+    { kind: 'datatype', prop: 'modelVersion',            from: 'AIAgent',      to: 'xsd:string',  flags: 'functional' },
+    { kind: 'datatype', prop: 'stepDurationMinutes',     from: 'WorkflowStep', to: 'xsd:integer', flags: '',           bend: 240 },
+    { kind: 'datatype', prop: 'escalationThresholdHours', from: 'ApprovalGate', to: 'xsd:integer', flags: 'functional', bend: -120 },
+
+    /* --- dotted — scheme membership / term definition --- */
+    { kind: 'membership', from: 'skos:Concept', to: 'WorkflowStatusScheme' },
+    { kind: 'membership', from: 'skos:Concept', to: 'ArtifactTypeScheme' },
+    { kind: 'membership', from: 'skos:Concept', to: 'AgentCapabilityScheme' },
+    { kind: 'membership', from: 'skos:Concept', to: 'WorkflowCategoryScheme' }
+  ];
+
+  /* ---- membership edges: scheme → each of its 30 member concepts ---- */
+  (function buildMembershipEdges() {
+    for (var i = 0; i < SCHEMES.length; i++) {
+      var sc = SCHEMES[i];
+      for (var j = 0; j < sc.members.length; j++) {
+        EDGES.push({
+          kind: 'membership',
+          from: sc.id,
+          to: sc.id + '::' + sc.members[j].label,
+          chip: true
+        });
+      }
+    }
+  })();
+
+  /* =====================================================================
+     GRAPH DATA — verbatim node comments
+     ===================================================================== */
+  var NODE_COMMENTS = {
+    'Workflow': 'A defined, repeatable set of steps intended to achieve a specific organizational outcome. Represents the plan-level specification of a process, independent of any particular execution instance. Distinct from a specific run of that workflow, which is modeled as a prov:Activity at the step level. Subclasses prov:Plan: every Workflow individual is automatically a prov:Plan, making it interpretable by PROV-O-aware systems without knowledge of the NTWF vocabulary. Subclasses schema:CreativeWork for document semantics: workflows are authored, versioned, owned artifacts. Administrative metadata carried entirely by Dublin Core: dct:title, dct:description, dct:created, dct:modified, dct:identifier. dct:modified makes the stale-workflow competency question answerable without a custom property.',
+
+    'WorkflowStep': 'A single, discrete unit of work within a Workflow. Has a defined sequence position, a responsible Role, and may produce or consume WorkflowArtifacts or dcat:Datasets. Subclasses prov:Activity, enabling full provenance tracing at the step level via PROV-O properties alongside NTWF custom properties. Three competency questions operate at the step level: which steps are executed by AI agents, what artifacts does each step produce, and in what order do steps execute. Steps are therefore first-class entities — individually addressable, individually queryable, individually typed — not anonymous nodes. The PROV-O alignment supplies prov:startedAtTime and prov:endedAtTime for execution timestamps, prov:wasAssociatedWith for agent linkage, and prov:used and prov:generated as additional artifact-tracing predicates without requiring custom properties.',
+
+    'ApprovalGate': 'A WorkflowStep that constitutes a mandatory authorization checkpoint. Workflow execution cannot advance until a qualified HumanAgent in the designated Role has explicitly authorized continuation. All ApprovalGate instances carry ntwf:requiresHumanApproval true and ntwf:escalationThresholdHours. Subclasses ntwf:WorkflowStep. This is a critical design decision: because approval gates are a specialization of workflow steps, they inherit everything true of steps — sequence positions, role assignments, artifact production — and appear in ntwf:hasStep chains in correct order alongside non-gate steps. No special handling required in sequence queries. Distinctiveness is captured in the type and in ntwf:escalationThresholdHours, whose domain declaration on that property encodes the gate constraint. Individuals are explicitly double-typed as both ntwf:ApprovalGate and ntwf:WorkflowStep in the ABox to ensure step queries reach them in SPARQL endpoints that do not materialise RDFS subclass entailments.',
+
+    'WorkflowArtifact': 'A document, dataset, decision record, log, specification, or summary produced by or required as input to a WorkflowStep. Primary carrier of audit and compliance information in the model. Subclasses prov:Entity for provenance tracing: the PROV-O alignment supplies prov:wasGeneratedBy to link an artifact to its producing step, prov:wasAttributedTo to link it to its responsible agent, and prov:wasDerivedFrom to express lineage when one artifact is downstream of another — none requiring custom properties. Also subclasses schema:CreativeWork for document semantics: workflow artifacts are organizational documents and the Schema.org alignment makes them discoverable by systems that understand the web vocabulary.',
+
+    'Role': 'A named organizational function that a WorkflowStep assigns responsibility to. Independent of the specific agents that fill it. This is the structural center of the ontology and the class most commonly omitted in organizational ontologies, whose omission causes models to break when personnel change. The competency question \'who is responsible for each step?\' admits two interpretations: the person currently filling the position (unstable) or the organizational function holding responsibility (stable across personnel changes). This class models the second interpretation. The standards survey found no adequate external superclass: PROV-O\'s prov:Role is a property qualifier, not a class; Schema.org\'s schema:Role carries web-publishing semantics misaligned to organizational process accountability. ntwf:Role is therefore a root class. The separation between role and agent is the primary mechanism by which workflow structure remains stable across personnel changes and AI system transitions. When an agent changes, one ntwf:filledBy triple is updated; the workflow steps, approval gate structure, and delegation chain are untouched. Declared disjoint with ntwf:WorkflowStep and ntwf:WorkflowArtifact to prevent silent misclassification in bulk imports.',
+
+    'HumanAgent': 'A person acting as an agent within a workflow. The only agent type eligible to fill roles where ntwf:requiresHumanApproval is true. Human agents have legal standing in organizational processes that AI agents and pipelines do not. Subclasses foaf:Person: gives the full FOAF person vocabulary — foaf:name, foaf:mbox, organizational affiliation — and the social-graph semantics of the most widely deployed person class in Linked Data. Also subclasses prov:Agent directly for participation in PROV-O provenance chains. Declared disjoint with ntwf:AIAgent and ntwf:AutomatedPipeline. The mutual disjointness across all three agent classes means a data entry error that types an individual as two agent classes will be surfaced as an OWL inconsistency rather than propagating silently through accountability queries.',
+
+    'AIAgent': 'A software system using machine learning or AI techniques to perform workflow tasks. Produces probabilistic outputs that may require human review. Identified by ntwf:modelVersion for audit tracing at the version level. May not fill roles where ntwf:requiresHumanApproval is true. Subclasses prov:SoftwareAgent: PROV-O defines software agents as running software that may be attributed to humans, which is the correct semantic home for an AI agent in a workflow context. The custom class adds the organizational constraint that AI agents carry a model version string — captured in ntwf:modelVersion — making AI-produced artifacts auditable at the version level. The distinction from ntwf:AutomatedPipeline is semantic: AI agents produce probabilistic outputs; pipelines produce deterministic outputs. Schema.org does not express this distinction, but PROV-O accommodates it through the SoftwareAgent class. Declared disjoint with ntwf:HumanAgent and ntwf:AutomatedPipeline.',
+
+    'AutomatedPipeline': 'A deterministic software system executing workflow steps according to predefined rules. Same input always produces same output. Distinct from ntwf:AIAgent in that outputs are deterministic rather than probabilistic. Subclasses prov:SoftwareAgent for PROV-O participation and schema:SoftwareApplication for Schema.org semantics. The dual alignment distinguishes it from ntwf:AIAgent in Schema.org-aware systems: a SoftwareApplication is a deterministic running system. Declared disjoint with ntwf:HumanAgent and ntwf:AIAgent.',
+
+    'Department': 'An organizational unit at Special Solutions accountable for one or more workflow Roles. Modeled as a first-class typed entity — not a string label — so that cross-departmental intersection queries are structurally answerable. The competency question \'which workflows involve both Engineering and Legal?\' cannot be answered if department membership is a literal annotation rather than a typed URI reference. Because ntwf:ownedBy links Role individuals to Department individuals, the path ntwf:assignedRole → ntwf:ownedBy is traversable in SPARQL. Subclasses schema:Organization. Schema.org\'s organization class is more precise than foaf:Group (defined loosely as a collection of agents) and carries formal institutional semantics consistent with the schema:memberOf alignment used on agent individuals.',
+
+    'prov:Plan': 'Subclasses prov:Plan: every Workflow individual is automatically a prov:Plan, making it interpretable by PROV-O-aware systems without knowledge of the NTWF vocabulary.',
+
+    'prov:Activity': 'Subclasses prov:Activity, enabling full provenance tracing at the step level via PROV-O properties alongside NTWF custom properties.',
+
+    'prov:Entity': 'Subclasses prov:Entity for provenance tracing: the PROV-O alignment supplies prov:wasGeneratedBy to link an artifact to its producing step, prov:wasAttributedTo to link it to its responsible agent, and prov:wasDerivedFrom to express lineage when one artifact is downstream of another — none requiring custom properties.',
+
+    'prov:Agent': 'Range is prov:Agent, which covers all three NTWF agent subclasses through the PROV-O inheritance chain.',
+
+    'prov:SoftwareAgent': 'Subclasses prov:SoftwareAgent: PROV-O defines software agents as running software that may be attributed to humans, which is the correct semantic home for an AI agent in a workflow context.',
+
+    'foaf:Person': 'Subclasses foaf:Person: gives the full FOAF person vocabulary — foaf:name, foaf:mbox, organizational affiliation — and the social-graph semantics of the most widely deployed person class in Linked Data.',
+
+    'schema:CreativeWork': 'Subclasses schema:CreativeWork for document semantics: workflows are authored, versioned, owned artifacts.',
+
+    'schema:Organization': 'Subclasses schema:Organization. Schema.org\'s organization class is more precise than foaf:Group (defined loosely as a collection of agents) and carries formal institutional semantics consistent with the schema:memberOf alignment used on agent individuals.',
+
+    'schema:SoftwareApplication': 'Subclasses prov:SoftwareAgent for PROV-O participation and schema:SoftwareApplication for Schema.org semantics. The dual alignment distinguishes it from ntwf:AIAgent in Schema.org-aware systems: a SoftwareApplication is a deterministic running system.',
+
+    'dcat:Dataset': 'Links a WorkflowStep to a dcat:Dataset it takes as input. Defined separately from ntwf:requiresArtifact to preserve DCAT catalog and distribution semantics. dcat:Dataset individuals carry metadata — modification date, identifier, catalog entry — that generic ntwf:WorkflowArtifact individuals do not, and the separate property keeps that distinction queryable.',
+
+    'skos:Concept': 'SKOS↔OWL seam node. workflowStatus (Workflow → skos:Concept) and hasCapability (Role → skos:Concept) link individuals to concepts in the stage-3/4 schemes — "the pipeline\'s layers stay connected, not duplicated."'
+  };
+
+  /* =====================================================================
+     GRAPH DATA — verbatim TBox property comments
+     ===================================================================== */
+  var PROP_COMMENTS = {
+    'hasStep': 'Links a Workflow to the WorkflowSteps that constitute it. Does not encode order — sequence is established by ntwf:sequencePosition (integer ordinal) and ntwf:precedesStep (transitive ordering relation). Inverse: ntwf:isStepOf.',
+    'isStepOf': 'Links a WorkflowStep to its containing Workflow. Enables navigation from step to workflow without requiring a separate query. Inverse of ntwf:hasStep.',
+    'precedesStep': 'Expresses execution ordering between WorkflowSteps. Declared owl:TransitiveProperty: if A precedesStep B and B precedesStep C, a reasoner infers A precedesStep C. This is not cosmetic — the transitivity closure is what makes the SPARQL property path ntwf:precedesStep+ answerable without enumerating all step pairs in the ABox. In the production deployment workflow the ABox asserts three explicit triples (step 1→2, 2→3, 3→4). A reasoner derives three additional triples (1→3, 1→4, 2→4) representing the complete ordering relation.',
+    'assignedRole': 'Links a WorkflowStep to its responsible Role. Declared owl:FunctionalProperty: each step has exactly one assigned role. A step with two ntwf:assignedRole values represents an ambiguous accountability assignment; the functional declaration causes a reasoner to flag it. Inverse: ntwf:isRoleFor.',
+    'isRoleFor': 'Links a Role to the WorkflowStep it is assigned to. Enables navigation from role to step. Inverse of ntwf:assignedRole.',
+    'filledBy': 'Links a Role to the agent currently fulfilling it. This is the change-management triple: when Maria Gonzalez is replaced as Release Manager, this one triple is updated. The workflow steps, approval gate structure, and delegation chain are untouched. Range is prov:Agent, which covers all three NTWF agent subclasses through the PROV-O inheritance chain. Inverse: ntwf:fills.',
+    'fills': 'Links an agent to the Role it currently fills. Enables agent-to-role navigation. Inverse of ntwf:filledBy.',
+    'ownedBy': 'Links a Role to its owning Department. Declared owl:FunctionalProperty: each role has exactly one owning department. This is the property that makes cross-departmental intersection queries answerable. The traversal path ntwf:assignedRole / ntwf:ownedBy connects steps to departments in SPARQL.',
+    'delegatesTo': 'Links a Role to its fallback Role when the primary agent is unavailable. Chains of triples express full escalation paths. Defined on ntwf:Role with range ntwf:Role — organizational policy is encoded as graph structure. Changing the policy requires updating one or more ntwf:delegatesTo triples; the workflow steps are untouched. Traversable via SPARQL property path ntwf:delegatesTo+.',
+    'hasCapability': 'Links a Role to a skos:Concept from the AgentCapabilityScheme describing the capability required to fill the role. Bridges the CBox controlled vocabulary into the TBox property layer. The CBox capability scheme existed before this property was declared — the three-box sequence ensured vocabulary was ready when the TBox needed it.',
+    'producesArtifact': 'Links a WorkflowStep to the WorkflowArtifact it produces as output. Aligned to prov:generated. Custom property used rather than prov:generated directly to provide domain and range specificity required for SPARQL queries against NTWF classes. Inverse: ntwf:isProducedBy.',
+    'isProducedBy': 'Links a WorkflowArtifact to its producing WorkflowStep. Enables navigation from artifact to step. Inverse of ntwf:producesArtifact.',
+    'requiresArtifact': 'Links a WorkflowStep to a WorkflowArtifact it requires as input. Aligned to prov:used. Distinct from ntwf:consumesDataset to preserve the separation between structured dataset inputs (DCAT semantics) and artifact inputs (workflow-internal documents).',
+    'consumesDataset': 'Links a WorkflowStep to a dcat:Dataset it takes as input. Defined separately from ntwf:requiresArtifact to preserve DCAT catalog and distribution semantics. dcat:Dataset individuals carry metadata — modification date, identifier, catalog entry — that generic ntwf:WorkflowArtifact individuals do not, and the separate property keeps that distinction queryable.',
+    'workflowStatus': 'Links a Workflow to a skos:Concept from the WorkflowStatusScheme describing its current operational status. Declared owl:FunctionalProperty: each workflow has exactly one current status. Bridges the CBox WorkflowStatusScheme into the TBox. Because the range is skos:Concept and the concept carries skos:prefLabel, status labels are dereferenceable in SPARQL via a single additional triple pattern — and label changes in the scheme propagate without requiring data migration on any Workflow individual.',
+    'sequencePosition': 'Integer ordinal position of a WorkflowStep in its workflow\'s execution sequence. Step 1 executes first. Declared Functional: a step has exactly one position. Supports positional queries alongside ntwf:precedesStep — the two mechanisms are complementary: sequencePosition for direct lookup, precedesStep for transitive ordering traversal.',
+    'requiresHumanApproval': 'Boolean flag: when true, the step\'s assigned Role must be filled by a ntwf:HumanAgent. All ntwf:ApprovalGate instances carry this as true. The explicit boolean on every step — rather than inferring it from the step\'s type — means a FILTER on this property alone answers the human-vs-AI step query without joining against the agent type hierarchy. Declared Functional.',
+    'modelVersion': 'String identifier for the specific AI model version backing a ntwf:AIAgent individual. Makes AI-produced artifacts auditable at the version level: an auditor can trace from artifact to agent to model version in a single three-hop SPARQL path. Domain is ntwf:AIAgent. As an inference rule: if ntwf:modelVersion is accidentally applied to a ntwf:HumanAgent, a reasoner infers that individual is an ntwf:AIAgent, triggering an inconsistency via the disjointness declaration between ntwf:HumanAgent and ntwf:AIAgent. Declared Functional.',
+    'stepDurationMinutes': 'Expected or historical average duration of a WorkflowStep in minutes. Not declared Functional: a step may carry multiple duration estimates for different execution contexts.',
+    'escalationThresholdHours': 'Integer number of hours that may elapse on a pending ntwf:ApprovalGate before the ntwf:delegatesTo escalation chain activates. Domain is ntwf:ApprovalGate. As an inference rule: if this property appears on a WorkflowStep not explicitly typed as ntwf:ApprovalGate, a reasoner infers the gate type from the domain declaration. Declared Functional.'
+  };
+
+  /* =====================================================================
+     COMPETENCY QUESTIONS (verbatim)
+     ===================================================================== */
+  var CQS = [
+    {
+      id: 'CQ1',
+      q: 'What are all the steps in a workflow, and in what order?',
+      artifacts: [
+        'Stage 3 taxonomy (Workflow ⊃ steps hierarchy)',
+        'Stage 5 TBox (hasStep, sequencePosition, transitive precedesStep)',
+        'Stage 6 SPARQL.',
+      ],
+      hint: '<code>hasStep</code> + <code>sequencePosition</code> + <code>OPTIONAL { ?step precedesStep ?next }</code> + <code>ORDER BY ?position</code>.',
+      query: 'SELECT ?position ?step ?label ?next WHERE { ss:workflow-production-deployment ntwf:hasStep ?step . ?step ntwf:sequencePosition ?position ; rdfs:label ?label . OPTIONAL { ?step ntwf:precedesStep ?next } } ORDER BY ?position'
+    },
+    {
+      id: 'CQ2',
+      q: 'Who is responsible for approving at each approval gate, across all workflows?',
+      artifacts: [
+        'Stage 4 thesaurus (EscalationAuthorities collection)',
+        'Stage 5 TBox (ApprovalGate, functional assignedRole, filledBy, hasCapability)',
+        'Stage 6 SPARQL.',
+      ],
+      hint: '<code>?gate a ntwf:ApprovalGate ; assignedRole ?role . ?role filledBy ?agent .</code> + <code>OPTIONAL { ?agent foaf:name ?name }</code>.',
+      query: 'SELECT ?gate ?role ?agent ?name WHERE { ?gate a ntwf:ApprovalGate ; ntwf:assignedRole ?role . ?role ntwf:filledBy ?agent . OPTIONAL { ?agent foaf:name ?name } }'
+    },
+    {
+      id: 'CQ3',
+      q: 'Which steps are executed by AI agents, which by automated pipelines, and which require a human decision?',
+      artifacts: [
+        'Stage 1 CV (capability/role vocabulary)',
+        'Stage 5 TBox (three agent classes + disjointness, requiresHumanApproval, modelVersion, fills)',
+        'Stage 6 SPARQL.',
+      ],
+      hint: '<code>requiresHumanApproval</code> flag + <code>?role filledBy ?agent . ?agent a ?agentType .</code> + <code>ORDER BY ?agentType</code>.',
+      query: 'SELECT ?step ?label ?agentType ?requiresHuman WHERE { ?step rdfs:label ?label ; ntwf:requiresHumanApproval ?requiresHuman ; ntwf:assignedRole ?role . ?role ntwf:filledBy ?agent . ?agent a ?agentType . } ORDER BY ?agentType'
+    },
+    {
+      id: 'CQ4',
+      q: 'What artifacts does each step produce, which agent is each attributed to, and what was it derived from?',
+      artifacts: [
+        'Stage 5 TBox (producesArtifact / isProducedBy / requiresArtifact + PROV-O prov:wasAttributedTo / prov:wasGeneratedBy / prov:wasDerivedFrom)',
+        'Stage 6 SPARQL.',
+      ],
+      hint: '<code>producesArtifact</code> + <code>prov:wasAttributedTo</code> + <code>OPTIONAL { ?artifact prov:wasDerivedFrom ?derivedFrom }</code>.',
+      query: 'SELECT ?step ?artifact ?attributedTo ?derivedFrom WHERE { ?step ntwf:producesArtifact ?artifact . ?artifact prov:wasAttributedTo ?attributedTo . OPTIONAL { ?artifact prov:wasDerivedFrom ?derivedFrom } }'
+    },
+    {
+      id: 'CQ5',
+      q: 'Which workflows have not been reviewed or updated in 12 months?',
+      artifacts: [
+        'Stage 2 MAP (dcterms:modified)',
+        'Stage 5 TBox (functional workflowStatus)',
+        'Stage 6 SPARQL (FILTER).',
+      ],
+      hint: '<code>a ntwf:Workflow ; dcterms:modified ?modified . FILTER(STR(?modified) &lt; "2024-06-01")</code> — twelve months before the ontology\'s own <code>dct:modified</code> date, 2025-06-01.',
+      query: 'SELECT ?workflow ?title ?modified WHERE { ?workflow a ntwf:Workflow ; dcterms:title ?title ; dcterms:modified ?modified . FILTER(STR(?modified) < "2024-06-01") }'
+    },
+    {
+      id: 'CQ6',
+      q: 'Who approves the production deployment, who is their escalation backup, and can an AI agent act in the chain?',
+      artifacts: [
+        'Stage 4 thesaurus (EscalationAuthorities)',
+        'Stage 5 TBox (delegatesTo, filledBy)',
+        'Stage 6 SPARQL (delegatesTo+ property path).',
+      ],
+      hint: '<code>delegatesTo+</code> walks the whole chain from the Release Manager; the type column shows where an AI agent sits in it.',
+      query: 'SELECT ?fallback ?agent ?type WHERE { ss:role-release-manager ntwf:delegatesTo+ ?fallback . ?fallback ntwf:filledBy ?agent . ?agent a ?type . }'
+    },
+    {
+      id: 'CQ7',
+      q: 'Which workflows involve both Engineering and Legal, and at what steps do they intersect?',
+      artifacts: [
+        'Stage 1 CV (WorkflowCategoryScheme)',
+        'Stage 5 TBox (Department, functional ownedBy, assignedRole)',
+        'Stage 6 SPARQL (SELECT DISTINCT).',
+      ],
+      hint: 'two <code>hasStep</code> branches, each <code>assignedRole</code> → <code>ownedBy</code> to <code>ss:dept-engineering</code> and <code>ss:dept-legal</code>.',
+      query: 'SELECT DISTINCT ?workflow ?legalStep ?label WHERE { ?workflow ntwf:hasStep ?engineeringStep . ?engineeringStep ntwf:assignedRole ?r1 . ?r1 ntwf:ownedBy ss:dept-engineering . ?workflow ntwf:hasStep ?legalStep . ?legalStep ntwf:assignedRole ?r2 . ?r2 ntwf:ownedBy ss:dept-legal . ?legalStep rdfs:label ?label . }'
+    },
+    {
+      id: 'CQ8',
+      q: 'What datasets does the quarterly business review consume?',
+      artifacts: [
+        'Stage 1/3 CV+taxonomy (dataset concept)',
+        'Stage 2 MAP (dcterms:title)',
+        'Stage 5 TBox (consumesDataset → dcat:Dataset)',
+        'Stage 6 SPARQL.',
+      ],
+      hint: '<code>consumesDataset</code> + <code>dcterms:title</code> + <code>OPTIONAL { ?dataset dcterms:publisher ?publisher }</code>.',
+      query: 'SELECT ?step ?dataset ?title ?publisher WHERE { ss:workflow-quarterly-business-review ntwf:hasStep ?step . ?step ntwf:consumesDataset ?dataset . ?dataset dcterms:title ?title . OPTIONAL { ?dataset dcterms:publisher ?publisher } }'
+    }
+  ];
+
+  /* =====================================================================
+     GLOSSARY (verbatim)
+     ===================================================================== */
+  var GLOSSARY = [
+    { term: 'MAP', def: 'metadata application profile: terms + how they\'re used + constraints, per context.' },
+    { term: 'Genus–differentia', def: 'definition form: "X is a Y that Z".' },
+    { term: 'Is-a test', def: 'every parent edge must read as a true subclass statement.' },
+    { term: 'Hidden label', def: 'non-displayed synonym (misspellings, legacy codes).' },
+    { term: 'Notation', def: 'human identifier attached to a concept (WS-01).' },
+    { term: 'Collection', def: 'display grouping; explicitly <em>not</em> hierarchy.' },
+    { term: 'CBox', def: 'governance layer: CQs, namespaces, record, imports. Comes first.' },
+    { term: 'TBox', def: 'terminology box: classes and properties (the thin OWL frame).' },
+    { term: 'ABox', def: 'assertion box: individuals; build a <em>test</em> ABox early.' },
+    { term: 'Thin OWL frame', def: 'only the axioms that earn their inference cost; rules go to SHACL.' },
+    { term: 'Competency question', def: 'a natural-language question with a definite answer the graph must return.' },
+    { term: 'Crosswalk', def: 'profile element ↔ system field mapping.' },
+    { term: 'Promotion', def: 'turning a (C)box concept into a TBox class, or an ABox individual — the pipeline\'s layers connect rather than restate.' }
+  ];
+
+  /* =====================================================================
+     COPYABLE TEXT BLOCKS
+     ===================================================================== */
+  var PREFIX_BLOCK =
+    'PREFIX ntwf:    <https://ontology.specialsolutions.example.com/workflow#>\n' +
+    'PREFIX ntwfc:   <https://ontology.specialsolutions.example.com/workflow/concept/>\n' +
+    'PREFIX ss:      <https://data.specialsolutions.example.com/instances/>\n' +
+    'PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>\n' +
+    'PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>\n' +
+    'PREFIX dcterms: <http://purl.org/dc/terms/>\n' +
+    'PREFIX prov:    <http://www.w3.org/ns/prov#>\n' +
+    'PREFIX foaf:    <http://xmlns.com/foaf/0.1/>\n' +
+    'PREFIX schema:  <https://schema.org/>\n' +
+    'PREFIX dcat:    <http://www.w3.org/ns/dcat#>';
+
+  var PREFIXES_BLOCK =
+    'dcterms: <http://purl.org/dc/terms/>\n' +
+    'skos:    <http://www.w3.org/2004/02/skos/core#>\n' +
+    'skosxl:  <http://www.w3.org/2008/05/skos-xl#>\n' +
+    'rdfs:    <http://www.w3.org/2000/01/rdf-schema#>\n' +
+    'owl:     <http://www.w3.org/2002/07/owl#>\n' +
+    'sh:      <http://www.w3.org/ns/shacl#>\n' +
+    'prov:    <http://www.w3.org/ns/prov#>\n' +
+    'foaf:    <http://xmlns.com/foaf/0.1/>\n' +
+    'schema:  <https://schema.org/>\n' +
+    'dcat:    <http://www.w3.org/ns/dcat#>\n' +
+    'xsd:     <http://www.w3.org/2001/XMLSchema#>\n' +
+    'ntwf:    <https://ontology.specialsolutions.example.com/workflow#>\n' +
+    'ntwfc:   <https://ontology.specialsolutions.example.com/workflow/concept/>\n' +
+    'ss:      <https://data.specialsolutions.example.com/instances/>';
+
+  /* =====================================================================
+     BUILD STEP — derive color from the family map so render functions
+     never read an undefined family/color.
+     ===================================================================== */
+  function deriveColors() {
+    for (var i = 0; i < NODES.length; i++) {
+      var n = NODES[i];
+      n.color = FAMILY[n.family] || FAMILY.datatype;
+      n.familyLabel = FAMILY_LABEL[n.family] || FAMILY_LABEL.datatype;
+    }
+    for (var e = 0; e < EDGES.length; e++) {
+      var g = EDGES[e];
+      if (g.kind === 'hierarchy') g.color = FAMILY.custom;
+      else if (g.kind === 'object' || g.kind === 'datatype') g.color = FAMILY.standard;
+      else g.color = FAMILY.scheme;
+    }
+  }
+  deriveColors();
+
+  /* =====================================================================
+     NODE / SCHEME LOOKUP
+     ===================================================================== */
+  var NODE_BY_ID = {};
+  (function () {
+    for (var i = 0; i < NODES.length; i++) NODE_BY_ID[NODES[i].id] = NODES[i];
+    /* concept chips become first-class nodes */
+    for (var s = 0; s < SCHEMES.length; s++) {
+      var sc = SCHEMES[s];
+      for (var m = 0; m < sc.members.length; m++) {
+        var mem = sc.members[m];
+        var id = sc.id + '::' + mem.label;
+        var node = {
+          id: id,
+          label: mem.label,
+          family: 'scheme',
+          chip: true,
+          schemeId: sc.id,
+          notation: mem.notation || '',
+          alt: mem.alt || '',
+          hidden: mem.hidden || '',
+          color: FAMILY.scheme,
+          familyLabel: 'SKOS CONCEPT',
+          x: 0, y: 0
+        };
+        NODES.push(node);
+        NODE_BY_ID[id] = node;
+      }
+    }
+  })();
+
+  /* ---- chip positions inside their scheme containers (center-anchored) ---- */
+  function layoutChips() {
+    var margin = 16, gapX = 12, gapY = 7, chipH = 24, headroom = 52;
+    for (var s = 0; s < SCHEMES.length; s++) {
+      var sc = SCHEMES[s];
+      var box = NODE_BY_ID[sc.id];
+      var members = sc.members;
+      var cols = members.length > 3 ? 2 : 1;
+      var rows = Math.ceil(members.length / cols);
+      var cw = (box.w - 2 * margin - gapX * (cols - 1)) / cols;
+      var blockH = rows * chipH + (rows - 1) * gapY;
+      var top = box.y - box.h / 2 + headroom + Math.max(0, (box.h - headroom - 12 - blockH) / 2);
+      for (var m = 0; m < members.length; m++) {
+        var col = m % cols, row = Math.floor(m / cols);
+        var node = NODE_BY_ID[sc.id + '::' + members[m].label];
+        node.w = cw;
+        node.h = chipH;
+        node.x = box.x - box.w / 2 + margin + col * (cw + gapX) + cw / 2;
+        node.y = top + row * (chipH + gapY) + chipH / 2;
+      }
+    }
+  }
+  layoutChips();
+
+  /* =====================================================================
+     GRAPH RENDER
+     ===================================================================== */
+  var VB = { w: 1620, h: 1160 };
+  var view = { x: 0, y: 0, s: 1 };
+  var nodeEls = {};
+  var edgeEls = [];
+  var svg = null, viewport = null, edgeLayer = null, labelLayer = null, nodeLayer = null, stage = null;
+  var inspector = null, inspKind = null, inspTitle = null, inspBody = null;
+  var schemesExpanded = true;
+  var schemeOpen = {};   /* per-scheme expansion state */
+  (function () {
+    for (var i = 0; i < SCHEMES.length; i++) schemeOpen[SCHEMES[i].id] = false;
+  })();
+
+  function nodeSize(n) {
+    if (n.chip) return { w: n.w || 150, h: n.h || 26 };
+    if (n.shape === 'circle') return { w: (n.r || 40) * 2, h: (n.r || 40) * 2 };
+    if (n.shape === 'container') return { w: n.w, h: n.h };
+    if (n.shape === 'datatype') return { w: Math.max(110, n.label.length * 6.6 + 26), h: 38 };
+    return { w: Math.max(118, n.label.length * 7.0 + 28), h: 42 };
+  }
+
+  function buildNodes() {
+    for (var i = 0; i < NODES.length; i++) {
+      var n = NODES[i];
+      var size = nodeSize(n);
+      n.w = size.w; n.h = size.h;
+
+      var g = svgEl('g', {
+        'class': 'gnode' + (n.chip ? ' chip-node' : ''),
+        'data-id': n.id,
+        tabindex: '0',
+        role: 'button',
+        'aria-label': n.label + ' — ' + n.familyLabel
+      });
+
+      if (n.shape === 'circle') {
+        var c = svgEl('circle', {
+          'class': 'gbox', cx: 0, cy: 0, r: (n.r || 40),
+          fill: n.color, 'fill-opacity': '0.14', stroke: n.color,
+          'stroke-width': '1.5', 'stroke-dasharray': '5 3'
+        });
+        g.appendChild(c);
+        var t1 = svgEl('text', { x: 0, y: -3, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': '11.5', fill: '#E7ECF3' });
+        t1.textContent = 'skos:Concept';
+        g.appendChild(t1);
+        var t2 = svgEl('text', { x: 0, y: 12, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': '8.5', fill: n.color, 'letter-spacing': '1.4' });
+        t2.textContent = 'SEAM';
+        g.appendChild(t2);
+      } else if (n.shape === 'container') {
+        var rect = svgEl('rect', {
+          'class': 'gbox', x: -n.w / 2, y: -n.h / 2, width: n.w, height: n.h, rx: 10,
+          fill: n.color, 'fill-opacity': '0.07', stroke: n.color,
+          'stroke-width': '1.2', 'stroke-dasharray': '6 4'
+        });
+        g.appendChild(rect);
+        var hdr = svgEl('text', { x: -n.w / 2 + 16, y: -n.h / 2 + 26, 'font-size': '11.5', fill: n.color, 'letter-spacing': '.4' });
+        hdr.textContent = n.label;
+        g.appendChild(hdr);
+        var badge = svgEl('text', { x: n.w / 2 - 16, y: -n.h / 2 + 26, 'text-anchor': 'end', 'font-size': '10', fill: '#98A2B3' });
+        badge.textContent = sc2(n.id) ? (sc2(n.id).members.length + ' CONCEPTS') : '';
+        g.appendChild(badge);
+        var tog = svgEl('text', { x: -n.w / 2 + 16, y: -n.h / 2 + 42, 'font-size': '9', fill: '#5B6675', 'letter-spacing': '.8' });
+        tog.textContent = 'TAP TO EXPAND MEMBERS';
+        g.appendChild(tog);
+      } else if (n.chip) {
+        /* concept chips default to collapsed (count badge only) */
+        g.style.display = 'none';
+        var chipRect = svgEl('rect', {
+          'class': 'gbox', x: -n.w / 2, y: -n.h / 2, width: n.w, height: n.h, rx: 5,
+          fill: n.color, 'fill-opacity': '0.10', stroke: n.color, 'stroke-width': '1'
+        });
+        g.appendChild(chipRect);
+        var lbl = n.label + (n.notation ? '  ' + n.notation : '');
+        var ct = svgEl('text', { x: -n.w / 2 + 9, y: 0, 'dominant-baseline': 'middle', 'font-size': '10', fill: '#E7ECF3' });
+        ct.textContent = lbl;
+        g.appendChild(ct);
+      } else {
+        var r2 = svgEl('rect', {
+          'class': 'gbox', x: -n.w / 2, y: -n.h / 2, width: n.w, height: n.h, rx: 6,
+          fill: n.color, 'fill-opacity': n.shape === 'datatype' ? '0.10' : '0.18',
+          stroke: n.color, 'stroke-width': '1.5',
+          'stroke-dasharray': n.shape === 'datatype' ? '2 3' : 'none'
+        });
+        g.appendChild(r2);
+        var fs = n.label.length > 16 ? 10.5 : (n.label.length > 12 ? 11.5 : 12);
+        var colon = n.label.indexOf(':');
+        if (colon > -1 && n.family === 'standard') {
+          /* two spans: dimmed prefix + bright local name, centred */
+          var tsp = svgEl('text', { x: 0, y: 0, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': fs });
+          var tsa = svgEl('tspan', { fill: '#E7ECF3', 'fill-opacity': '.58' });
+          tsa.textContent = n.label.slice(0, colon + 1);
+          var tsb = svgEl('tspan', { fill: '#E7ECF3' });
+          tsb.textContent = n.label.slice(colon + 1);
+          tsp.appendChild(tsa); tsp.appendChild(tsb);
+          g.appendChild(tsp);
+        } else {
+          var t3 = svgEl('text', { x: 0, y: 0, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': fs, fill: '#E7ECF3' });
+          t3.textContent = n.label;
+          g.appendChild(t3);
+        }
+      }
+
+      g.addEventListener('pointerdown', onNodePointerDown);
+      g.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        if (suppressClick) return;
+        openNodeInspector(ev.currentTarget.getAttribute('data-id'));
+      });
+      g.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') {
+          ev.preventDefault();
+          openNodeInspector(ev.currentTarget.getAttribute('data-id'));
+        }
+      });
+      nodeLayer.appendChild(g);
+      nodeEls[n.id] = g;
+    }
+  }
+
+  function sc2(id) {
+    for (var i = 0; i < SCHEMES.length; i++) if (SCHEMES[i].id === id) return SCHEMES[i];
+    return null;
+  }
+
+  /* ---- edge geometry helpers ---- */
+  function boundaryPoint(n, tx, ty) {
+    var dx = tx - n.x, dy = ty - n.y;
+    var len = Math.sqrt(dx * dx + dy * dy) || 1;
+    var hw = (n.w || 40) / 2, hh = (n.h || 40) / 2;
+    var t = 1 / Math.sqrt(Math.pow(dx / hw, 2) + Math.pow(dy / hh, 2));
+    return { x: n.x + dx * t, y: n.y + dy * t };
+  }
+
+  function edgeGeometry(edge) {
+    var a = NODE_BY_ID[edge.from], b = NODE_BY_ID[edge.to];
+    if (!a || !b) return null;
+    if (edge.self) {
+      var w = (a.w || 40) / 2;
+      return {
+        d: 'M ' + (a.x - w * 0.35) + ' ' + (a.y - a.h / 2) +
+           ' C ' + (a.x - 90) + ' ' + (a.y - 130) + ', ' + (a.x + 90) + ' ' + (a.y - 130) + ', ' + (a.x + w * 0.35) + ' ' + (a.y - a.h / 2),
+        lx: a.x, ly: a.y - 125, dirx: 0, diry: -1
+      };
+    }
+    var p0 = boundaryPoint(a, b.x, b.y);
+    var p1 = boundaryPoint(b, a.x, a.y);
+    var bend = edge.bend || 0;
+    var mx = (p0.x + p1.x) / 2, my = (p0.y + p1.y) / 2;
+    var dx = p1.x - p0.x, dy = p1.y - p0.y;
+    var len = Math.sqrt(dx * dx + dy * dy) || 1;
+    var px = -dy / len, py = dx / len;
+    var cx = mx + px * bend, cy = my + py * bend;
+    var d = 'M ' + p0.x + ' ' + p0.y + ' Q ' + cx + ' ' + cy + ' ' + p1.x + ' ' + p1.y;
+    /* label at t = 0.5 of the quadratic, nudged perpendicular off the line */
+    var lo = (edge.lo === undefined) ? 12 : edge.lo;
+    var lx = 0.25 * p0.x + 0.5 * cx + 0.25 * p1.x + px * lo;
+    var ly = 0.25 * p0.y + 0.5 * cy + 0.25 * p1.y + py * lo;
+    return { d: d, lx: lx, ly: ly, dirx: px, diry: py };
+  }
+
+  function buildEdges() {
+    for (var i = 0; i < EDGES.length; i++) {
+      var e = EDGES[i];
+      var marker = e.kind === 'hierarchy' ? 'arrow-hier'
+        : (e.kind === 'membership' ? 'arrow-membership'
+        : (e.kind === 'datatype' ? 'arrow-datatype' : 'arrow-prop'));
+      var path = svgEl('path', {
+        'class': 'gedge',
+        d: '',
+        fill: 'none',
+        stroke: e.color,
+        'stroke-width': '1.5',
+        'stroke-linecap': 'round',
+        'marker-end': 'url(#' + marker + ')',
+        'stroke-dasharray': e.kind === 'hierarchy' ? 'none' : (e.kind === 'membership' ? '2 5' : '7 5')
+      });
+      edgeLayer.appendChild(path);
+
+      var label = null, hit = null;
+      if (e.kind === 'object' || e.kind === 'datatype') {
+        var host = labelLayer || edgeLayer;
+        hit = svgEl('rect', { 'class': 'gedge-hit', x: 0, y: 0, width: 10, height: 16, fill: 'transparent' });
+        hit.addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          openPropertyInspector(ev.currentTarget.getAttribute('data-prop'), ev.currentTarget.getAttribute('data-kind'));
+        });
+        hit.setAttribute('data-prop', e.prop);
+        hit.setAttribute('data-kind', e.kind);
+        host.appendChild(hit);
+
+        label = svgEl('text', { 'class': 'gedge-label', x: 0, y: 0, 'text-anchor': 'middle', 'dominant-baseline': 'middle' });
+        label.textContent = e.prop;
+        host.appendChild(label);
+      }
+      edgeEls.push({ edge: e, path: path, label: label, hit: hit });
+    }
+  }
+
+  function applyLayout() {
+    var labelled = [];
+    for (var i = 0; i < edgeEls.length; i++) {
+      var it = edgeEls[i];
+      var g = edgeGeometry(it.edge);
+      if (!g) { it.path.setAttribute('d', ''); continue; }
+      it.path.setAttribute('d', g.d);
+      if (it.label) {
+        it.lx = g.lx; it.ly = g.ly; it.px = g.dirx; it.py = g.diry;
+        labelled.push(it);
+      }
+    }
+    resolveLabels(labelled);
+    for (var j = 0; j < labelled.length; j++) {
+      var L = labelled[j];
+      L.label.setAttribute('x', L.lx);
+      L.label.setAttribute('y', L.ly);
+      var w = L.edge.prop.length * 6.2 + 8;
+      L.hit.setAttribute('x', L.lx - w / 2);
+      L.hit.setAttribute('y', L.ly - 9);
+      L.hit.setAttribute('width', w);
+      L.hit.setAttribute('height', 18);
+    }
+    for (var k in nodeEls) {
+      if (!Object.prototype.hasOwnProperty.call(nodeEls, k)) continue;
+      var n = NODE_BY_ID[k];
+      if (!n) continue;
+      nodeEls[k].setAttribute('transform', 'translate(' + n.x + ',' + n.y + ')');
+    }
+    applyView();
+  }
+
+  /* ---- keep edge labels from colliding: push along each edge's own
+         normal first (keeps a label next to the edge it names), then a
+         generic separation pass for whatever is left ---- */
+  function resolveLabels(items) {
+    if (!items.length) return;
+    var boxes = [];
+    for (var i = 0; i < items.length; i++) {
+      boxes.push({
+        it: items[i],
+        w: items[i].edge.prop.length * 6.2 + 8,
+        h: 13,
+        x: items[i].lx,
+        y: items[i].ly
+      });
+    }
+    function ox(a, b) { return Math.min(a.x + a.w / 2, b.x + b.w / 2) - Math.max(a.x - a.w / 2, b.x - b.w / 2); }
+    function oy(a, b) { return Math.min(a.y + a.h / 2, b.y + b.h / 2) - Math.max(a.y - a.h / 2, b.y - b.h / 2); }
+    function hits(a, b) { return ox(a, b) > 0 && oy(a, b) > 0; }
+    function separate(a, b) {
+      var dx = ox(a, b), dy = oy(a, b);
+      if (dx <= 0 || dy <= 0) return;
+      if (dx < dy) {
+        var s = (b.x >= a.x) ? 1 : -1;
+        var d = dx / 2 + 1.5;
+        a.x -= s * d; b.x += s * d;
+      } else {
+        var s2 = (b.y >= a.y) ? 1 : -1;
+        var d2 = dy / 2 + 1.5;
+        a.y -= s2 * d2; b.y += s2 * d2;
+      }
+    }
+    /* phase 1 — normal push (keeps semantic association with the edge) */
+    for (var pass = 0; pass < 90; pass++) {
+      var moved = false;
+      for (var m = 0; m < boxes.length; m++) {
+        for (var n = m + 1; n < boxes.length; n++) {
+          var a = boxes[m], b = boxes[n];
+          if (!hits(a, b)) continue;
+          moved = true;
+          var ax = a.it.px || 0, ay = a.it.py || 0;
+          var bx = b.it.px || 0, by = b.it.py || 0;
+          if (ax * bx + ay * by > 0.85) { separate(a, b); continue; }
+          var dy = oy(a, b);
+          var d = dy / 2 + 2;
+          a.x += ax * d; a.y += ay * d;
+          b.x += bx * d; b.y += by * d;
+        }
+      }
+      if (!moved) break;
+    }
+    /* phase 2 — generic separation for anything still overlapping */
+    for (var p2 = 0; p2 < 90; p2++) {
+      var mv = false;
+      for (var q = 0; q < boxes.length; q++) {
+        for (var r = q + 1; r < boxes.length; r++) {
+          if (!hits(boxes[q], boxes[r])) continue;
+          mv = true;
+          separate(boxes[q], boxes[r]);
+        }
+      }
+      if (!mv) break;
+    }
+    for (var t = 0; t < boxes.length; t++) {
+      boxes[t].it.lx = boxes[t].x;
+      boxes[t].it.ly = boxes[t].y;
+    }
+  }
+
+  function applyView() {
+    if (!viewport) return;
+    viewport.setAttribute('transform', 'translate(' + view.x + ',' + view.y + ') scale(' + view.s + ')');
+  }
+
+  function setView(x, y, s) {
+    view.s = Math.min(2.5, Math.max(0.4, s));
+    view.x = x; view.y = y;
+    applyView();
+  }
+
+  function zoomBy(factor, cx, cy) {
+    var ns = Math.min(2.5, Math.max(0.4, view.s * factor));
+    var k = ns / view.s;
+    view.x = cx - (cx - view.x) * k;
+    view.y = cy - (cy - view.y) * k;
+    view.s = ns;
+    applyView();
+  }
+
+  function fitView() {
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (var i = 0; i < NODES.length; i++) {
+      var n = NODES[i];
+      if (n.chip && !schemeOpen[n.schemeId]) continue;
+      minX = Math.min(minX, n.x - (n.w || 40) / 2);
+      maxX = Math.max(maxX, n.x + (n.w || 40) / 2);
+      minY = Math.min(minY, n.y - (n.h || 40) / 2);
+      maxY = Math.max(maxY, n.y + (n.h || 40) / 2);
+    }
+    if (!isFinite(minX)) { setView(0, 0, 1); return; }
+    var bw = maxX - minX, bh = maxY - minY;
+    var win = visibleWindow();
+    var s = Math.min((win.x1 - win.x0) / (bw * 1.04), (win.y1 - win.y0) / (bh * 1.04));
+    s = Math.min(2.5, Math.max(0.4, s));
+    var cx = (win.x0 + win.x1) / 2, cy = (win.y0 + win.y1) / 2;
+    setView(cx - (minX + bw / 2) * s, cy - (minY + bh / 2) * s, s);
+  }
+
+  /* =====================================================================
+     INTERACTIONS — pan / zoom / drag
+     ===================================================================== */
+  var drag = null;
+  var suppressClick = false;
+
+  function svgPoint(clientX, clientY) {
+    var r = svg.getBoundingClientRect ? svg.getBoundingClientRect() : { left: 0, top: 0, width: VB.w, height: VB.h };
+    var w = r.width || VB.w, h = r.height || VB.h;
+    var v = viewBoxMap();
+    return { x: (clientX - r.left - v.ox) / v.scale, y: (clientY - r.top - v.oy) / v.scale };
+  }
+
+  /* how the viewBox maps onto the rendered SVG box (meet vs slice) */
+  function viewBoxMap() {
+    var r = svg.getBoundingClientRect ? svg.getBoundingClientRect() : { left: 0, top: 0, width: VB.w, height: VB.h };
+    var w = r.width || VB.w, h = r.height || VB.h;
+    var sx = w / VB.w, sy = h / VB.h;
+    var slice = svg.getAttribute('preserveAspectRatio') === 'xMidYMid slice';
+    var scale = slice ? Math.max(sx, sy) : Math.min(sx, sy);
+    return {
+      scale: scale,
+      ox: (w - VB.w * scale) / 2,
+      oy: (h - VB.h * scale) / 2,
+      w: w, h: h,
+      slice: slice
+    };
+  }
+
+  /* the SVG-user-space window currently visible on screen */
+  function visibleWindow() {
+    var m = viewBoxMap();
+    return {
+      x0: -m.ox / m.scale,
+      x1: (m.w - m.ox) / m.scale,
+      y0: -m.oy / m.scale,
+      y1: (m.h - m.oy) / m.scale
+    };
+  }
+
+  /* centre a user-space point in the visible window at a given zoom */
+  function focusOn(ux, uy, s) {
+    var win = visibleWindow();
+    var cx = (win.x0 + win.x1) / 2, cy = (win.y0 + win.y1) / 2;
+    setView(cx - ux * s, cy - uy * s, s);
+  }
+
+  function isMobile() {
+    try { return !!(window.matchMedia && window.matchMedia('(max-width:767px)').matches); }
+    catch (e) { return false; }
+  }
+
+  function onNodePointerDown(ev) {
+    ev.stopPropagation();
+    var id = ev.currentTarget.getAttribute('data-id');
+    var n = NODE_BY_ID[id];
+    if (!n) return;
+    if (ev.pointerId !== undefined && ev.currentTarget.setPointerCapture) {
+      try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (e) { /* ignore */ }
+    }
+    var p = svgPoint(ev.clientX, ev.clientY);
+    drag = { mode: 'node', node: n, ox: p.x, oy: p.y, nx: n.x, ny: n.y };
+    ev.preventDefault();
+  }
+
+  function onSvgPointerDown(ev) {
+    if (ev.target === svg || (ev.target && ev.target.tagName === 'svg')) {
+      var p = svgPoint(ev.clientX, ev.clientY);
+      drag = { mode: 'pan', ox: p.x, oy: p.y, vx: view.x, vy: view.y };
+      if (svg.classList) svg.classList.add('dragging');
+      if (ev.pointerId !== undefined && svg.setPointerCapture) {
+        try { svg.setPointerCapture(ev.pointerId); } catch (e) { /* ignore */ }
+      }
+    }
+  }
+
+  function onPointerMove(ev) {
+    if (!drag) return;
+    var p = svgPoint(ev.clientX, ev.clientY);
+    if (drag.mode === 'node') {
+      var dx = (p.x - drag.ox) / view.s;
+      var dy = (p.y - drag.oy) / view.s;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) suppressClick = true;
+      drag.node.x = drag.nx + dx;
+      drag.node.y = drag.ny + dy;
+      applyLayout();
+    } else {
+      setView(drag.vx + (p.x - drag.ox), drag.vy + (p.y - drag.oy), view.s);
+    }
+  }
+
+  function onPointerUp() {
+    drag = null;
+    if (svg && svg.classList) svg.classList.remove('dragging');
+    setTimeout(function () { suppressClick = false; }, 0);
+  }
+
+  function onWheel(ev) {
+    ev.preventDefault();
+    var p = svgPoint(ev.clientX, ev.clientY);
+    var f = ev.deltaY < 0 ? 1.12 : 1 / 1.12;
+    zoomBy(f, p.x, p.y);
+  }
+
+  /* =====================================================================
+     INSPECTOR
+     ===================================================================== */
+  function openInspector(kind, title, meta, comment) {
+    if (!inspector) return;
+    if (stage) stage.classList.add('has-sel');
+    inspKind.textContent = kind;
+    inspTitle.textContent = title;
+    inspBody.innerHTML = '';
+    var metaBox = htmlEl('div', 'meta');
+    for (var i = 0; i < meta.length; i++) {
+      var row = htmlEl('div');
+      var k = htmlEl('span', null, meta[i][0]);
+      var v = htmlEl('span', null, meta[i][1]);
+      row.appendChild(k); row.appendChild(v);
+      metaBox.appendChild(row);
+    }
+    inspBody.appendChild(metaBox);
+    if (comment) {
+      var lbl = htmlEl('p', 'inspector-label', 'Verbatim comment');
+      inspBody.appendChild(lbl);
+      var c = htmlEl('p', 'inspector-comment');
+      c.textContent = comment;
+      inspBody.appendChild(c);
+    }
+    inspector.classList.add('open');
+  }
+
+  function openNodeInspector(id) {
+    var n = NODE_BY_ID[id];
+    if (!n) return;
+    /* concept scheme containers toggle their members */
+    if (n.shape === 'container') {
+      toggleScheme(n.id);
+      return;
+    }
+    var meta = [];
+    if (n.chip) {
+      meta.push(['scheme', sc2(n.schemeId) ? sc2(n.schemeId).label : n.schemeId]);
+      if (n.notation) meta.push(['notation', n.notation]);
+      if (n.alt) meta.push(['alt label', n.alt]);
+      if (n.hidden) meta.push(['hidden label', n.hidden]);
+      meta.push(['type', 'skos:Concept']);
+      openInspector('SKOS CONCEPT · ' + (sc2(n.schemeId) ? sc2(n.schemeId).label : ''), n.label, meta, null);
+      return;
+    }
+    meta.push(['family', n.familyLabel]);
+    /* children + parents from the edge table */
+    var parents = [], children = [];
+    for (var i = 0; i < EDGES.length; i++) {
+      var e = EDGES[i];
+      if (e.kind !== 'hierarchy') continue;
+      if (e.to === id) parents.push(e.from);
+      if (e.from === id) children.push(e.to);
+    }
+    if (parents.length) meta.push(['subclass of', parents.join(' · ')]);
+    if (children.length) meta.push(['has subclass', children.join(' · ')]);
+    if (n.shape === 'circle') meta.push(['seam', 'SKOS↔OWL seam']);
+    var comment = NODE_COMMENTS[id] || '';
+    if (!comment && n.shape === 'container') {
+      var sc = sc2(id);
+      comment = sc ? sc.comment : '';
+    }
+    openInspector(n.familyLabel, n.label, meta, comment);
+  }
+
+  function openPropertyInspector(prop, kind) {
+    if (!prop) return;
+    var meta = [];
+    var found = null;
+    for (var i = 0; i < EDGES.length; i++) {
+      if (EDGES[i].prop === prop) { found = EDGES[i]; break; }
+    }
+    if (found) {
+      meta.push(['domain', found.from]);
+      meta.push(['range', found.to]);
+      if (found.flags) meta.push(['flags', found.flags]);
+      meta.push(['style', kind === 'datatype' ? 'dashed · hollow diamond ◇' : 'dashed · open arrowhead']);
+    }
+    openInspector(kind === 'datatype' ? 'DATATYPE PROPERTY' : 'OBJECT PROPERTY', prop, meta, PROP_COMMENTS[prop] || '');
+  }
+
+  function closeInspector() {
+    if (inspector) inspector.classList.remove('open');
+    if (stage) stage.classList.remove('has-sel');
+  }
+
+  /* =====================================================================
+     SCHEME EXPANSION
+     ===================================================================== */
+  function toggleScheme(id) {
+    schemeOpen[id] = !schemeOpen[id];
+    var sc = sc2(id);
+    if (!sc) return;
+    for (var m = 0; m < sc.members.length; m++) {
+      var node = NODE_BY_ID[sc.id + '::' + sc.members[m].label];
+      if (node && nodeEls[node.id]) {
+        nodeEls[node.id].style.display = schemeOpen[id] ? '' : 'none';
+      }
+    }
+    /* refresh the container's hint text */
+    var g = nodeEls[id];
+    if (g) {
+      var texts = g.querySelectorAll ? g.querySelectorAll('text') : [];
+      if (texts.length >= 3) texts[2].textContent = schemeOpen[id] ? 'TAP TO COLLAPSE MEMBERS' : 'TAP TO EXPAND MEMBERS';
+    }
+    applyLayout();
+  }
+
+  function setSchemesExpanded(expanded) {
+    schemesExpanded = expanded;
+    for (var i = 0; i < SCHEMES.length; i++) {
+      var id = SCHEMES[i].id;
+      if (schemeOpen[id] === expanded) continue;
+      toggleScheme(id);
+    }
+    var btn = $('schemes-toggle');
+    if (btn) {
+      btn.textContent = expanded ? 'Collapse schemes' : 'Expand schemes';
+      btn.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+    }
+  }
+
+  /* =====================================================================
+     CQ DRILL
+     ===================================================================== */
+  function tintQuery(q) {
+    var s = esc(q);
+    s = s.replace(/"([^"]*)"/g, '<span class="s">"$1"</span>');
+    s = s.replace(/\b(ntwf|ntwfc|ss|skos|rdfs|dcterms|prov|foaf|schema|dcat|xsd):/g, '<span class="p">$1:</span>');
+    s = s.replace(/\b(SELECT|DISTINCT|WHERE|OPTIONAL|FILTER|ORDER BY|PREFIX)\b/g, '<span class="k">$1</span>');
+    s = s.replace(/([\s{])a([\s}])/g, '$1<span class="k">a</span>$2');
+    return s;
+  }
+
+  function buildCQs() {
+    var grid = $('cq-grid');
+    if (!grid) return;
+    for (var i = 0; i < CQS.length; i++) {
+      var cq = CQS[i];
+      var card = htmlEl('article', 'cq reveal');
+      card.setAttribute('id', 'cq-' + cq.id.toLowerCase());
+
+      var head = htmlEl('div', 'cq-head');
+      var id = htmlEl('span', 'cq-id', cq.id);
+      var q = htmlEl('p', 'cq-q');
+      q.innerHTML = '<em>' + esc(cq.q) + '</em>';
+      var btn = htmlEl('button', 'cq-reveal-btn', 'Reveal');
+      btn.type = 'button';
+      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-controls', 'cq-body-' + cq.id);
+      head.appendChild(id); head.appendChild(q); head.appendChild(btn);
+
+      var body = htmlEl('div', 'cq-body');
+      body.setAttribute('id', 'cq-body-' + cq.id);
+
+      var b1 = htmlEl('div', 'cq-block');
+      b1.appendChild(htmlEl('div', 'lbl', 'Enabling stage-artifacts'));
+      var chips = htmlEl('div', 'mini-chips');
+      for (var a = 0; a < cq.artifacts.length; a++) {
+        var ch = htmlEl('span', 'chip accent', cq.artifacts[a]);
+        chips.appendChild(ch);
+      }
+      b1.appendChild(chips);
+
+      var b2 = htmlEl('div', 'cq-block');
+      b2.appendChild(htmlEl('div', 'lbl', 'Pattern hint'));
+      var hint = htmlEl('div', 'cq-hint');
+      hint.innerHTML = cq.hint;
+      b2.appendChild(hint);
+
+      var b3 = htmlEl('div', 'cq-block');
+      b3.appendChild(htmlEl('div', 'lbl', 'Full query'));
+      var well = htmlEl('div', 'codewell');
+      var cp = htmlEl('button', 'copy-btn', 'Copy');
+      cp.type = 'button';
+      cp.setAttribute('data-copy', 'query-' + cq.id);
+      well.appendChild(cp);
+      var code = htmlEl('code');
+      code.innerHTML = tintQuery(cq.query);
+      well.appendChild(code);
+      b3.appendChild(well);
+
+      body.appendChild(b1); body.appendChild(b2); body.appendChild(b3);
+      card.appendChild(head); card.appendChild(body);
+
+      btn.addEventListener('click', function () {
+        var open = card.classList.toggle('open');
+        btn.textContent = open ? 'Hide' : 'Reveal';
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        updateProgress();
+      });
+
+      grid.appendChild(card);
+    }
+  }
+
+  function updateProgress() {
+    var open = qsa('.cq.open').length;
+    var fill = $('cq-progress-fill');
+    var count = $('cq-progress-count');
+    if (fill) fill.style.width = (open / CQS.length * 100) + '%';
+    if (count) count.textContent = open + '/' + CQS.length + ' revealed';
+    var btn = $('cq-toggle-all');
+    if (btn) btn.textContent = open === CQS.length ? 'Collapse all' : 'Reveal all';
+  }
+
+  /* =====================================================================
+     GLOSSARY FLIP CARDS
+     ===================================================================== */
+  function buildGlossary() {
+    var grid = $('glossary-grid');
+    if (!grid) return;
+    for (var i = 0; i < GLOSSARY.length; i++) {
+      var g = GLOSSARY[i];
+      var card = htmlEl('button', 'flip reveal');
+      card.type = 'button';
+      card.setAttribute('aria-pressed', 'false');
+      card.setAttribute('aria-label', g.term + ' — flip to reveal definition');
+      var inner = htmlEl('span', 'flip-inner');
+      var front = htmlEl('span', 'flip-face flip-front');
+      front.appendChild(htmlEl('span', 'term', g.term));
+      front.appendChild(htmlEl('span', 'hint', 'Tap to flip'));
+      var back = htmlEl('span', 'flip-face flip-back');
+      var def = htmlEl('span', 'def');
+      def.innerHTML = g.def;
+      back.appendChild(def);
+      inner.appendChild(front); inner.appendChild(back);
+      card.appendChild(inner);
+      card.addEventListener('click', function (ev) {
+        var c = ev.currentTarget;
+        var flipped = c.classList.toggle('flipped');
+        c.setAttribute('aria-pressed', flipped ? 'true' : 'false');
+      });
+      grid.appendChild(card);
+    }
+  }
+
+  function flipAll() {
+    var cards = qsa('.flip');
+    if (!cards.length) return;
+    var anyFront = cards.some(function (c) { return !c.classList.contains('flipped'); });
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].classList.toggle('flipped', anyFront);
+      cards[i].setAttribute('aria-pressed', anyFront ? 'true' : 'false');
+    }
+    var btn = $('flip-all');
+    if (btn) btn.textContent = anyFront ? 'Flip all back' : 'Flip all';
+  }
+
+  /* =====================================================================
+     COPY TO CLIPBOARD
+     ===================================================================== */
+  var COPY_TEXT = { prefix: PREFIX_BLOCK, prefixes: PREFIXES_BLOCK };
+  for (var qi = 0; qi < CQS.length; qi++) COPY_TEXT['query-' + CQS[qi].id] = CQS[qi].query;
+
+  function copyText(text, btn) {
+    var done = function () {
+      if (btn) { btn.textContent = 'Copied'; btn.classList.add('done'); }
+      setTimeout(function () { if (btn) { btn.textContent = 'Copy'; btn.classList.remove('done'); } }, 1400);
+    };
+    try {
+      if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+        return;
+      }
+    } catch (e) { /* fall through */ }
+    fallbackCopy(text, done);
+  }
+
+  function fallbackCopy(text, done) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', 'readonly');
+      ta.style.position = 'absolute';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      if (document.execCommand) document.execCommand('copy');
+      document.body.removeChild(ta);
+      done();
+    } catch (e) { /* ignore */ }
+  }
+
+  function wireCopyButtons() {
+    var btns = qsa('.copy-btn');
+    for (var i = 0; i < btns.length; i++) {
+      (function (btn) {
+        on(btn, 'click', function () {
+          var key = btn.getAttribute('data-copy');
+          copyText(COPY_TEXT[key] || '', btn);
+        });
+      })(btns[i]);
+    }
+  }
+
+  /* =====================================================================
+     SCROLL-SPY + REVEAL
+     ===================================================================== */
+  var SECTIONS = ['overview', 'stages', 'graph', 'cq-drill', 'toolbox', 'glossary', 'study-path', 'sources'];
+
+  function setActive(id) {
+    var links = qsa('a[data-target]');
+    for (var i = 0; i < links.length; i++) {
+      if (links[i].getAttribute('data-target') === id) links[i].classList.add('active');
+      else links[i].classList.remove('active');
+    }
+  }
+
+  function initSpy() {
+    var obs = null;
+    if (typeof IntersectionObserver !== 'undefined' && IntersectionObserver) {
+      obs = new IntersectionObserver(function (entries) {
+        var best = null;
+        for (var i = 0; i < entries.length; i++) {
+          if (entries[i].isIntersecting) {
+            if (!best || entries[i].intersectionRatio > best.intersectionRatio) best = entries[i];
+          }
+        }
+        if (best) setActive(best.target.id);
+      }, { rootMargin: '-25% 0px -60% 0px', threshold: [0, 0.1, 0.25, 0.5, 1] });
+      for (var i = 0; i < SECTIONS.length; i++) {
+        var s = document.getElementById(SECTIONS[i]);
+        if (s) obs.observe(s);
+      }
+    }
+    setActive('overview');
+  }
+
+  function initReveal() {
+    var els = qsa('.reveal');
+    if (reducedMotion() || typeof IntersectionObserver === 'undefined' || !IntersectionObserver) {
+      for (var i = 0; i < els.length; i++) els[i].classList.add('in');
+      return;
+    }
+    var obs = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) {
+          entries[i].target.classList.add('in');
+          obs.unobserve(entries[i].target);
+        }
+      }
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
+    /* 30ms stagger per card within the same group */
+    var counters = [];
+    for (var j = 0; j < els.length; j++) {
+      var p = els[j].parentNode;
+      var idx = -1;
+      for (var c = 0; c < counters.length; c++) { if (counters[c].p === p) { idx = counters[c].n; break; } }
+      if (idx === -1) { counters.push({ p: p, n: 0 }); idx = 0; } else { counters[c].n++; }
+      els[j].style.transitionDelay = (idx * 30) + 'ms';
+      obs.observe(els[j]);
+    }
+  }
+
+  /* =====================================================================
+     INIT
+     ===================================================================== */
+  function initGraph() {
+    svg = $('tbox-svg');
+    stage = $('graph-stage');
+    viewport = $('viewport');
+    edgeLayer = $('edge-layer');
+    labelLayer = $('label-layer');
+    nodeLayer = $('node-layer');
+    inspector = $('inspector');
+    inspKind = $('inspector-kind');
+    inspTitle = $('inspector-title');
+    inspBody = $('inspector-body');
+    if (!svg || !viewport || !edgeLayer || !nodeLayer) return;
+
+    buildNodes();
+    buildEdges();
+    applyLayout();
+
+    /* mobile: crop-to-fill the tall canvas and open on the custom-class cluster */
+    function applyViewportMode() {
+      if (isMobile()) {
+        svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+        focusOn(845, 430, 1.4);
+      } else {
+        svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+        setView(0, 0, 1);
+      }
+    }
+    applyViewportMode();
+    on(window, 'resize', function () { applyViewportMode(); });
+
+    on(svg, 'pointerdown', onSvgPointerDown);
+    on(svg, 'pointermove', onPointerMove);
+    on(window, 'pointerup', onPointerUp);
+    on(svg, 'wheel', onWheel, { passive: false });
+    on(svg, 'click', function (ev) {
+      if (ev.target === svg) closeInspector();
+    });
+    on(svg, 'keydown', function (ev) {
+      if (ev.key === 'Escape') closeInspector();
+    });
+
+    on($('inspector-close'), 'click', closeInspector);
+    on($('zoom-in'), 'click', function () { zoomBy(1.2, VB.w / 2, VB.h / 2); });
+    on($('zoom-out'), 'click', function () { zoomBy(1 / 1.2, VB.w / 2, VB.h / 2); });
+    on($('zoom-reset'), 'click', function () { setView(0, 0, 1); });
+    on($('zoom-fit'), 'click', fitView);
+    on($('schemes-toggle'), 'click', function () { setSchemesExpanded(!schemesExpanded); });
+    setSchemesExpanded(false);
+
+    on(document, 'keydown', function (ev) {
+      if (ev.key === 'Escape') closeInspector();
+    });
+  }
+
+  function init() {
+    try { buildCQs(); } catch (e) { /* keep the page usable */ }
+    try { buildGlossary(); } catch (e) { /* keep the page usable */ }
+    try { initGraph(); } catch (e) { /* keep the page usable */ }
+    try { wireCopyButtons(); } catch (e) { /* keep the page usable */ }
+    try { updateProgress(); } catch (e) { /* keep the page usable */ }
+    try { initSpy(); } catch (e) { /* keep the page usable */ }
+    try { initReveal(); } catch (e) { /* keep the page usable */ }
+
+    on($('cq-toggle-all'), 'click', function () {
+      var cards = qsa('.cq');
+      var openCount = qsa('.cq.open').length;
+      var open = openCount < cards.length;
+      for (var i = 0; i < cards.length; i++) {
+        cards[i].classList.toggle('open', open);
+        var b = cards[i].querySelector ? cards[i].querySelector('.cq-reveal-btn') : null;
+        if (b) { b.textContent = open ? 'Hide' : 'Reveal'; b.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+      }
+      updateProgress();
+    });
+    on($('flip-all'), 'click', flipAll);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+
+</script>
+</body>
+</html>
