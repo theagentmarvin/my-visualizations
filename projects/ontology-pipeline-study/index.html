@@ -1169,7 +1169,7 @@ ss:      &lt;https://data.specialsolutions.example.com/instances/&gt;</code>
     { kind: 'datatype', prop: 'sequencePosition',       from: 'WorkflowStep', to: 'xsd:integer', flags: 'functional',  bend: 150 },
     { kind: 'datatype', prop: 'requiresHumanApproval',   from: 'WorkflowStep', to: 'xsd:boolean', flags: 'functional',  bend: 110 },
     { kind: 'datatype', prop: 'modelVersion',            from: 'AIAgent',      to: 'xsd:string',  flags: 'functional' },
-    { kind: 'datatype', prop: 'stepDurationMinutes',     from: 'WorkflowStep', to: 'xsd:integer', flags: '',           bend: 240 },
+    { kind: 'datatype', prop: 'stepDurationMinutes',     from: 'WorkflowStep', to: 'xsd:integer', flags: '—',          bend: 240 },
     { kind: 'datatype', prop: 'escalationThresholdHours', from: 'ApprovalGate', to: 'xsd:integer', flags: 'functional', bend: -120 },
 
     /* --- dotted — scheme membership / term definition --- */
@@ -1375,7 +1375,7 @@ ss:      &lt;https://data.specialsolutions.example.com/instances/&gt;</code>
     { term: 'Thin OWL frame', def: 'only the axioms that earn their inference cost; rules go to SHACL.' },
     { term: 'Competency question', def: 'a natural-language question with a definite answer the graph must return.' },
     { term: 'Crosswalk', def: 'profile element ↔ system field mapping.' },
-    { term: 'Promotion', def: 'turning a (C)box concept into a TBox class, or an ABox individual — the pipeline\'s layers connect rather than restate.' }
+    { term: 'Promotion', def: 'turning a (C)Box concept into a TBox class, or an ABox individual — the pipeline\'s layers connect rather than restate.' }
   ];
 
   /* =====================================================================
